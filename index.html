@@ -144,7 +144,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 <!-- DETAIL OVERLAY -->
 <div id="detail-overlay" class="overlay">
   <div class="overlay-header">
-    <button class="back-btn" onclick="closeOverlay('detail-overlay')">‹</button>
+    <button class="back-btn" onclick="closeAllOverlays()">‹</button>
     <h2 id="detail-title"></h2>
     <button class="btn btn-secondary" style="padding:8px 14px;font-size:0.78rem" onclick="startEdit()">Modifier</button>
   </div>
@@ -154,7 +154,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 <!-- EDIT/ADD OVERLAY -->
 <div id="edit-overlay" class="overlay">
   <div class="overlay-header">
-    <button class="back-btn" onclick="closeOverlay('edit-overlay')">‹</button>
+    <button class="back-btn" onclick="closeAllOverlays()">‹</button>
     <h2 id="edit-title">Nouvelle recette</h2>
   </div>
   <div class="overlay-body edit-form" id="edit-body"></div>
@@ -163,7 +163,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 <!-- SETTINGS OVERLAY -->
 <div id="settings-overlay" class="overlay">
   <div class="overlay-header">
-    <button class="back-btn" onclick="closeOverlay('settings-overlay')">‹</button>
+    <button class="back-btn" onclick="closeAllOverlays()">‹</button>
     <h2>Réglages</h2>
   </div>
   <div class="overlay-body edit-form">
@@ -335,6 +335,8 @@ function showSeedPrompt(){
   document.getElementById('seed-btn').onclick = importSeed;
 }
 async function importSeed(){
+  const btn = document.getElementById('seed-btn');
+  if(btn){ btn.disabled = true; btn.textContent = 'Import en cours…'; }
   toast('Import en cours…');
   for(const r of SEED){ await addDoc(recipesCol, {...r, createdAt: serverTimestamp()}); }
   toast('✓ Recettes importées !');
@@ -586,18 +588,18 @@ function renderParts(){
       <div class="ph"><span class="lbl">Sous-partie ${pi+1}</span>
         ${editingParts.length>1?`<button class="btn-icon-del" onclick="removePart(${pi})">🗑</button>`:''}
       </div>
-      ${editingParts.length>1?`<input placeholder="Nom (ex. Ganache)" value="${esc(p.name)}" oninput="editingParts[${pi}].name=this.value">`:''}
+      ${editingParts.length>1?`<input placeholder="Nom (ex. Ganache)" value="${esc(p.name)}" oninput="setPartName(${pi},this.value)">`:''}
       <label>Ingrédients</label>
       ${p.ingredients.map((ing,ii)=>`
         <div class="line-row">
-          <input value="${esc(ing)}" placeholder="ex. 250g de farine" oninput="editingParts[${pi}].ingredients[${ii}]=this.value">
+          <input value="${esc(ing)}" placeholder="ex. 250g de farine" oninput="setPartField(${pi},'ingredients',${ii},this.value)">
           <button class="btn-icon-del" onclick="removeLine(${pi},'ingredients',${ii})">✕</button>
         </div>`).join('')}
       <button type="button" class="btn-ghost" onclick="addLine(${pi},'ingredients')">+ Ingrédient</button>
       <label>Étapes</label>
       ${p.steps.map((s,si)=>`
         <div class="line-row">
-          <input value="${esc(s)}" placeholder="ex. Préchauffer le four à 180°C" oninput="editingParts[${pi}].steps[${si}]=this.value">
+          <input value="${esc(s)}" placeholder="ex. Préchauffer le four à 180°C" oninput="setPartField(${pi},'steps',${si},this.value)">
           <button class="btn-icon-del" onclick="removeLine(${pi},'steps',${si})">✕</button>
         </div>`).join('')}
       <button type="button" class="btn-ghost" onclick="addLine(${pi},'steps')">+ Étape</button>
@@ -605,6 +607,8 @@ function renderParts(){
 }
 window.addPart=function(){ editingParts.push({name:'',ingredients:[''],steps:['']}); renderParts(); };
 window.removePart=function(i){ editingParts.splice(i,1); renderParts(); };
+window.setPartName=function(pi,val){ editingParts[pi].name=val; };
+window.setPartField=function(pi,field,idx,val){ editingParts[pi][field][idx]=val; };
 window.addLine=function(pi,field){ editingParts[pi][field].push(''); renderParts(); };
 window.removeLine=function(pi,field,i){ editingParts[pi][field].splice(i,1); if(editingParts[pi][field].length===0) editingParts[pi][field].push(''); renderParts(); };
 
