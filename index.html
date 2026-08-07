@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="theme-color" content="#20302A">
+<meta name="theme-color" content="#FFF8EE">
 <title>Carnet de recettes</title>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,18 +13,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
 :root{
-  --bg:#1C2A22; --surface:#24352C; --card:#2B3F34; --card-hi:#33493C;
-  --accent:#E3A72E; --accent-ink:#241A05;
-  --rose:#C97064;
-  --text:#F1EEE2; --muted:#9BAE9F; --border:rgba(241,238,226,0.10);
-  --r:16px; --success:#7FB88A;
+  --bg:#FFF8EE; --surface:#FFFFFF; --card:#FFFFFF; --card-hi:#FFEFDD;
+  --accent:#E8536B; --accent-ink:#FFFFFF;
+  --rose:#C23B4B;
+  --text:#3B2A20; --muted:#9C8672; --border:rgba(59,42,32,0.12);
+  --r:16px; --success:#4C9A6A;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Work Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .mono{font-family:'IBM Plex Mono',monospace}
 
-#app-header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(28,42,34,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
+#app-header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,248,238,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
 .logo{font-family:'Fraunces',serif;font-weight:700;font-size:1.3rem;color:var(--accent);display:flex;align-items:baseline;gap:6px}
 .logo span{color:var(--text);font-weight:500;font-size:0.95rem}
 
@@ -44,7 +44,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .chip{padding:7px 15px;border-radius:50px;font-size:0.78rem;font-weight:500;border:1px solid var(--border);background:var(--card);color:var(--muted);white-space:nowrap;cursor:pointer;transition:all .15s}
 .chip.active{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
 
-.recipe-item{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:0;margin-bottom:10px;cursor:pointer;overflow:hidden;display:flex;transition:transform .15s}
+.recipe-item{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:0;margin-bottom:10px;cursor:pointer;overflow:hidden;display:flex;transition:transform .15s;box-shadow:0 2px 10px rgba(59,42,32,0.06)}
 .recipe-item:active{transform:scale(0.99)}
 .recipe-thumb{width:88px;min-width:88px;background:var(--card-hi) center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--muted)}
 .recipe-body{padding:13px 14px;flex:1;min-width:0}
@@ -62,13 +62,13 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 
 .overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;background:var(--bg);overflow-y:auto;display:none;flex-direction:column}
 .overlay.open{display:flex}
-.overlay-header{position:sticky;top:0;z-index:10;background:rgba(28,42,34,0.97);backdrop-filter:blur(12px);padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
+.overlay-header{position:sticky;top:0;z-index:10;background:rgba(255,248,238,0.95);backdrop-filter:blur(12px);padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
 .overlay-header h2{font-family:'Fraunces',serif;font-size:1.1rem;flex:1;font-weight:600}
 .back-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:none;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
 .overlay-body{padding:18px 16px 60px;flex:1;max-width:720px;margin:0 auto;width:100%}
 
 .detail-photo{width:100%;aspect-ratio:16/9;border-radius:var(--r);background:var(--card) center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--muted);margin-bottom:16px;position:relative;overflow:hidden}
-.photo-upload-btn{position:absolute;bottom:10px;right:10px;background:rgba(28,42,34,0.85);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:50px;font-size:0.78rem;cursor:pointer}
+.photo-upload-btn{position:absolute;bottom:10px;right:10px;background:rgba(59,42,32,0.75);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:8px 14px;border-radius:50px;font-size:0.78rem;cursor:pointer}
 
 .meta-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
 .meta-pill{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px 12px;text-align:center;flex:1;min-width:76px}
@@ -88,6 +88,18 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .steps-list li{counter-increment:step;padding:10px 0 10px 34px;position:relative;font-size:0.92rem;line-height:1.5;border-bottom:1px dashed var(--border)}
 .steps-list li::before{content:counter(step);position:absolute;left:0;top:9px;width:22px;height:22px;border-radius:50%;background:var(--card-hi);color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:0.72rem;font-weight:600;display:flex;align-items:center;justify-content:center}
 .notes-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;font-size:0.88rem;color:var(--muted);margin-top:16px;white-space:pre-wrap}
+
+.view-toggle{display:flex;gap:6px;background:var(--card-hi);border-radius:50px;padding:4px;margin:16px 0 4px;width:fit-content}
+.vt-btn{border:none;background:none;padding:7px 16px;border-radius:50px;font-size:0.8rem;font-weight:600;color:var(--muted);cursor:pointer;font-family:'Work Sans',sans-serif}
+.vt-btn.active{background:var(--accent);color:var(--accent-ink)}
+
+.schema-wrap{display:flex;gap:14px;overflow-x:auto;padding:16px 2px 8px;margin:0 -2px}
+.schema-lane{display:flex;flex-direction:column;align-items:center;min-width:170px;flex-shrink:0}
+.schema-lane-title{font-family:'Fraunces',serif;font-weight:600;font-size:0.85rem;color:var(--accent);margin-bottom:8px;text-align:center}
+.schema-box{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:10px 12px;font-size:0.76rem;text-align:center;line-height:1.35;width:100%;box-shadow:0 2px 8px rgba(59,42,32,0.06)}
+.schema-ing-box{background:var(--card-hi);border:2px dashed var(--accent);font-family:'IBM Plex Mono',monospace;font-size:0.72rem}
+.schema-arrow{color:var(--accent);font-size:1.1rem;line-height:1;margin:3px 0}
+.schema-converge{text-align:center;color:var(--muted);margin-top:8px;font-family:'Fraunces',serif;font-style:italic}
 .source-line{font-size:0.78rem;color:var(--muted);margin-top:10px;font-style:italic}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:50px;font-family:'Work Sans',sans-serif;font-size:0.86rem;font-weight:600;cursor:pointer;border:none;transition:opacity .15s}
@@ -119,10 +131,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 
 <div id="app-header">
   <div class="logo">Carnet <span>de recettes</span></div>
-  <div style="display:flex;gap:8px">
-    <button class="btn btn-secondary" style="padding:8px 12px;font-size:0.78rem" onclick="openSettings()">⚙️</button>
-    <button class="btn btn-secondary" style="padding:8px 12px;font-size:0.78rem" onclick="closeAllOverlays();document.getElementById('search-input').focus()">🔍</button>
-  </div>
+  <button class="btn btn-secondary" style="padding:8px 12px;font-size:0.78rem" onclick="openSettings()">⚙️</button>
 </div>
 
 <!-- HOME -->
@@ -182,6 +191,9 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
     <div class="btn-row">
       <button class="btn btn-secondary btn-full" onclick="clearSettings()">Effacer ces réglages de cet appareil</button>
     </div>
+    <div class="btn-row">
+      <button class="btn btn-danger btn-full" onclick="wipeAllRecipes()">🗑 Vider tout le carnet (supprime toutes les recettes)</button>
+    </div>
   </div>
 </div>
 
@@ -209,99 +221,100 @@ const recipesCol = collection(db, "recipes");
 // SEED DATA — vos 23 recettes de départ
 // ══════════════════════════════════
 const SEED = [
-{title:"Bûche de Noël – Roulé au chocolat", category:"Dessert", difficulty:"Moyen", servingsBase:8, servingsUnit:"parts", prepMin:60, cookMin:8, restMin:60, source:"", notes:"",
+{title:"Bûche de Noël – Roulé au chocolat", category:"Dessert", difficulty:"", servingsBase:0, servingsUnit:"", prepMin:0, cookMin:0, restMin:0, source:"", notes:"", labels:["Noël"],
  parts:[
-  {name:"Génoise", ingredients:["5 œufs","125g sucre","100g farine"], steps:["Préchauffer le four à 180°C.","Blanchir les jaunes avec le sucre.","Monter les blancs en neige.","Incorporer délicatement l'un à l'autre.","Cuire 8 minutes sur plaque recouverte de papier sulfurisé.","Rouler dans un torchon."]},
-  {name:"Ganache", ingredients:["250g chocolat noir","1/2 gousse de vanille","20cl crème fleurette"], steps:["Bouillir 15cl de crème avec la vanille grattée.","Verser sur le chocolat coupé en carrés.","Attendre 1 minute puis mélanger et laisser refroidir.","Battre le reste de crème très froide en chantilly et incorporer délicatement."]},
-  {name:"Nappage", ingredients:["50g chocolat noir","30g beurre","1 jaune d'œuf"], steps:["Fondre le chocolat avec le beurre et bien mélanger.","Ajouter le jaune en remuant vivement pour éviter qu'il cuise."]}
+  {name:"Génoise", ingredients:["5 œufs","125g sucre","100g farine"], steps:["Préchauffer le four à 180°C.","Blanchir les 5 jaunes d'œufs avec les 125g de sucre.","Monter les 5 blancs d'œufs en neige.","Incorporer délicatement les blancs montés et les 100g de farine tamisée au mélange jaunes-sucre.","Cuire 8 minutes sur plaque recouverte de papier sulfurisé.","Rouler dans un torchon."]},
+  {name:"Ganache", ingredients:["250g chocolat noir","1/2 gousse de vanille","20cl crème fleurette"], steps:["Bouillir 15cl de crème avec la 1/2 gousse de vanille grattée.","Verser sur les 250g de chocolat noir coupé en carrés.","Attendre 1 minute puis mélanger et laisser refroidir.","Battre les 5cl de crème restants très froide en chantilly et incorporer délicatement."]},
+  {name:"Nappage", ingredients:["50g chocolat noir","30g beurre","1 jaune d'œuf"], steps:["Fondre les 50g de chocolat noir avec les 30g de beurre et bien mélanger.","Ajouter le jaune d'œuf en remuant vivement pour éviter qu'il cuise."]}
  ]},
-{title:"Caponata", category:"Plat", difficulty:"Moyen", servingsBase:4, servingsUnit:"personnes", prepMin:40, cookMin:70, restMin:0, source:"", notes:"Pour le concentré de tomate, essayez de trouver une marque italienne (Cirio, ou du \"strattu\" sicilien) pour sauver l'honneur.",
+{title:"Caponata", category:"Plat", difficulty:"", servingsBase:4, servingsUnit:"personnes", prepMin:0, cookMin:0, restMin:0, source:"", notes:"Pour le concentré de tomate, essayez de trouver une marque italienne (Cirio, ou du \"strattu\" sicilien) pour sauver l'honneur.", labels:[],
  parts:[{name:"", ingredients:["1 kilos d'aubergines (3 aubergines moyennes)","200g d'oignons rouges (2 gros oignons)","150g de céleri branche","40g de concentré de tomate","80g d'olives vertes dénoyautées (~125g avec noyaux)","30g de câpres","20g de raisins secs sultanines","20g de pignons","30g de vinaigre de vin blanc","30g de sucre en poudre","25g d'huile d'olive","Sel, poivre noir du moulin","Huile neutre pour frire les aubergines"],
- steps:["Couper les aubergines en tranches épaisses dans la longueur, puis en cubes. Cuire au air fryer.","Saler, poivrer, mélanger, goûter, ajuster.","Dénoyauter les olives et les couper en rondelles.","Couper le céleri en petits morceaux et le faire bouillir jusqu'à ce qu'il devienne tendre.","Hacher finement les oignons rouges.","Mélanger le vinaigre avec le sucre en poudre.","Verser l'huile d'olive dans une cocotte.","Quand l'huile est chaude, ajouter les oignons et les faire revenir 5mn sur feu assez fort en remuant régulièrement. Ils doivent bien colorer sans brûler.","Ajouter le céleri bouilli et mélanger.","Ajouter le concentré de tomate, mélanger et faire revenir 2mn sur feu assez fort.","Ajouter les câpres, les olives, les raisins secs.","Verser 200g d'eau.","Couvrir et laisser mijoter 1 heure sur feu très doux.","Éteindre le feu, ajouter les aubergines et les pignons torréfiés."]}]},
-{title:"Charlotte au chocolat", category:"Dessert", difficulty:"Facile", servingsBase:8, servingsUnit:"parts", prepMin:30, cookMin:0, restMin:240, source:"", notes:"",
- parts:[{name:"", ingredients:["25 boudoirs ou biscuits cuiller","Environ un bol de liquide (café, etc.) pour les imbiber","250g de chocolat","50g de beurre","4 jaunes d'œuf","1 cas de sucre","20cl de crème liquide entière très froide","4 blancs d'œuf","1 pincée de sel"],
- steps:["Tapisser un moule avec les boudoirs imbibés de liquide.","Faire fondre le chocolat et le beurre (environ 3 minutes à puissance moyenne au micro-ondes).","Ajouter les jaunes d'œuf.","Battre le sucre et la crème liquide très froide en chantilly, et l'ajouter à la crème chocolatée.","Battre les blancs d'œuf avec le sel en neige, et les incorporer à la ganache.","Recouvrir les biscuits et laisser prendre au frigo."]}]},
-{title:"Fondant au chocolat", category:"Dessert", difficulty:"Facile", servingsBase:6, servingsUnit:"parts", prepMin:15, cookMin:15, restMin:0, source:"", notes:"La noix de coco râpée est optionnelle.",
+ steps:["Couper le kilo d'aubergines en tranches épaisses dans la longueur, puis en cubes. Cuire au air fryer.","Saler, poivrer, mélanger, goûter, ajuster.","Dénoyauter les 80g d'olives vertes et les couper en rondelles.","Couper les 150g de céleri branche en petits morceaux et les faire bouillir jusqu'à ce qu'ils deviennent tendres.","Hacher finement les 200g d'oignons rouges.","Mélanger les 30g de vinaigre de vin blanc avec les 30g de sucre en poudre.","Verser les 25g d'huile d'olive dans une cocotte.","Quand l'huile est chaude, ajouter les oignons et les faire revenir 5mn sur feu assez fort en remuant régulièrement. Ils doivent bien colorer sans brûler.","Ajouter le céleri bouilli et mélanger.","Ajouter les 40g de concentré de tomate, mélanger et faire revenir 2mn sur feu assez fort.","Ajouter les 30g de câpres, les 80g d'olives et les 20g de raisins secs.","Verser 200g d'eau.","Couvrir et laisser mijoter 1 heure sur feu très doux.","Éteindre le feu, ajouter les aubergines et les 20g de pignons torréfiés."]}]},
+{title:"Charlotte au chocolat", category:"Dessert", difficulty:"", servingsBase:0, servingsUnit:"", prepMin:0, cookMin:0, restMin:0, source:"", notes:"", labels:[],
+ parts:[{name:"", ingredients:["25 boudoirs ou biscuits cuiller","Environ un bol de liquide pour les imbiber","250g de chocolat","50g de beurre","4 jaunes d'œuf","1 cas de sucre","20cl de crème liquide entière très froide","4 blancs d'œuf","1 pincée de sel"],
+ steps:["Tapisser un moule avec les 25 boudoirs imbibés du bol de liquide (café, etc.).","Faire fondre les 250g de chocolat et les 50g de beurre (environ 3 minutes à puissance moyenne au micro-ondes).","Ajouter les 4 jaunes d'œuf.","Battre la cuillère à soupe de sucre et les 20cl de crème liquide entière très froide en chantilly, et l'ajouter à la crème chocolatée.","Battre les 4 blancs d'œuf avec la pincée de sel en neige, et les incorporer à la ganache.","Recouvrir les biscuits et laisser prendre au frigo."]}]},
+{title:"Fondant au chocolat", category:"Dessert", difficulty:"", servingsBase:0, servingsUnit:"", prepMin:0, cookMin:15, restMin:0, source:"", notes:"La noix de coco râpée est optionnelle.", labels:[],
  parts:[{name:"", ingredients:["200g chocolat à cuire","170g beurre","3 gros ou 4 petits œufs","150g sucre","Noix de coco râpée (optionnel)","Grosse pincée de sel","40g de farine"],
- steps:["Faire fondre le chocolat et le beurre.","Battre les œufs, le sucre, la noix de coco et le sel.","Ajouter le mélange fondu et bien mélanger.","Ajouter la farine et mélanger juste assez pour qu'il n'y ait pas de grumeau.","Cuire 15 min à 180°C dans un petit moule à tarte recouvert de papier sulfurisé."]}]},
-{title:"Macarons à la vanille", category:"Dessert", difficulty:"Difficile", servingsBase:30, servingsUnit:"macarons", prepMin:120, cookMin:25, restMin:2880, source:"", notes:"Recette étalée sur plusieurs jours (J-4 à J). Voir le tableau de proportions pour ajuster le tant pour tant selon le nombre de macarons souhaité.",
+ steps:["Faire fondre les 200g de chocolat et les 170g de beurre.","Battre les œufs, les 150g de sucre, la noix de coco et la pincée de sel.","Ajouter le mélange fondu et bien mélanger.","Ajouter les 40g de farine et mélanger juste assez pour qu'il n'y ait pas de grumeau.","Cuire 15 min à 180°C dans un petit moule à tarte recouvert de papier sulfurisé."]}]},
+{title:"Macarons à la vanille", category:"Dessert", difficulty:"", servingsBase:0, servingsUnit:"", prepMin:0, cookMin:25, restMin:0, source:"", notes:"Recette étalée sur plusieurs jours (J-4 à J). Voir le tableau de proportions pour ajuster le tant pour tant selon le nombre de macarons souhaité.", labels:[],
  parts:[
-  {name:"Biscuits", ingredients:["Un peu de sucre","280g amandes","480g sucre glace","200g blancs d'œufs"], steps:["J-4 : séparer les blancs des jaunes et les conserver au réfrigérateur (ou congélateur).","J-2 : hacher les amandes et les torréfier 10 minutes au four à 150°C, puis les faire refroidir.","J-2 : mélanger les amandes et le sucre glace et passer au hachoir (tant pour tant).","J-1, une heure avant : sortir les blancs d'œuf du réfrigérateur.","J-1 : battre les blancs d'œuf jusqu'à faire apparaître un bec, en ajoutant un peu de sucre quand ça mousse pour des blancs plus fermes.","Ajouter le tant pour tant en deux temps et macaronner (mouvements vigoureux de l'intérieur vers l'extérieur) jusqu'à obtenir le \"ruban\".","Préchauffer le four à 150°C avec la plaque à l'intérieur.","Mettre l'appareil en poche à douille, positionner des boules de 2cm espacées de 3cm sur papier sulfurisé.","Cuire 25 minutes sur la plaque chaude, puis laisser refroidir."]},
-  {name:"Ganache", ingredients:["2 gousses de vanille","300g crème liquide","330g couverture ivoire (chocolat blanc)"], steps:["J-2 : fendre les gousses de vanille, gratter les grains, mélanger avec la crème dans une casserole et porter à ébullition. Laisser infuser une demi-heure.","Faire fondre le chocolat blanc.","Retirer les gousses de vanille de la crème et l'ajouter au chocolat fondu en trois fois, en émulsionnant à la maryse.","Réserver au frais.","J-1 : garnir une poche à douille de ganache, placer une noix sur la moitié des coques et recouvrir avec les autres. Réfrigérer.","J : sortir les macarons à température ambiante une demi-heure avant dégustation."]}
+  {name:"Biscuits", ingredients:["Un peu de sucre","280g amandes","480g sucre glace","200g blancs d'œufs"], steps:["J-4 : séparer les blancs des jaunes et les conserver au réfrigérateur (ou congélateur).","J-2 : hacher les 280g d'amandes et les torréfier 10 minutes au four à 150°C, puis les faire refroidir.","J-2 : mélanger les amandes et les 480g de sucre glace et passer au hachoir (tant pour tant).","J-1, une heure avant : sortir les 200g de blancs d'œufs du réfrigérateur.","J-1 : battre les blancs d'œufs jusqu'à faire apparaître un bec, en ajoutant un peu de sucre quand ça mousse pour des blancs plus fermes.","Ajouter le tant pour tant en deux temps et macaronner (mouvements vigoureux de l'intérieur vers l'extérieur) jusqu'à obtenir le \"ruban\".","Préchauffer le four à 150°C avec la plaque à l'intérieur.","Mettre l'appareil en poche à douille, positionner des boules de 2cm espacées de 3cm sur papier sulfurisé.","Cuire 25 minutes sur la plaque chaude, puis laisser refroidir."]},
+  {name:"Ganache", ingredients:["2 gousses de vanille","300g crème liquide","330g couverture ivoire (chocolat blanc)"], steps:["J-2 : fendre les 2 gousses de vanille, gratter les grains, mélanger avec les 300g de crème dans une casserole et porter à ébullition. Laisser infuser une demi-heure.","Faire fondre les 330g de chocolat blanc.","Retirer les gousses de vanille de la crème et l'ajouter au chocolat fondu en trois fois, en émulsionnant à la maryse.","Réserver au frais.","J-1 : garnir une poche à douille de ganache, placer une noix sur la moitié des coques et recouvrir avec les autres. Réfrigérer.","J : sortir les macarons à température ambiante une demi-heure avant dégustation."]}
  ]},
-{title:"Pizza libanaise", category:"Plat", difficulty:"Facile", servingsBase:4, servingsUnit:"personnes", prepMin:20, cookMin:0, restMin:0, source:"", notes:"",
+{title:"Pizza libanaise", category:"Plat", difficulty:"", servingsBase:0, servingsUnit:"", prepMin:0, cookMin:0, restMin:0, source:"", notes:"", labels:[],
  parts:[{name:"", ingredients:["1 oignon ou 3 échalotes","200g de bœuf haché","4 tomates crues en petits cubes","1 cuillère à soupe de cannelle","1 cuillère à soupe de mélasse de grenade","1 petite tasse à café de vinaigre de cidre","2 cuillères à soupe de tahin","1 cuillère à soupe de sumac","Des pignons","Du poivre 5 baies"],
- steps:["Faire revenir l'oignon ou les échalotes.","Ajouter le bœuf haché.","Dans un saladier, mélanger les tomates, la cannelle, la mélasse de grenade, le vinaigre de cidre, le tahin, le sumac, les pignons et le poivre 5 baies."]}]},
-{title:"Nougat glacé framboises et fruits secs caramélisés", category:"Dessert", difficulty:"Difficile", servingsBase:8, servingsUnit:"parts", prepMin:90, cookMin:20, restMin:480, source:"", notes:"",
+ steps:["Faire revenir l'oignon ou les échalotes.","Ajouter les 200g de bœuf haché.","Dans un saladier, mélanger les 4 tomates en petits cubes, la cuillère à soupe de cannelle, la cuillère à soupe de mélasse de grenade, la tasse de vinaigre de cidre, les 2 cuillères à soupe de tahin, la cuillère à soupe de sumac, les pignons et le poivre 5 baies."]}]},
+{title:"Nougat glacé framboises et fruits secs caramélisés", category:"Dessert", difficulty:"", servingsBase:0, servingsUnit:"", prepMin:0, cookMin:0, restMin:0, source:"", notes:"", labels:[],
  parts:[{name:"", ingredients:["80g de blancs d'œufs","20g + 35g + 50g de sucre","65g de miel","20g de sirop de glucose","1 brique de 33cl de crème fleurette entière (~310g)","35g de noisettes","35g d'amandes","35g de pistaches émondées non salées","200g de framboises","5g de beurre","1 pincée de fleur de sel","200g de coulis de framboise"],
- steps:["Torréfier les noisettes et amandes 10-15 min à 160°C chaleur tournante (ou 5 min au air fryer). Laisser refroidir puis frotter entre les mains pour retirer la peau des noisettes.","Concasser grossièrement au rouleau à pâtisserie dans un sac congélation.","Dans une poêle, verser les amandes/noisettes et 50g de sucre. Remuer sans arrêt sur feu moyen/fort jusqu'à caramel ambré.","Éteindre le feu, ajouter le beurre et la fleur de sel, mélanger. Étaler sur papier sulfurisé et laisser refroidir.","Monter la crème fleurette au robot, à petite vitesse puis en augmentant progressivement. Réserver au frais.","Meringue italienne : dans une casserole, verser 35g de sucre, le miel et le sirop de glucose. Porter à ébullition jusqu'à 120°C (thermomètre).","Dans le robot, verser les blancs, 20g de sucre et une pincée de sel. Fouetter 20s à vitesse max.","Verser le sirop chaud d'un coup sur les blancs, racler la casserole.","Fouetter à vitesse max pendant 5 minutes jusqu'à ce que la meringue soit bien refroidie.","Ajouter les fruits secs caramélisés et les pistaches, mélanger délicatement à la maryse.","Incorporer la crème montée.","Chemiser un moule à cake de film alimentaire, verser la préparation, lisser, recouvrir et congeler une nuit.","Le jour J, démouler en tirant sur le film. Servir immédiatement avec le coulis de framboise, en coupant vite avec un bon couteau."]}]},
-{title:"Pounti", category:"Plat", difficulty:"Moyen", servingsBase:6, servingsUnit:"personnes", prepMin:30, cookMin:60, restMin:0, source:"", notes:"",
+ steps:["Torréfier les 35g de noisettes et 35g d'amandes 10-15 min à 160°C chaleur tournante (ou 5 min au air fryer). Laisser refroidir puis frotter entre les mains pour retirer la peau des noisettes.","Concasser grossièrement au rouleau à pâtisserie dans un sac congélation.","Dans une poêle, verser les amandes et noisettes avec 50g de sucre. Remuer sans arrêt sur feu moyen/fort jusqu'à caramel ambré.","Éteindre le feu, ajouter les 5g de beurre et la pincée de fleur de sel, mélanger. Étaler sur papier sulfurisé et laisser refroidir.","Monter la brique de 33cl de crème fleurette au robot, à petite vitesse puis en augmentant progressivement. Réserver au frais.","Meringue italienne : dans une casserole, verser 35g de sucre, les 65g de miel et les 20g de sirop de glucose. Porter à ébullition jusqu'à 120°C (thermomètre).","Dans le robot, verser les 80g de blancs d'œufs, 20g de sucre et une pincée de sel. Fouetter 20s à vitesse max.","Verser le sirop chaud d'un coup sur les blancs, racler la casserole.","Fouetter à vitesse max pendant 5 minutes jusqu'à ce que la meringue soit bien refroidie.","Ajouter les fruits secs caramélisés et les 35g de pistaches, mélanger délicatement à la maryse.","Incorporer la crème montée.","Chemiser un moule à cake de film alimentaire, verser la préparation, lisser, recouvrir et congeler une nuit.","Le jour J, démouler en tirant sur le film. Servir immédiatement avec les 200g de coulis et les 200g de framboises, en coupant vite avec un bon couteau."]}]},
+{title:"Pounti", category:"Plat", difficulty:"", servingsBase:0, servingsUnit:"", prepMin:0, cookMin:60, restMin:0, source:"", notes:"", labels:[],
  parts:[{name:"", ingredients:["300g lard ou chair à saucisse","3 oignons","1 bouquet de persil","Les feuilles d'une blette","15cl de lait","80g de farine","4 œufs","30 pruneaux"],
- steps:["Faire un hachis avec le persil, les blettes, les oignons, le lard.","Mélanger avec le lait, la farine et les œufs.","Saler, poivrer.","Beurrer une terrine, tapisser le fond avec la farce, répartir les pruneaux et recouvrir avec le reste de la farce.","Cuire 1 heure à 180°C."]}]},
-{title:"Tarte aux fruits secs et au caramel", category:"Dessert", difficulty:"Moyen", servingsBase:3, servingsUnit:"tartes", prepMin:60, cookMin:25, restMin:720, source:"", notes:"Le caramel se garde bien au frigo (environ 1,5 pot de confiture pour 3 tartes).",
+ steps:["Faire un hachis avec le bouquet de persil, les feuilles de blette, les 3 oignons et les 300g de lard.","Mélanger avec les 15cl de lait, les 80g de farine et les 4 œufs.","Saler, poivrer.","Beurrer une terrine, tapisser le fond avec la farce, répartir les 30 pruneaux et recouvrir avec le reste de la farce.","Cuire 1 heure à 180°C."]}]},
+{title:"Tarte aux fruits secs et au caramel", category:"Dessert", difficulty:"", servingsBase:3, servingsUnit:"tartes", prepMin:0, cookMin:25, restMin:0, source:"", notes:"Le caramel se garde bien au frigo (environ 1,5 pot de confiture pour 3 tartes).", labels:[],
  parts:[
-  {name:"Pâte sucrée (pour 3 tartes)", ingredients:["500g de farine","300g de beurre pommade doux","180g de sucre","60g de poudre d'amande","2 œufs","2g de fleur de sel"], steps:["Crémer le beurre.","Ajouter le sucre, la poudre d'amande, le sel et battre au moins 2 minutes.","Ajouter les œufs et battre encore 1 minute.","Verser la farine et mélanger le moins possible.","Séparer en 3 boules ; en congeler 2, garder la 3ème une nuit au frigo.","Le lendemain, étaler entre deux feuilles de papier sulfurisé, mettre dans le moule à tarte et laisser 30 minutes au frigo.","Cuire 25 minutes à 160°C (à adapter)."]},
-  {name:"Caramel (pour 3 tartes)", ingredients:["240g de sucre","120g de beurre salé","30cl de crème liquide"], steps:["Chauffer le sucre à sec sur feu moyen jusqu'à obtenir un caramel ambré (3-4 minutes).","Pendant ce temps, faire chauffer la crème liquide.","Retirer la casserole du feu, ajouter une petite partie de la crème en faisant attention aux projections, remuer vivement puis incorporer le reste.","Ajouter le beurre et remuer jusqu'à une crème homogène.","Si trop liquide, remettre sur feu doux et remuer jusqu'à la consistance souhaitée."]},
-  {name:"Fruits secs (pour 1 tarte)", ingredients:["40g de noix","40g de noisettes","40g d'amandes","40g de cacahuètes grillées et salées","30g de pistaches émondées non salées","20g de pignons de pins"], steps:["Torréfier 15 minutes à 150°C."]}
+  {name:"Pâte sucrée (pour 3 tartes)", ingredients:["500g de farine","300g de beurre pommade doux","180g de sucre","60g de poudre d'amande","2 œufs","2g de fleur de sel"], steps:["Crémer les 300g de beurre.","Ajouter les 180g de sucre, les 60g de poudre d'amande, les 2g de fleur de sel et battre au moins 2 minutes.","Ajouter les 2 œufs et battre encore 1 minute.","Verser les 500g de farine et mélanger le moins possible.","Séparer en 3 boules ; en congeler 2, garder la 3ème une nuit au frigo.","Le lendemain, étaler entre deux feuilles de papier sulfurisé, mettre dans le moule à tarte et laisser 30 minutes au frigo.","Cuire 25 minutes à 160°C (à adapter)."]},
+  {name:"Caramel (pour 3 tartes)", ingredients:["240g de sucre","120g de beurre salé","30cl de crème liquide"], steps:["Chauffer les 240g de sucre à sec sur feu moyen jusqu'à obtenir un caramel ambré (3-4 minutes).","Pendant ce temps, faire chauffer les 30cl de crème liquide.","Retirer la casserole du feu, ajouter une petite partie de la crème en faisant attention aux projections, remuer vivement puis incorporer le reste.","Ajouter les 120g de beurre et remuer jusqu'à une crème homogène.","Si trop liquide, remettre sur feu doux et remuer jusqu'à la consistance souhaitée."]},
+  {name:"Fruits secs (pour 1 tarte)", ingredients:["40g de noix","40g de noisettes","40g d'amandes","40g de cacahuètes grillées et salées","30g de pistaches émondées non salées","20g de pignons de pins"], steps:["Torréfier les 40g de noix, 40g de noisettes, 40g d'amandes, 40g de cacahuètes, 30g de pistaches et 20g de pignons 15 minutes à 150°C."]}
  ]},
-{title:"Stollen de Noël", category:"Boulangerie", difficulty:"Difficile", servingsBase:4, servingsUnit:"stollen", prepMin:90, cookMin:40, restMin:150, source:"", notes:"La pâte d'amande se conserve environ 1 mois au frigo.",
+{title:"Stollen de Noël", category:"Boulangerie", difficulty:"", servingsBase:4, servingsUnit:"stollen", prepMin:0, cookMin:40, restMin:0, source:"", notes:"La pâte d'amande se conserve environ 1 mois au frigo.", labels:["Noël"],
  parts:[
-  {name:"Pâte d'amande", ingredients:["250g d'amandes en poudre","210g de sucre","1 à 2 blancs d'œufs","Quelques gouttes d'extrait d'amande amère"], steps:["Sécher les amandes 10 min à 150°C sur plaque, laisser refroidir.","Mixer les amandes et le sucre.","Ajouter un blanc d'œuf et travailler rapidement la pâte (ajuster avec blanc d'œuf ou amandes en poudre selon la texture).","Former un boudin, filmer, conserver au frigo."]},
-  {name:"Levain", ingredients:["150g de lait","25g de levure de boulanger fraîche (ou 8g déshydratée)","200g de farine"], steps:["Mélanger la levure, le lait et la farine dans un récipient.","Couvrir d'un torchon et laisser reposer 1h à température ambiante, jusqu'à ce qu'il double de volume."]},
-  {name:"Pâte à brioche", ingredients:["200g de farine","25g de sucre","170g de beurre mou","2 pincées de cannelle","1 cc de sel"], steps:["Ajouter au levain poussé la farine, le sucre, la cannelle et le beurre mou.","Mélanger jusqu'à une pâte homogène et pétrir quelques minutes.","Prélever 1/5 de la pâte et réserver au frigo dans du film alimentaire."]},
-  {name:"Garniture", ingredients:["80 à 100g de pâte d'amande","50g d'amandes entières","50g de noisettes entières","80g de raisins secs"], steps:["Mélanger les 4/5 de pâte restants avec les amandes et noisettes hachées grossièrement et les raisins.","Laisser pousser 30 minutes à température ambiante, retravailler, former un boudin, laisser reposer 30 minutes.","Fariner le plan de travail, étaler le morceau de pâte réservé sur 3mm en rectangle.","Badigeonner d'eau et envelopper le boudin dedans. Laisser reposer 20-30 minutes.","Préchauffer le four à 180°C.","Cuire 40 minutes à 180°C."]}
+  {name:"Pâte d'amande", ingredients:["250g d'amandes en poudre","210g de sucre","1 à 2 blancs d'œufs","Quelques gouttes d'extrait d'amande amère"], steps:["Sécher les 250g d'amandes 10 min à 150°C sur plaque, laisser refroidir.","Mixer les amandes et les 210g de sucre.","Ajouter un blanc d'œuf et quelques gouttes d'extrait d'amande amère, travailler rapidement la pâte (ajuster avec blanc d'œuf ou amandes en poudre selon la texture).","Former un boudin, filmer, conserver au frigo."]},
+  {name:"Levain", ingredients:["150g de lait","25g de levure de boulanger fraîche (ou 8g déshydratée)","200g de farine"], steps:["Mélanger les 25g de levure, les 150g de lait et les 200g de farine dans un récipient.","Couvrir d'un torchon et laisser reposer 1h à température ambiante, jusqu'à ce qu'il double de volume."]},
+  {name:"Pâte à brioche", ingredients:["200g de farine","25g de sucre","170g de beurre mou","2 pincées de cannelle","1 cc de sel"], steps:["Ajouter au levain poussé les 200g de farine, les 25g de sucre, les 2 pincées de cannelle, la cc de sel et les 170g de beurre mou.","Mélanger jusqu'à une pâte homogène et pétrir quelques minutes.","Prélever 1/5 de la pâte et réserver au frigo dans du film alimentaire."]},
+  {name:"Garniture", ingredients:["80 à 100g de pâte d'amande","50g d'amandes entières","50g de noisettes entières","80g de raisins secs"], steps:["Mélanger les 4/5 de pâte restants avec les 50g d'amandes et 50g de noisettes hachées grossièrement et les 80g de raisins.","Laisser pousser 30 minutes à température ambiante, retravailler, former un boudin, laisser reposer 30 minutes.","Fariner le plan de travail, étaler le morceau de pâte réservé sur 3mm en rectangle.","Badigeonner d'eau et envelopper le boudin avec les 80 à 100g de pâte d'amande dedans. Laisser reposer 20-30 minutes.","Préchauffer le four à 180°C.","Cuire 40 minutes à 180°C."]}
  ]},
-{title:"Cookies", category:"Boulangerie", difficulty:"Facile", servingsBase:36, servingsUnit:"cookies", prepMin:20, cookMin:8, restMin:0, source:"", notes:"Attention, certaines quantités sont exprimées en volume.",
+{title:"Cookies", category:"Boulangerie", difficulty:"", servingsBase:36, servingsUnit:"cookies", prepMin:0, cookMin:0, restMin:0, source:"", notes:"Attention, certaines quantités sont exprimées en volume.", labels:[],
  parts:[{name:"", ingredients:["560mL (360g) de farine","1 cuillère à café de sel","1 cuillère à café de levure","180mL (160g) de sucre roux","1 cuillère à soupe de vanille liquide","170g de beurre","2 œufs","100g de chocolat noir"],
- steps:["Casser le chocolat pour en faire des pépites.","Dans un petit bol, mélanger la farine, le sel, la levure et le chocolat en pépites.","Dans un grand bol, faire une pommade avec le beurre, ajouter le sucre puis les œufs et la vanille liquide. Bien battre.","Verser le contenu du petit bol dans le grand bol et mélanger rapidement (s'arrêter dès qu'on ne distingue plus la farine).","Préchauffer le four à 190°C.","Placer 12 tas de pâte sur 3 plaques recouvertes de papier sulfurisé.","Cuire séparément chaque plaque 6 à 10 minutes : le bord doit être coloré, le milieu encore tendre."]}]},
-{title:"Cheesecake", category:"Dessert", difficulty:"Moyen", servingsBase:8, servingsUnit:"parts", prepMin:25, cookMin:50, restMin:180, source:"", notes:"",
+ steps:["Casser les 100g de chocolat pour en faire des pépites.","Dans un petit bol, mélanger les 360g de farine, la cuillère à café de sel, la cuillère à café de levure et le chocolat en pépites.","Dans un grand bol, faire une pommade avec les 170g de beurre, ajouter les 160g de sucre roux puis les 2 œufs et la cuillère à soupe de vanille liquide. Bien battre.","Verser le contenu du petit bol dans le grand bol et mélanger rapidement (s'arrêter dès qu'on ne distingue plus la farine).","Préchauffer le four à 190°C.","Placer 12 tas de pâte sur 3 plaques recouvertes de papier sulfurisé.","Cuire séparément chaque plaque 6 à 10 minutes : le bord doit être coloré, le milieu encore tendre."]}]},
+{title:"Cheesecake", category:"Dessert", difficulty:"", servingsBase:0, servingsUnit:"", prepMin:0, cookMin:50, restMin:0, source:"", notes:"", labels:[],
  parts:[{name:"", ingredients:["24 biscuits Thé","80g de beurre","600g de Philadelphia cream cheese","6 petits suisses","100g de sucre","4 œufs","1 cuillère à soupe de vanille liquide"],
- steps:["Broyer les biscuits.","Faire fondre le beurre, le verser sur les biscuits et mélanger.","Verser dans un moule recouvert de papier sulfurisé, tasser au dos d'une cuillère, réserver au réfrigérateur.","Préchauffer le four à 150°C.","Fouetter le fromage, ajouter le sucre, les œufs et la vanille, mélanger.","Verser sur les biscuits écrasés et enfourner 50 minutes (la crème doit trembloter légèrement à la sortie du four)."]}]},
-{title:"Carrot cake", category:"Dessert", difficulty:"Moyen", servingsBase:8, servingsUnit:"parts", prepMin:25, cookMin:25, restMin:0, source:"", notes:"",
+ steps:["Broyer les 24 biscuits Thé.","Faire fondre les 80g de beurre, le verser sur les biscuits et mélanger.","Verser dans un moule recouvert de papier sulfurisé, tasser au dos d'une cuillère, réserver au réfrigérateur.","Préchauffer le four à 150°C.","Fouetter les 600g de Philadelphia et les 6 petits suisses, ajouter les 100g de sucre, les 4 œufs et la cuillère à soupe de vanille, mélanger.","Verser sur les biscuits écrasés et enfourner 50 minutes (la crème doit trembloter légèrement à la sortie du four)."]}]},
+{title:"Carrot cake", category:"Dessert", difficulty:"", servingsBase:0, servingsUnit:"", prepMin:0, cookMin:25, restMin:0, source:"", notes:"", labels:[],
  parts:[
-  {name:"Biscuit", ingredients:["180g de farine","1 cuillère à café de levure","1 pincée de cannelle","1/2 cuillère à café de sel","90g d'huile","120g de sucre roux","2 œufs","1 cuillère à café de vanille liquide","3 carottes râpées","60g de noix concassées"], steps:["Battre tous les ingrédients ensemble et verser dans un moule rond.","Cuire 10 minutes à 200°C puis 15 minutes à 180°C."]},
-  {name:"Nappage", ingredients:["50g de beurre mou","100g de sucre glace","1 cuillère à soupe de vanille liquide","300g de Philadelphia cream cheese"], steps:["Battre le beurre en pommade, intégrer le sucre glace puis la vanille, puis le cream cheese.","Napper le biscuit lorsqu'il est bien refroidi."]}
+  {name:"Biscuit", ingredients:["180g de farine","1 cuillère à café de levure","1 pincée de cannelle","1/2 cuillère à café de sel","90g d'huile","120g de sucre roux","2 œufs","1 cuillère à café de vanille liquide","3 carottes râpées","60g de noix concassées"], steps:["Battre ensemble les 180g de farine, la cuillère à café de levure, la pincée de cannelle, le 1/2 cuillère à café de sel, les 90g d'huile, les 120g de sucre roux, les 2 œufs, la cuillère à café de vanille, les 3 carottes râpées et les 60g de noix concassées, puis verser dans un moule rond.","Cuire 10 minutes à 200°C puis 15 minutes à 180°C."]},
+  {name:"Nappage", ingredients:["50g de beurre mou","100g de sucre glace","1 cuillère à soupe de vanille liquide","300g de Philadelphia cream cheese"], steps:["Battre les 50g de beurre en pommade, intégrer les 100g de sucre glace puis la cuillère à soupe de vanille, puis les 300g de Philadelphia.","Napper le biscuit lorsqu'il est bien refroidi."]}
  ]},
-{title:"Tarte aux noix et au chocolat", category:"Dessert", difficulty:"Moyen", servingsBase:8, servingsUnit:"parts", prepMin:40, cookMin:45, restMin:30, source:"", notes:"",
+{title:"Tarte aux noix et au chocolat", category:"Dessert", difficulty:"", servingsBase:0, servingsUnit:"", prepMin:0, cookMin:45, restMin:0, source:"", notes:"", labels:[],
  parts:[
-  {name:"Pâte sablée", ingredients:["250g de farine","100g de beurre à température ambiante","1 petit verre d'eau","1 grosse pincée de sel","1 cuillère à soupe de sucre"], steps:["Mélanger les ingrédients secs.","Ajouter le beurre et sabler.","Ajouter l'eau et pétrir jusqu'à former une boule, sans insister.","Laisser reposer à température ambiante."]},
-  {name:"Appareil aux noix", ingredients:["250g de cerneaux de noix","150g de sucre en poudre","3 œufs entiers","25cl de crème liquide entière"], steps:["Hacher les noix.","Battre avec le sucre, les œufs entiers et la crème."]},
-  {name:"Montage et nappage", ingredients:["125g de chocolat noir à pâtisser","50g de beurre"], steps:["Préchauffer le four à 180°C.","Étaler la pâte, verser l'appareil aux noix dessus dans la tourtière.","Cuire 45 minutes.","Faire fondre le chocolat avec le beurre au micro-ondes à puissance moyenne, émulsionner et verser sur la tarte encore chaude."]}
+  {name:"Pâte sablée", ingredients:["250g de farine","100g de beurre à température ambiante","1 petit verre d'eau","1 grosse pincée de sel","1 cuillère à soupe de sucre"], steps:["Mélanger les 250g de farine, la pincée de sel et la cuillère à soupe de sucre.","Ajouter les 100g de beurre et sabler.","Ajouter le petit verre d'eau et pétrir jusqu'à former une boule, sans insister.","Laisser reposer à température ambiante."]},
+  {name:"Appareil aux noix", ingredients:["250g de cerneaux de noix","150g de sucre en poudre","3 œufs entiers","25cl de crème liquide entière"], steps:["Hacher les 250g de noix.","Battre avec les 150g de sucre, les 3 œufs entiers et les 25cl de crème."]},
+  {name:"Montage et nappage", ingredients:["125g de chocolat noir à pâtisser","50g de beurre"], steps:["Préchauffer le four à 180°C.","Étaler la pâte, verser l'appareil aux noix dessus dans la tourtière.","Cuire 45 minutes.","Faire fondre les 125g de chocolat avec les 50g de beurre au micro-ondes à puissance moyenne, émulsionner et verser sur la tarte encore chaude."]}
  ]},
-{title:"Muffins anglais", category:"Boulangerie", difficulty:"Moyen", servingsBase:12, servingsUnit:"muffins", prepMin:30, cookMin:14, restMin:120, source:"", notes:"",
+{title:"Muffins anglais", category:"Boulangerie", difficulty:"", servingsBase:12, servingsUnit:"muffins", prepMin:0, cookMin:14, restMin:0, source:"", notes:"", labels:[],
  parts:[{name:"", ingredients:["500g de farine","1 cuillère à soupe de sucre","30cl de lait","1 sachet de levure de boulanger"],
- steps:["Faire tiédir le lait, y ajouter le sucre et la levure, laisser reposer.","Verser sur la farine et pétrir 10 minutes.","Laisser reposer 1 heure.","Étaler au rouleau sur 1cm d'épaisseur, découper des ronds à l'emporte-pièce.","Laisser reposer 1 heure.","Cuire à la poêle 7 minutes de chaque côté, sur feu moyen, sans matière grasse."]}]},
-{title:"Banana bread", category:"Dessert", difficulty:"Facile", servingsBase:8, servingsUnit:"parts", prepMin:20, cookMin:45, restMin:0, source:"", notes:"",
+ steps:["Faire tiédir les 30cl de lait, y ajouter la cuillère à soupe de sucre et le sachet de levure, laisser reposer.","Verser sur les 500g de farine et pétrir 10 minutes.","Laisser reposer 1 heure.","Étaler au rouleau sur 1cm d'épaisseur, découper des ronds à l'emporte-pièce.","Laisser reposer 1 heure.","Cuire à la poêle 7 minutes de chaque côté, sur feu moyen, sans matière grasse."]}]},
+{title:"Banana bread", category:"Dessert", difficulty:"", servingsBase:0, servingsUnit:"", prepMin:0, cookMin:45, restMin:0, source:"", notes:"", labels:[],
  parts:[{name:"", ingredients:["300g de farine","1 cuillère à café de levure chimique","1/2 cuillère à café de sel","1 pincée de cannelle","80g de cassonade","50g de beurre fondu","3 œufs","3-5 bananes mûres réduites en purée","2 yaourts","1 cuillère à café d'extrait de vanille","60g de chocolat en pépites"],
- steps:["Préchauffer le four à 180°C.","Mélanger la farine, la levure, le sel, la cannelle, la cassonade et le chocolat.","Dans un autre bol, mélanger le beurre fondu, les œufs, les bananes, les yaourts et la vanille.","Creuser un puits dans les ingrédients secs et y verser les liquides.","Mélanger grossièrement, ajouter les pépites, mélanger à nouveau sans trop insister.","Verser dans le moule.","Enfourner environ 45 minutes, jusqu'à ce que le cake soit tout juste cuit."]}]},
-{title:"Scones", category:"Boulangerie", difficulty:"Facile", servingsBase:10, servingsUnit:"scones", prepMin:25, cookMin:13, restMin:0, source:"", notes:"",
+ steps:["Préchauffer le four à 180°C.","Mélanger les 300g de farine, la cuillère à café de levure, le 1/2 cuillère à café de sel, la pincée de cannelle, les 80g de cassonade et les 60g de chocolat en pépites.","Dans un autre bol, mélanger les 50g de beurre fondu, les 3 œufs, les 3-5 bananes réduites en purée, les 2 yaourts et la cuillère à café de vanille.","Creuser un puits dans les ingrédients secs et y verser les liquides.","Mélanger grossièrement, ajouter les pépites, mélanger à nouveau sans trop insister.","Verser dans le moule.","Enfourner environ 45 minutes, jusqu'à ce que le cake soit tout juste cuit."]}]},
+{title:"Scones", category:"Boulangerie", difficulty:"", servingsBase:0, servingsUnit:"", prepMin:0, cookMin:0, restMin:0, source:"", notes:"", labels:[],
  parts:[{name:"", ingredients:["350g de farine","1/4 cuillère à café de sel","1 sachet de levure chimique","85g de beurre mou en petits cubes","2 cuillères à soupe de sucre","115mL de lait fermenté (ou lait + jus de citron)","1 gousse de vanille"],
- steps:["Préchauffer le four à 220°C avec la plaque à l'intérieur.","Faire tiédir le lait, le lait fermenté et la vanille dans une casserole.","Mélanger la farine, la levure, le sel et le sucre. Ajouter le beurre et pétrir jusqu'à consistance sableuse.","Ajouter le mélange tiède et mélanger brièvement au couteau.","Fariner le plan de travail, replier la pâte plusieurs fois sur elle-même, étaler sur 3,5-4cm d'épaisseur.","Couper des ronds de 5cm de diamètre.","Cuire 12 à 14 minutes."]}]},
-{title:"Brioche-dog", category:"Plat", difficulty:"Moyen", servingsBase:5, servingsUnit:"brioches", prepMin:30, cookMin:30, restMin:60, source:"", notes:"",
+ steps:["Préchauffer le four à 220°C avec la plaque à l'intérieur.","Faire tiédir les 115mL de lait fermenté et la gousse de vanille dans une casserole.","Mélanger les 350g de farine, le sachet de levure, le 1/4 cuillère à café de sel et les 2 cuillères à soupe de sucre. Ajouter les 85g de beurre et pétrir jusqu'à consistance sableuse.","Ajouter le mélange tiède et mélanger brièvement au couteau.","Fariner le plan de travail, replier la pâte plusieurs fois sur elle-même, étaler sur 3,5-4cm d'épaisseur.","Couper des ronds de 5cm de diamètre.","Cuire 12 à 14 minutes."]}]},
+{title:"Brioche-dog", category:"Plat", difficulty:"", servingsBase:5, servingsUnit:"brioches", prepMin:0, cookMin:30, restMin:0, source:"", notes:"", labels:[],
  parts:[{name:"", ingredients:["300g de farine","175mL de lait","20g de beurre","1 sachet de levure boulangère sèche","1 cuillère à soupe de sucre","1 cuillère à café de sel","1 œuf battu (moitié pour la pâte, moitié pour la dorure)","5 knacks","2 gros oignons","Comté"],
- steps:["Faire revenir les oignons.","Faire tiédir au micro-ondes le lait et le beurre, y ajouter le sucre et la levure, laisser gonfler quelques minutes.","Verser la farine et le sel dans un saladier, ajouter la levure gonflée puis la moitié de l'œuf battu et pétrir 10 minutes.","Étaler la pâte au rouleau, découper 5 rectangles.","Déposer de l'oignon, du comté et une saucisse sur chaque rectangle et façonner des sandwichs. Laisser gonfler 1 heure.","Préchauffer le four à 200°C.","Recouvrir les sandwichs de comté, les badigeonner d'œuf battu et enfourner 30 minutes."]}]},
-{title:"Baba au rhum", category:"Dessert", difficulty:"Difficile", servingsBase:6, servingsUnit:"babas", prepMin:60, cookMin:20, restMin:75, source:"", notes:"On peut ajouter des fraises pour un goût plus savoureux.",
+ steps:["Faire revenir les 2 oignons.","Faire tiédir au micro-ondes les 175mL de lait et les 20g de beurre, y ajouter la cuillère à soupe de sucre et le sachet de levure, laisser gonfler quelques minutes.","Verser les 300g de farine et la cuillère à café de sel dans un saladier, ajouter la levure gonflée puis la moitié de l'œuf battu et pétrir 10 minutes.","Étaler la pâte au rouleau, découper 5 rectangles.","Déposer de l'oignon, du comté et une knack sur chaque rectangle et façonner des sandwichs. Laisser gonfler 1 heure.","Préchauffer le four à 200°C.","Recouvrir les sandwichs de comté, les badigeonner avec le reste de l'œuf battu et enfourner 30 minutes."]}]},
+{title:"Baba au rhum", category:"Dessert", difficulty:"", servingsBase:1, servingsUnit:"gros baba", prepMin:0, cookMin:20, restMin:0, source:"", notes:"On peut ajouter des fraises pour un goût plus savoureux.", labels:[],
  parts:[
-  {name:"Pâte à baba", ingredients:["180g de farine","20g de sucre semoule","4g de sel","10g de levure boulangère","8g de lait","2 œufs de taille moyenne","60g de beurre doux + pour le moule"], steps:["Pétrir la farine, le sucre et le sel.","Délayer la levure avec le lait, l'ajouter au mélange et pétrir.","Fouetter les œufs et les incorporer. Pétrir jusqu'à ce que la pâte se décolle des parois de la cuve.","Incorporer le beurre en pommade en trois fois, pétrir jusqu'à obtenir un appareil élastique.","Laisser pousser 45 minutes dans une pièce chaude.","Beurrer le moule à baba et dresser la pâte aux deux tiers du moule. Laisser pousser à nouveau 30 minutes.","Préchauffer le four à 180°C, puis enfourner pour 20 minutes."]},
-  {name:"Crème Chantilly vanille", ingredients:["300g de crème liquide","1 gousse de vanille","20g de sucre glace"], steps:["Monter la crème liquide bien froide au batteur.","Une fois montée, incorporer les graines de vanille et serrer avec le sucre glace. Réserver au frais."]},
-  {name:"Sirop", ingredients:["230g de sucre semoule","520g d'eau","1 gousse de vanille","120g de rhum"], steps:["Porter à ébullition l'eau et le sucre dans une casserole.","Ajouter la gousse de vanille fendue et grattée, incorporer le rhum.","Couvrir et laisser infuser 30 minutes à feu doux. Réserver au chaud.","Tremper le baba dans le sirop chaud puis l'égoutter.","Une fois refroidi, garnir le centre de crème chantilly vanille."]}
+  {name:"Pâte à baba", ingredients:["180g de farine","20g de sucre semoule","4g de sel","10g de levure boulangère","8g de lait","2 œufs de taille moyenne","60g de beurre doux + pour le moule"], steps:["Pétrir les 180g de farine, les 20g de sucre et les 4g de sel.","Délayer les 10g de levure avec les 8g de lait, l'ajouter au mélange et pétrir.","Fouetter les 2 œufs et les incorporer. Pétrir jusqu'à ce que la pâte se décolle des parois de la cuve.","Incorporer les 60g de beurre en pommade en trois fois, pétrir jusqu'à obtenir un appareil élastique.","Laisser pousser 45 minutes dans une pièce chaude.","Beurrer le moule à baba et dresser la pâte aux deux tiers du moule. Laisser pousser à nouveau 30 minutes.","Préchauffer le four à 180°C, puis enfourner pour 20 minutes."]},
+  {name:"Crème Chantilly vanille", ingredients:["300g de crème liquide","1 gousse de vanille","20g de sucre glace"], steps:["Monter les 300g de crème liquide bien froide au batteur.","Une fois montée, incorporer les graines de la gousse de vanille et serrer avec les 20g de sucre glace. Réserver au frais."]},
+  {name:"Sirop", ingredients:["230g de sucre semoule","520g d'eau","1 gousse de vanille","120g de rhum"], steps:["Porter à ébullition les 520g d'eau et les 230g de sucre dans une casserole.","Ajouter la gousse de vanille fendue et grattée, incorporer les 120g de rhum.","Couvrir et laisser infuser 30 minutes à feu doux. Réserver au chaud.","Tremper le baba dans le sirop chaud puis l'égoutter.","Une fois refroidi, garnir le centre de crème chantilly vanille."]}
  ]},
-{title:"Riz au lait indien", category:"Dessert", difficulty:"Facile", servingsBase:6, servingsUnit:"personnes", prepMin:10, cookMin:30, restMin:0, source:"", notes:"La recette est très bonne même sans pistaches si vous n'en trouvez pas.",
+{title:"Riz au lait indien", category:"Dessert", difficulty:"", servingsBase:6, servingsUnit:"personnes", prepMin:0, cookMin:0, restMin:0, source:"", notes:"La recette est très bonne même sans pistaches si vous n'en trouvez pas.", labels:[],
  parts:[{name:"", ingredients:["100g de riz thaï (ou basmati)","600ml de lait","4 cuillères à soupe de sucre","4 gousses de cardamome verte","1 cuillère à soupe d'amandes effilées","1 cuillère à soupe de pistaches non salées écrasées","1 dose de safran"],
- steps:["Mettre le lait, les gousses de cardamome écrasées et le riz dans une casserole, porter à ébullition.","Faire cuire à petits bouillons jusqu'à ce que le riz soit très cuit (les grains commencent à se défaire).","Ajouter les amandes et les pistaches, cuire encore quelques minutes.","Ajouter le sucre à la fin et le diluer en tournant.","Servir tiède ou frais."]}]},
-{title:"Roulé aux courgettes et au saumon", category:"Entrée", difficulty:"Moyen", servingsBase:6, servingsUnit:"personnes", prepMin:30, cookMin:25, restMin:60, source:"", notes:"",
+ steps:["Mettre les 600ml de lait, les 4 gousses de cardamome écrasées et les 100g de riz dans une casserole, porter à ébullition.","Faire cuire à petits bouillons jusqu'à ce que le riz soit très cuit (les grains commencent à se défaire).","Ajouter la cuillère à soupe d'amandes effilées et la cuillère à soupe de pistaches, cuire encore quelques minutes.","Ajouter les 4 cuillères à soupe de sucre et la dose de safran à la fin et diluer en tournant.","Servir tiède ou frais."]}]},
+{title:"Roulé aux courgettes et au saumon", category:"Entrée", difficulty:"", servingsBase:0, servingsUnit:"", prepMin:0, cookMin:25, restMin:60, source:"", notes:"", labels:[],
  parts:[{name:"", ingredients:["3 courgettes râpées","3 œufs","2 cuillères à soupe de crème fraîche épaisse","50g de farine","Une petite boite (125g) de Philadelphia","1 bouquet de ciboulette","8 tranches de saumon fumé"],
- steps:["Râper les courgettes, les faire revenir dans un peu d'huile d'olive pour leur faire rendre leur eau. Réserver.","Séparer les blancs des jaunes. Battre les jaunes avec la crème fraîche et la farine.","Incorporer délicatement les blancs battus en neige.","Ajouter les courgettes râpées. Rectifier l'assaisonnement.","Verser dans un plat à roulé. Cuire environ 25 minutes au four.","Démouler, étaler le fromage mélangé à la ciboulette sur le roulé, disposer les tranches de saumon.","Rouler le gâteau en serrant bien, filmer et laisser 1h au réfrigérateur minimum."]}]},
-{title:"Tarte au citron", category:"Dessert", difficulty:"Moyen", servingsBase:8, servingsUnit:"parts", prepMin:40, cookMin:30, restMin:30, source:"", notes:"",
+ steps:["Râper les 3 courgettes, les faire revenir dans un peu d'huile d'olive pour leur faire rendre leur eau. Réserver.","Séparer les blancs des jaunes des 3 œufs. Battre les jaunes avec les 2 cuillères à soupe de crème fraîche et les 50g de farine.","Incorporer délicatement les blancs battus en neige.","Ajouter les courgettes râpées. Rectifier l'assaisonnement.","Verser dans un plat à roulé. Cuire environ 25 minutes au four.","Démouler, étaler les 125g de Philadelphia mélangés au bouquet de ciboulette sur le roulé, disposer les 8 tranches de saumon.","Rouler le gâteau en serrant bien, filmer et laisser 1h au réfrigérateur minimum."]}]},
+{title:"Tarte au citron", category:"Dessert", difficulty:"", servingsBase:0, servingsUnit:"", prepMin:0, cookMin:30, restMin:0, source:"", notes:"", labels:[],
  parts:[
-  {name:"Pâte sablée", ingredients:["250g de farine","100g de beurre à température ambiante","1 petit verre d'eau","1 grosse pincée de sel","1 cuillère à soupe de sucre"], steps:["Mélanger les ingrédients secs.","Ajouter le beurre et sabler.","Ajouter l'eau et pétrir jusqu'à former une boule, sans insister.","Laisser reposer à température ambiante, étaler.","Cuire 30 minutes à 180°C."]},
-  {name:"Lemon curd", ingredients:["Le zeste et le jus de 2 citrons jaunes","Le zeste et le jus de 1 citron vert","3 œufs","60g de beurre pommade","120g de sucre"], steps:["Mélanger bien tous les ingrédients dans un cul de poule.","Cuire au bain-marie sans cesser de fouetter, arrêter au premier bouillon.","Tremper le fond du cul de poule dans de l'eau glacée pour stopper la cuisson."]},
+  {name:"Pâte sablée", ingredients:["250g de farine","100g de beurre à température ambiante","1 petit verre d'eau","1 grosse pincée de sel","1 cuillère à soupe de sucre"], steps:["Mélanger les 250g de farine, la pincée de sel et la cuillère à soupe de sucre.","Ajouter les 100g de beurre et sabler.","Ajouter le petit verre d'eau et pétrir jusqu'à former une boule, sans insister.","Laisser reposer à température ambiante, étaler.","Cuire 30 minutes à 180°C."]},
+  {name:"Lemon curd", ingredients:["Le zeste et le jus de 2 citrons jaunes","Le zeste et le jus de 1 citron vert","3 œufs","60g de beurre pommade","120g de sucre"], steps:["Mélanger bien le zeste et le jus des 2 citrons jaunes et du citron vert, les 3 œufs, les 60g de beurre pommade et les 120g de sucre dans un cul de poule.","Cuire au bain-marie sans cesser de fouetter, arrêter au premier bouillon.","Tremper le fond du cul de poule dans de l'eau glacée pour stopper la cuisson."]},
   {name:"Montage", ingredients:[], steps:["Verser le lemon curd refroidi sur le fond de tarte refroidi."]}
  ]},
-{title:"Tiramisu", category:"Dessert", difficulty:"Facile", servingsBase:8, servingsUnit:"parts", prepMin:20, cookMin:0, restMin:240, source:"", notes:"",
+{title:"Tiramisu", category:"Dessert", difficulty:"", servingsBase:0, servingsUnit:"", prepMin:0, cookMin:0, restMin:240, source:"", notes:"", labels:[],
  parts:[{name:"", ingredients:["Une boite de boudoirs","4 œufs","75g de sucre","1 boite de mascarpone","Du cacao Van Houten","Un bol de café fort"],
- steps:["Imbiber des biscuits de café fort et les disposer dans un plat.","Battre les jaunes d'œuf avec le sucre puis incorporer le mascarpone.","Battre les blancs en neige avec une pincée de sel, les incorporer au mélange précédent et recouvrir les biscuits.","Faire prendre au frigo pendant 4 heures.","Saupoudrer de cacao avant de servir."]}]}
+ steps:["Imbiber les boudoirs du bol de café fort et les disposer dans un plat.","Battre les 4 jaunes d'œuf avec les 75g de sucre puis incorporer la boite de mascarpone.","Battre les 4 blancs en neige avec une pincée de sel, les incorporer au mélange précédent et recouvrir les biscuits.","Faire prendre au frigo pendant 4 heures.","Saupoudrer de cacao Van Houten avant de servir."]}]}
 ];
+
 
 // ══════════════════════════════════
 // STATE
@@ -359,7 +372,7 @@ window.renderList=function(){
   let list = recipes;
   if(activeCategory!=='Toutes') list = list.filter(r=>r.category===activeCategory);
   if(q) list = list.filter(r=>{
-    const hay = [r.title, r.category, r.notes, ...(r.parts||[]).flatMap(p=>[p.name,...(p.ingredients||[]),...(p.steps||[])])].join(' ').toLowerCase();
+    const hay = [r.title, r.category, r.notes, ...(r.labels||[]), ...(r.parts||[]).flatMap(p=>[p.name,...(p.ingredients||[]),...(p.steps||[])])].join(' ').toLowerCase();
     return hay.includes(q);
   });
   list = [...list].sort((a,b)=>(a.title||'').localeCompare(b.title||'','fr',{sensitivity:'base'}));
@@ -372,8 +385,9 @@ window.renderList=function(){
         <h3>${esc(r.title)}</h3>
         <div class="recipe-meta">
           <span class="tag">${esc(r.category||'')}</span>
-          <span class="tag diff-${r.difficulty}">${esc(r.difficulty||'')}</span>
-          ${r.prepMin?`<span class="tag">⏱ ${r.prepMin+ (r.cookMin||0)}min</span>`:''}
+          ${r.difficulty?`<span class="tag diff-${r.difficulty}">${esc(r.difficulty)}</span>`:''}
+          ${(r.prepMin||r.cookMin)?`<span class="tag">⏱ ${(r.prepMin||0)+(r.cookMin||0)}min</span>`:''}
+          ${(r.labels||[]).map(l=>`<span class="tag" style="color:var(--accent);border-color:var(--accent)">🏷 ${esc(l)}</span>`).join('')}
         </div>
       </div>
     </div>`).join('');
@@ -389,6 +403,40 @@ function scaleIngredient(str, ratio){
     return (v % 1 === 0) ? String(v) : String(v).replace('.', ',');
   });
 }
+
+// ── PARTAGE & LISTE DE COURSES ──
+async function shareOrCopy(title, text){
+  if(navigator.share){
+    try{ await navigator.share({title, text}); return; }
+    catch(e){ if(e.name==='AbortError') return; }
+  }
+  try{ await navigator.clipboard.writeText(text); toast('✓ Copié dans le presse-papiers'); }
+  catch(e){ toast('⚠ Impossible de copier le texte'); }
+}
+window.shareRecipe=async function(id){
+  const r = recipes.find(x=>x.id===id);
+  const sv = currentServings[id] || r.servingsBase;
+  const ratio = (r.servingsBase && r.servingsBase>0) ? sv/r.servingsBase : 1;
+  let text = `${r.title}\n`;
+  if(r.servingsBase) text += `Pour ${sv} ${r.servingsUnit||''}\n`;
+  text += '\n';
+  (r.parts||[]).forEach(p=>{
+    if(p.name) text += `— ${p.name} —\n`;
+    if(p.ingredients&&p.ingredients.length){ text += 'Ingrédients :\n'; p.ingredients.forEach(i=>text+=`• ${scaleIngredient(i,ratio)}\n`); text+='\n'; }
+    if(p.steps&&p.steps.length){ text += 'Étapes :\n'; p.steps.forEach((s,i)=>text+=`${i+1}. ${s}\n`); text+='\n'; }
+  });
+  if(r.notes) text += `Notes : ${r.notes}\n`;
+  if(r.source) text += `Source : ${r.source}\n`;
+  await shareOrCopy(r.title, text.trim());
+};
+window.showShoppingList=async function(id){
+  const r = recipes.find(x=>x.id===id);
+  const sv = currentServings[id] || r.servingsBase;
+  const ratio = (r.servingsBase && r.servingsBase>0) ? sv/r.servingsBase : 1;
+  let text = `Liste de courses — ${r.title}\n\n`;
+  (r.parts||[]).forEach(p=>{ (p.ingredients||[]).forEach(i=>{ text += `☐ ${scaleIngredient(i,ratio)}\n`; }); });
+  await shareOrCopy('Liste de courses', text.trim());
+};
 
 // ── SETTINGS (stockés uniquement sur cet appareil) ──
 function getGhConfig(){
@@ -415,6 +463,14 @@ window.clearSettings=function(){
   localStorage.removeItem('gh-config');
   toast('Réglages effacés');
   closeOverlay('settings-overlay');
+};
+window.wipeAllRecipes=async function(){
+  if(!confirm(`Supprimer les ${recipes.length} recettes actuelles du carnet ? Cette action est irréversible (vous pourrez ensuite réimporter les recettes de départ).`)) return;
+  toast('Suppression en cours…');
+  for(const r of recipes){ await deleteDoc(doc(db,'recipes',r.id)); }
+  toast('✓ Carnet vidé');
+  closeAllOverlays();
+  await loadRecipes();
 };
 
 // ── COMPRESSION + ENVOI PHOTO VERS GITHUB ──
@@ -464,6 +520,7 @@ window.uploadPhoto=async function(input, id){
 };
 window.openDetail=function(id){
   currentId = id;
+  detailView = 'text';
   const r = recipes.find(x=>x.id===id);
   if(!r) return;
   currentServings[id] = currentServings[id] || r.servingsBase || 1;
@@ -471,6 +528,7 @@ window.openDetail=function(id){
   renderDetail(r);
   openOverlay('detail-overlay');
 };
+let detailView = 'text';
 function renderDetail(r){
   const sv = currentServings[r.id];
   const ratio = (r.servingsBase && r.servingsBase>0) ? sv/r.servingsBase : 1;
@@ -482,9 +540,9 @@ function renderDetail(r){
     </div>
     <div class="meta-row">
       <div class="meta-pill"><div class="v">${esc(r.category||'—')}</div><div class="l">Catégorie</div></div>
-      <div class="meta-pill"><div class="v">${esc(r.difficulty||'—')}</div><div class="l">Difficulté</div></div>
-      <div class="meta-pill"><div class="v">${r.prepMin||0}min</div><div class="l">Préparation</div></div>
-      <div class="meta-pill"><div class="v">${r.cookMin||0}min</div><div class="l">Cuisson</div></div>
+      ${r.difficulty?`<div class="meta-pill"><div class="v">${esc(r.difficulty)}</div><div class="l">Difficulté</div></div>`:''}
+      ${r.prepMin?`<div class="meta-pill"><div class="v">${r.prepMin}min</div><div class="l">Préparation</div></div>`:''}
+      ${r.cookMin?`<div class="meta-pill"><div class="v">${r.cookMin}min</div><div class="l">Cuisson</div></div>`:''}
       ${r.restMin?`<div class="meta-pill"><div class="v">${r.restMin>=60?Math.round(r.restMin/60)+'h':r.restMin+'min'}</div><div class="l">Repos</div></div>`:''}
     </div>`;
   if(r.servingsBase){
@@ -494,6 +552,25 @@ function renderDetail(r){
       <button onclick="changeServings(1)">+</button>
     </div>`;
   }
+  html += `<div class="view-toggle">
+      <button class="vt-btn ${detailView==='text'?'active':''}" onclick="setDetailView('text')">📋 Texte</button>
+      <button class="vt-btn ${detailView==='schema'?'active':''}" onclick="setDetailView('schema')">🗺 Schéma</button>
+    </div>
+    <div id="recipe-content">${detailView==='text'?renderTextView(r,ratio):renderSchemaView(r,ratio)}</div>`;
+  if(r.notes) html += `<div class="notes-box"><b>Notes :</b><br>${esc(r.notes)}</div>`;
+  if(r.source) html += `<div class="source-line">Source : ${esc(r.source)}</div>`;
+  html += `<div class="btn-row">
+      <button class="btn btn-secondary" style="flex:1" onclick="shareRecipe('${r.id}')">📤 Partager</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="showShoppingList('${r.id}')">🛒 Liste de courses</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-danger btn-full" onclick="deleteRecipe('${r.id}')">🗑 Supprimer</button>
+    </div>`;
+  document.getElementById('detail-body').innerHTML = html;
+}
+window.setDetailView=function(v){ detailView=v; const r=recipes.find(x=>x.id===currentId); renderDetail(r); };
+function renderTextView(r, ratio){
+  let html='';
   (r.parts||[]).forEach(p=>{
     if(p.name) html += `<div class="part-name">${esc(p.name)}</div>`;
     if(p.ingredients && p.ingredients.length){
@@ -507,12 +584,30 @@ function renderDetail(r){
       html += `</ol>`;
     }
   });
-  if(r.notes) html += `<div class="notes-box"><b>Notes :</b><br>${esc(r.notes)}</div>`;
-  if(r.source) html += `<div class="source-line">Source : ${esc(r.source)}</div>`;
-  html += `<div class="btn-row">
-      <button class="btn btn-danger btn-full" onclick="deleteRecipe('${r.id}')">🗑 Supprimer</button>
-    </div>`;
-  document.getElementById('detail-body').innerHTML = html;
+  return html;
+}
+function renderSchemaView(r, ratio){
+  const parts = r.parts||[];
+  if(!parts.length) return '<div class="empty-state">Rien à afficher</div>';
+  let html = '<div class="schema-wrap">';
+  parts.forEach(p=>{
+    html += `<div class="schema-lane">`;
+    html += `<div class="schema-lane-title">${esc(p.name||r.title)}</div>`;
+    if(p.ingredients && p.ingredients.length){
+      html += `<div class="schema-box schema-ing-box">${p.ingredients.map(i=>esc(scaleIngredient(i,ratio))).join('<br>')}</div>`;
+      html += `<div class="schema-arrow">↓</div>`;
+    }
+    (p.steps||[]).forEach((s,i)=>{
+      html += `<div class="schema-box">${esc(s)}</div>`;
+      if(i<p.steps.length-1) html += `<div class="schema-arrow">↓</div>`;
+    });
+    html += `</div>`;
+  });
+  html += '</div>';
+  if(parts.length>1){
+    html += `<div class="schema-converge">↘ ↓ ↙<br><span style="font-size:0.72rem">Les couloirs se rejoignent au montage final</span></div>`;
+  }
+  return html;
 }
 window.changeServings=function(delta){
   const r = recipes.find(x=>x.id===currentId);
@@ -555,6 +650,7 @@ function buildEditForm(r){
         </select></div>
       <div><label>Difficulté</label>
         <select id="ed-difficulty">
+          <option value="" ${!r.difficulty?'selected':''}>—</option>
           ${['Facile','Moyen','Difficile'].map(c=>`<option ${r.difficulty===c?'selected':''}>${c}</option>`).join('')}
         </select></div>
     </div>
@@ -564,9 +660,12 @@ function buildEditForm(r){
     </div>
     <div class="row2">
       <div><label>Repos (min)</label><input id="ed-rest" type="number" value="${r.restMin||''}"></div>
-      <div><label>Portions de base</label><input id="ed-servbase" type="number" value="${r.servingsBase||4}"></div>
+      <div><label>Portions de base</label><input id="ed-servbase" type="number" value="${r.servingsBase!==undefined?r.servingsBase:4}"></div>
     </div>
     <label>Unité de portion (ex. personnes, parts, cookies…)</label><input id="ed-servunit" value="${esc(r.servingsUnit||'personnes')}">
+    <label>Labels (séparés par des virgules)</label>
+    <input id="ed-labels" value="${esc((r.labels||[]).join(', '))}" placeholder="ex. Noël, pique-nique, anniversaire">
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:5px">Pris en compte dans la recherche, comme les ingrédients.</div>
     <label>Photo (URL)</label>
     <input id="ed-photo" value="${esc(r.photoUrl||'')}" placeholder="https://raw.githubusercontent.com/…">
     <div style="font-size:0.72rem;color:var(--muted);margin-top:5px;line-height:1.4">
@@ -629,6 +728,7 @@ window.saveRecipe=async function(){
     restMin: parseInt(document.getElementById('ed-rest').value)||0,
     servingsBase: parseInt(document.getElementById('ed-servbase').value)||4,
     servingsUnit: document.getElementById('ed-servunit').value.trim()||'personnes',
+    labels: document.getElementById('ed-labels').value.split(',').map(s=>s.trim()).filter(Boolean),
     notes: document.getElementById('ed-notes').value.trim(),
     source: document.getElementById('ed-source').value.trim(),
     photoUrl: document.getElementById('ed-photo').value.trim(),
