@@ -127,6 +127,51 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .btn-icon-del{background:none;border:none;color:var(--rose);cursor:pointer;font-size:1.05rem;padding:4px 6px}
 .btn-ghost{background:none;border:1px dashed var(--border);color:var(--muted);border-radius:10px;width:100%;padding:9px;font-size:0.82rem;margin-top:8px;cursor:pointer}
 
+/* ── LISTE DE COURSES ── */
+.header-actions{display:flex;align-items:center;gap:8px}
+.cart-btn{position:relative}
+.cart-badge{position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-family:'IBM Plex Mono',monospace;font-size:0.62rem;font-weight:600;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg)}
+.cart-badge.hidden{display:none}
+.shop-intro{color:var(--muted);font-size:0.82rem;line-height:1.5;margin-bottom:14px}
+.shop-recipes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.shop-recipe-chip{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:50px;padding:6px 8px 6px 14px;font-size:0.78rem;box-shadow:0 2px 8px rgba(59,42,32,0.05)}
+.shop-recipe-chip .sv{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--muted)}
+.shop-recipe-chip button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;line-height:1;padding:2px 4px}
+.shop-tools{display:flex;gap:8px;margin-bottom:4px}
+.shop-tools .chip{cursor:pointer}
+.rayon{margin-top:24px}
+.rayon-head{display:flex;align-items:baseline;gap:8px;padding-bottom:6px;border-bottom:2px solid var(--card-hi)}
+.rayon-head h3{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;color:var(--accent)}
+.rayon-head .count{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--muted)}
+.shop-item{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px dashed var(--border)}
+.shop-item input[type=checkbox]{width:21px;height:21px;flex-shrink:0;accent-color:var(--accent);cursor:pointer}
+.shop-item .lbl{flex:1;font-size:0.9rem;line-height:1.35;cursor:pointer;min-width:0}
+.shop-item .src{display:block;font-size:0.66rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:2px}
+.shop-item.off .lbl{color:var(--muted);text-decoration:line-through}
+.shop-item.off .src{text-decoration:none}
+.shop-item select{flex-shrink:0;max-width:104px;border:1px solid var(--border);background:var(--card);border-radius:9px;color:var(--muted);font-family:'Work Sans',sans-serif;font-size:0.72rem;padding:5px 4px;outline:none}
+.shop-count{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted);margin-top:22px;text-align:center}
+
+/* ── IMPORT DE RECETTE ── */
+.choice-card{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px 16px;margin-bottom:12px;cursor:pointer;font-family:'Work Sans',sans-serif;box-shadow:0 2px 10px rgba(59,42,32,0.06)}
+.choice-card .ic{font-size:1.7rem;line-height:1}
+.choice-card .tt{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;color:var(--text)}
+.choice-card .ds{font-size:0.79rem;color:var(--muted);margin-top:3px;line-height:1.4}
+.drop-zone{border:2px dashed var(--border);border-radius:var(--r);background:var(--card);padding:22px 16px;text-align:center;color:var(--muted);font-size:0.85rem;line-height:1.5}
+.pick-row{display:flex;gap:10px;margin-top:12px}
+.pick-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--card-hi);border:1px solid var(--border);border-radius:12px;padding:14px 8px;font-size:0.78rem;font-weight:600;color:var(--text);cursor:pointer;font-family:'Work Sans',sans-serif}
+.pick-btn .ic{font-size:1.3rem}
+.file-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.file-chip{display:flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--border);border-radius:50px;padding:6px 8px 6px 13px;font-size:0.75rem;max-width:100%}
+.file-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px}
+.file-chip button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;padding:0 3px}
+.import-status{margin-top:16px;padding:13px 15px;border-radius:12px;background:var(--card-hi);font-size:0.83rem;line-height:1.5;color:var(--text);display:none}
+.import-status.show{display:block}
+.import-status.err{background:rgba(201,112,100,0.14);color:var(--rose)}
+.import-sep{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;margin:24px 0 14px;font-family:'IBM Plex Mono',monospace}
+.import-sep::before,.import-sep::after{content:'';flex:1;height:1px;background:var(--border)}
+.review-banner{background:var(--card-hi);border-radius:12px;padding:12px 15px;font-size:0.82rem;line-height:1.45;color:var(--text);margin-bottom:6px}
+
 #toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:var(--card-hi);border:1px solid var(--border);border-radius:50px;padding:11px 22px;font-size:0.85rem;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
 #toast.show{opacity:1}
 </style>
@@ -135,7 +180,10 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 
 <div id="app-header">
   <div class="logo">Carnet <span>de recettes</span></div>
-  <button class="btn btn-secondary" style="padding:8px 12px;font-size:0.78rem" onclick="openSettings()">⚙️</button>
+  <div class="header-actions">
+    <button class="btn btn-secondary cart-btn" style="padding:8px 12px;font-size:0.78rem" onclick="openShoppingList()" title="Liste de courses">🛒<span class="cart-badge hidden" id="cart-badge">0</span></button>
+    <button class="btn btn-secondary" style="padding:8px 12px;font-size:0.78rem" onclick="openSettings()">⚙️</button>
+  </div>
 </div>
 
 <!-- HOME -->
@@ -152,7 +200,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
   <div id="recipe-list"></div>
 </div>
 
-<button class="fab" onclick="openAdd()" title="Ajouter une recette">＋</button>
+<button class="fab" onclick="openAddChoice()" title="Ajouter une recette">＋</button>
 
 <!-- DETAIL OVERLAY -->
 <div id="detail-overlay" class="overlay">
@@ -192,11 +240,91 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
     <div class="btn-row">
       <button class="btn btn-primary btn-full" onclick="saveSettings()">💾 Enregistrer</button>
     </div>
+
+    <div style="height:1px;background:var(--border);margin:28px 0 4px"></div>
+    <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-top:20px">Déchiffrage des recettes photographiées</h3>
+    <p style="color:var(--muted);font-size:0.85rem;line-height:1.5;margin-top:8px">
+      Pour lire une recette prise en photo, l'application a besoin d'une clé d'API Anthropic, que vous créez sur <span class="mono">console.anthropic.com</span>. Elle reste elle aussi uniquement sur cet appareil. Ne la mettez jamais dans votre dépôt GitHub : il est public.
+    </p>
+    <label>Clé d'API Anthropic</label>
+    <input id="set-aikey" type="password" placeholder="sk-ant-…">
+    <label>Modèle</label>
+    <input id="set-aimodel" placeholder="claude-sonnet-5">
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:5px">Laissez tel quel sauf si le déchiffrage renvoie une erreur de modèle inconnu.</div>
+    <div class="btn-row">
+      <button class="btn btn-primary btn-full" onclick="saveAiSettings()">💾 Enregistrer la clé</button>
+    </div>
+    <div style="height:1px;background:var(--border);margin:28px 0 4px"></div>
     <div class="btn-row">
       <button class="btn btn-secondary btn-full" onclick="clearSettings()">Effacer ces réglages de cet appareil</button>
     </div>
     <div class="btn-row">
       <button class="btn btn-danger btn-full" onclick="wipeAllRecipes()">🗑 Vider tout le carnet (supprime toutes les recettes)</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHOPPING LIST OVERLAY -->
+<div id="shop-overlay" class="overlay">
+  <div class="overlay-header">
+    <button class="back-btn" onclick="closeAllOverlays()">‹</button>
+    <h2>Liste de courses</h2>
+    <button class="btn btn-secondary" style="padding:8px 12px;font-size:0.78rem" onclick="clearShoppingList()">🗑</button>
+  </div>
+  <div class="overlay-body" id="shop-body"></div>
+</div>
+
+<!-- ADD CHOICE OVERLAY -->
+<div id="add-overlay" class="overlay">
+  <div class="overlay-header">
+    <button class="back-btn" onclick="closeAllOverlays()">‹</button>
+    <h2>Ajouter une recette</h2>
+  </div>
+  <div class="overlay-body">
+    <button class="choice-card" onclick="openImport()">
+      <span class="ic">📷</span>
+      <span><span class="tt">Photographier ou importer</span>
+      <span class="ds">Une page de livre, une photo, un PDF, un texte copié… l'application déchiffre et remplit la fiche toute seule.</span></span>
+    </button>
+    <button class="choice-card" onclick="openAdd()">
+      <span class="ic">✍️</span>
+      <span><span class="tt">Saisir à la main</span>
+      <span class="ds">Remplir la fiche vous-même, ligne par ligne.</span></span>
+    </button>
+  </div>
+</div>
+
+<!-- IMPORT OVERLAY -->
+<div id="import-overlay" class="overlay">
+  <div class="overlay-header">
+    <button class="back-btn" onclick="closeAllOverlays()">‹</button>
+    <h2>Importer une recette</h2>
+  </div>
+  <div class="overlay-body">
+    <div class="drop-zone">
+      Photographiez la recette dans votre livre ou votre magazine.<br>
+      Plusieurs photos possibles si elle tient sur plusieurs pages.
+    </div>
+    <div class="pick-row">
+      <label class="pick-btn"><span class="ic">📷</span>Prendre une photo
+        <input type="file" accept="image/*" capture="environment" multiple style="display:none" onchange="addImportFiles(this)">
+      </label>
+      <label class="pick-btn"><span class="ic">🖼</span>Choisir un fichier
+        <input type="file" accept="image/*,application/pdf" multiple style="display:none" onchange="addImportFiles(this)">
+      </label>
+    </div>
+    <div class="file-chips" id="import-files"></div>
+
+    <div class="import-sep">ou</div>
+    <label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;display:block;margin-bottom:5px">Coller le texte d'une recette</label>
+    <textarea id="import-text" placeholder="Collez ici le texte d'une recette trouvée sur un site, dans un mail, un document…" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'Work Sans',sans-serif;font-size:0.9rem;outline:none;resize:vertical;min-height:110px"></textarea>
+
+    <div class="import-status" id="import-status"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary btn-full" id="import-go" onclick="runImport()">✨ Déchiffrer la recette</button>
+    </div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:14px;line-height:1.5">
+      La recette déchiffrée s'ouvre dans le formulaire habituel : vous la relisez et la corrigez avant d'enregistrer. Rien n'est ajouté à votre carnet sans votre validation.
     </div>
   </div>
 </div>
@@ -242,7 +370,7 @@ function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function openOverlay(id){ document.getElementById(id).classList.add('open'); }
 function closeOverlay(id){ document.getElementById(id).classList.remove('open'); }
-window.closeAllOverlays=function(){ closeOverlay('detail-overlay'); closeOverlay('edit-overlay'); closeOverlay('settings-overlay'); };
+window.closeAllOverlays=function(){ closeOverlay('detail-overlay'); closeOverlay('edit-overlay'); closeOverlay('settings-overlay'); closeOverlay('shop-overlay'); closeOverlay('add-overlay'); closeOverlay('import-overlay'); };
 
 // ── LOAD ──
 async function loadRecipes(){
@@ -341,12 +469,270 @@ window.shareRecipe=async function(id){
   if(r.source) text += `Source : ${r.source}\n`;
   await shareOrCopy(r.title, text.trim());
 };
-window.showShoppingList=async function(id){
+// ══════════════════════════════════
+// LISTE DE COURSES
+// ══════════════════════════════════
+// La liste peut contenir plusieurs recettes à la fois. Les ingrédients
+// identiques sont regroupés, rangés par rayon, et chacun peut être décoché
+// (= « je l'ai déjà dans mes placards ») avant le partage.
+
+const RAYONS = [
+  {key:'maraicher', label:'Maraîcher', icon:'🥬'},
+  {key:'boucherie', label:'Boucherie', icon:'🥩'},
+  {key:'cremerie',  label:'Crèmerie',  icon:'🧀'},
+  {key:'epicerie',  label:'Épicerie',  icon:'🥫'},
+  {key:'surgele',   label:'Surgelé',   icon:'❄️'},
+  {key:'autres',    label:'Autres',    icon:'🛒'}
+];
+function rayonInfo(k){ return RAYONS.find(r=>r.key===k) || RAYONS[RAYONS.length-1]; }
+
+// Minuscules sans accents, pour comparer les textes de façon fiable
+function noAccent(s){
+  return (s||'').toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+
+// Cas particuliers, testés en premier (« lait de coco » n'est pas de la crèmerie…)
+const RAYON_EXCEPTIONS = [
+  [/surgel|congel|glacon/, 'surgele'],
+  [/lait de coco|creme de coco|lait de soja|lait d'amande|lait concentre|lait de riz/, 'epicerie'],
+  [/beurre de cacahu|beurre de karite|creme de marron/, 'epicerie'],
+  [/tomate pelee|tomates pelees|concentre de tomate|coulis de tomate|tomate en conserve/, 'epicerie'],
+  [/raisins? secs?|abricots? secs?|fruits? secs?|fruits? confits?|tomates? sechees?/, 'epicerie'],
+  [/noix de coco|noix de muscade|noix de cajou|noix de pecan|noix du bresil/, 'epicerie'],
+  [/pommes? de terre|patates? douces?/, 'maraicher'],
+  [/herbes de provence|ail en poudre|oignon en poudre/, 'epicerie']
+];
+
+// Mots-clés par rayon (sans accents, singulier : le pluriel est géré tout seul)
+const RAYON_MOTS = {
+  cremerie: ['lait','beurre','creme','oeuf','fromage','parmesan','gruyere','comte','emmental','mascarpone','philadelphia','ricotta','mozzarella','yaourt','chantilly','feta','chevre','faisselle','camembert','brie','reblochon','tomme','raclette','mimolette','roquefort','margarine','skyr','babeurre','suisse'],
+  maraicher: ['pomme','poire','citron','orange','clementine','pamplemousse','banane','fraise','framboise','myrtille','mure','cassis','groseille','cerise','abricot','peche','nectarine','brugnon','prune','raisin','melon','pasteque','ananas','mangue','kiwi','figue','rhubarbe','coing','courgette','carotte','oignon','echalote','ail','poireau','tomate','salade','laitue','roquette','mache','cresson','concombre','radis','navet','betterave','celeri','fenouil','endive','chou','brocoli','epinard','blette','artichaut','asperge','haricot vert','petit pois','aubergine','poivron','piment','potiron','potimarron','courge','champignon','avocat','persil','ciboulette','basilic','thym','laurier','romarin','coriandre','menthe','estragon','aneth','sauge','herbe','gingembre','citronnelle'],
+  boucherie: ['viande','boeuf','veau','porc','agneau','mouton','poulet','poule','volaille','canard','magret','dinde','pintade','lapin','caille','jambon','lard','lardon','bacon','pancetta','saucisse','saucisson','chipolata','merguez','chorizo','knack','andouille','boudin','steak','entrecote','bavette','onglet','escalope','gigot','roti','paleron','joue','travers','carre d agneau','poitrine fumee','confit','foie gras','rillette','pate en croute','charcuterie','poisson','saumon','truite','cabillaud','morue','colin','merlan','lotte','dorade','daurade','maquereau','hareng','rouget','raie','turbot','sebaste','crevette','gambas','langoustine','homard','crabe','tourteau','saint-jacques','calamar','encornet','poulpe','seiche','bulot','bigorneau','palourde','coquillage','surimi'],
+  epicerie: ['farine','sucre','sel','poivre','huile','vinaigre','levure','bicarbonate','riz','pate','spaghetti','tagliatelle','semoule','couscous','boulgour','quinoa','polenta','lentille','pois chiche','haricot sec','chocolat','cacao','vanille','cannelle','cardamome','safran','muscade','curry','cumin','paprika','curcuma','anis','clou de girofle','epice','moutarde','ketchup','mayonnaise','miel','confiture','sirop','cafe','the','bouillon','fond de veau','fond de volaille','conserve','olive','capre','cornichon','anchois','thon','sardine','maizena','fecule','gelatine','agar','amande','noisette','noix','pistache','cacahuete','pruneau','datte','biscuit','boudoir','speculoos','pain','baguette','brioche','chapelure','rhum','vin','biere','cidre','porto','cognac','armagnac','kirsch','liqueur','eau','sauce soja','nuoc mam','tahini','sesame','graine','flocon','avoine','sarrasin','froment','ble noir','seigle','tapioca','meringue','pralin','praline','nappage','colorant','pignon','tahin','sumac','melasse','cassonade','vergeoise','muscovado','za atar','harissa','gelee','compote','levain','biscotte','croute','bouillon cube','fleur d oranger','eau de fleur']
+};
+const RAYON_ORDRE_TEST = ['cremerie','boucherie','maraicher','epicerie'];
+
+function motIndex(txt, mot){
+  const m = mot.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const r = new RegExp('(^|[^a-z0-9])('+m+')(s|es|x)?([^a-z0-9]|$)');
+  const found = r.exec(txt);
+  return found ? found.index : -1;
+}
+// On retient le mot-clé qui apparaît le plus tôt : dans « huile neutre pour
+// frire les aubergines », le produit à acheter est l'huile, pas les aubergines.
+function devineRayon(texte){
+  const t = noAccent(texte);
+  for(const [re, rayon] of RAYON_EXCEPTIONS){ if(re.test(t)) return rayon; }
+  let best = null, bestPos = Infinity;
+  for(const rayon of RAYON_ORDRE_TEST){
+    for(const mot of RAYON_MOTS[rayon]){
+      const pos = motIndex(t, mot);
+      if(pos>=0 && pos<bestPos){ bestPos = pos; best = rayon; }
+    }
+  }
+  return best || 'autres';
+}
+
+// ── Lecture d'un ingrédient : « 250g de farine » → 250 / g / « de farine » ──
+function parseIngredient(str){
+  const s = (str||'').trim();
+  const m = s.match(/^(\d+(?:[.,]\d+)?)\s*(kg|g|mg|cl|ml|dl|l)?\b\s*(.*)$/i);
+  if(m) return { qty: parseFloat(m[1].replace(',','.')), unit:(m[2]||'').toLowerCase(), rest:m[3].trim(), raw:s };
+  return { qty:null, unit:'', rest:s, raw:s };
+}
+function ingKey(p){
+  let k = noAccent(p.rest)
+    .replace(/^(de la |de l'|des |du |de |d'|le |la |les |l'|un |une |quelques )/,'')
+    .replace(/[.,;:]+$/,'')
+    .replace(/s(?=[^a-z0-9]|$)/g,'')   // pluriels : « oeufs » = « oeuf »
+    .replace(/\s+/g,' ').trim();
+  return k;
+}
+function fmtQty(n){
+  const v = Math.round(n*100)/100;
+  return (v % 1 === 0) ? String(v) : String(v).replace('.', ',');
+}
+function fusionner(parts){
+  if(parts.length===1) return parts[0].raw;
+  // « Lait » sans quantité + « 600ml de lait » → on garde la ligne chiffrée
+  const chiffrees = parts.filter(p=>p.qty!==null);
+  const util = chiffrees.length ? chiffrees : parts;
+  if(util.length===1) return util[0].raw;
+  const unit = util[0].unit;
+  const cumulable = util.every(p=>p.unit===unit);
+  if(cumulable){
+    const total = util.reduce((s,p)=>s+p.qty, 0);
+    const modele = util.reduce((a,b)=>(b.qty>a.qty?b:a));  // « 3 œufs » plutôt que « 1 œuf »
+    return `${fmtQty(total)}${unit?unit:''} ${modele.rest}`.trim();
+  }
+  return util.map(p=>p.raw).join(' + ');
+}
+
+// ── État, sauvegardé sur l'appareil ──
+let cart = { recipes: [], off: {} };
+let rayonOverrides = {};
+let shopList = [];
+function loadCart(){
+  try{ const c = JSON.parse(localStorage.getItem('cart-v1')||'null'); if(c&&Array.isArray(c.recipes)) cart = {recipes:c.recipes, off:c.off||{}}; }catch(e){}
+  try{ rayonOverrides = JSON.parse(localStorage.getItem('rayons-v1')||'{}')||{}; }catch(e){ rayonOverrides={}; }
+}
+function saveCart(){
+  try{ localStorage.setItem('cart-v1', JSON.stringify(cart)); }catch(e){}
+}
+function saveRayons(){
+  try{ localStorage.setItem('rayons-v1', JSON.stringify(rayonOverrides)); }catch(e){}
+}
+
+// ── Construction de la liste agrégée ──
+function buildShopList(){
+  const map = new Map();
+  cart.recipes.forEach(rc=>{
+    (rc.items||[]).forEach(raw=>{
+      const p = parseIngredient(raw);
+      const key = ingKey(p) || noAccent(raw);
+      if(!map.has(key)) map.set(key, {key, parts:[], from:[]});
+      const g = map.get(key);
+      g.parts.push(p);
+      if(!g.from.includes(rc.title)) g.from.push(rc.title);
+    });
+  });
+  const list = [];
+  map.forEach(g=>{
+    list.push({
+      key: g.key,
+      label: fusionner(g.parts),
+      from: g.from,
+      rayon: rayonOverrides[g.key] || devineRayon(g.parts[0].raw)
+    });
+  });
+  list.sort((a,b)=>a.label.localeCompare(b.label,'fr',{sensitivity:'base'}));
+  // on oublie les décochages qui ne concernent plus rien
+  const vivants = new Set(list.map(i=>i.key));
+  Object.keys(cart.off).forEach(k=>{ if(!vivants.has(k)) delete cart.off[k]; });
+  return list;
+}
+function nbAcheter(){ return buildShopList().filter(i=>!cart.off[i.key]).length; }
+function updateCartBadge(){
+  const b = document.getElementById('cart-badge');
+  if(!b) return;
+  const n = cart.recipes.length ? nbAcheter() : 0;
+  b.textContent = n;
+  b.classList.toggle('hidden', n===0);
+}
+
+// ── Ajout d'une recette ──
+window.addToShoppingList=function(id){
   const r = recipes.find(x=>x.id===id);
+  if(!r) return;
   const sv = currentServings[id] || r.servingsBase;
   const ratio = (r.servingsBase && r.servingsBase>0) ? sv/r.servingsBase : 1;
-  let text = `Liste de courses — ${r.title}\n\n`;
-  (r.parts||[]).forEach(p=>{ (p.ingredients||[]).forEach(i=>{ text += `☐ ${scaleIngredient(i,ratio)}\n`; }); });
+  const items = [];
+  (r.parts||[]).forEach(p=>(p.ingredients||[]).forEach(i=>items.push(scaleIngredient(i,ratio))));
+  if(!items.length){ toast('Cette recette n’a pas d’ingrédients'); return; }
+  const entry = {id, title:r.title, servings:sv, unit:r.servingsUnit||'', items};
+  const i = cart.recipes.findIndex(x=>x.id===id);
+  if(i>=0){ cart.recipes[i] = entry; toast('✓ Liste mise à jour'); }
+  else { cart.recipes.push(entry); toast(`✓ Ajouté — ${cart.recipes.length} recette${cart.recipes.length>1?'s':''} dans la liste`); }
+  saveCart(); updateCartBadge();
+};
+
+// ── Affichage ──
+window.openShoppingList=function(){ renderShoppingList(); openOverlay('shop-overlay'); };
+function renderShoppingList(){
+  const body = document.getElementById('shop-body');
+  shopList = buildShopList();
+  if(!cart.recipes.length){
+    body.innerHTML = `<div class="empty-state">
+      <div style="font-size:2rem;margin-bottom:8px">🛒</div>
+      Votre liste est vide.<br>Ouvrez une recette et appuyez sur « Ajouter aux courses ».<br>
+      Vous pouvez en ajouter plusieurs : les ingrédients seront regroupés.
+    </div>`;
+    updateCartBadge();
+    return;
+  }
+  let html = `<div class="shop-intro">Décochez ce que vous avez déjà dans vos placards : seuls les produits cochés seront partagés.</div>`;
+  html += `<div class="shop-recipes">` + cart.recipes.map((rc,i)=>`
+    <span class="shop-recipe-chip">${esc(rc.title)}
+      <span class="sv">${rc.servings?rc.servings+' '+esc(rc.unit||''):''}</span>
+      <button onclick="removeFromShoppingList(${i})" title="Retirer">✕</button>
+    </span>`).join('') + `</div>`;
+  html += `<div class="shop-tools">
+    <span class="chip" onclick="checkAllShop(true)">Tout cocher</span>
+    <span class="chip" onclick="checkAllShop(false)">Tout décocher</span>
+  </div>`;
+
+  const plusieurs = cart.recipes.length>1;
+  RAYONS.forEach(ray=>{
+    const items = shopList.filter(i=>i.rayon===ray.key);
+    if(!items.length) return;
+    const aPrendre = items.filter(i=>!cart.off[i.key]).length;
+    html += `<div class="rayon">
+      <div class="rayon-head"><h3>${ray.icon} ${ray.label}</h3><span class="count">${aPrendre}/${items.length}</span></div>`;
+    items.forEach(it=>{
+      const idx = shopList.indexOf(it);
+      const off = !!cart.off[it.key];
+      html += `<div class="shop-item ${off?'off':''}">
+        <input type="checkbox" id="shop-cb-${idx}" ${off?'':'checked'} onchange="toggleShopItem(${idx})">
+        <label class="lbl" for="shop-cb-${idx}">${esc(it.label)}
+          ${plusieurs?`<span class="src">${esc(it.from.join(' · '))}</span>`:''}
+        </label>
+        <select onchange="setShopRayon(${idx}, this.value)" title="Changer de rayon">
+          ${RAYONS.map(r=>`<option value="${r.key}" ${r.key===it.rayon?'selected':''}>${r.icon} ${r.label}</option>`).join('')}
+        </select>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  const total = shopList.length, aAcheter = shopList.filter(i=>!cart.off[i.key]).length;
+  html += `<div class="shop-count">${aAcheter} produit${aAcheter>1?'s':''} à acheter sur ${total}</div>`;
+  html += `<div class="btn-row">
+      <button class="btn btn-primary btn-full" onclick="shareShoppingList()">📤 Partager la liste</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary btn-full" onclick="clearShoppingList()">Vider la liste</button>
+    </div>`;
+  body.innerHTML = html;
+  updateCartBadge();
+}
+window.toggleShopItem=function(idx){
+  const it = shopList[idx]; if(!it) return;
+  if(cart.off[it.key]) delete cart.off[it.key]; else cart.off[it.key]=true;
+  saveCart(); renderShoppingList();
+};
+window.checkAllShop=function(on){
+  if(on) cart.off = {};
+  else shopList.forEach(i=>{ cart.off[i.key]=true; });
+  saveCart(); renderShoppingList();
+};
+window.setShopRayon=function(idx, val){
+  const it = shopList[idx]; if(!it) return;
+  rayonOverrides[it.key] = val;   // retenu pour les prochaines listes
+  saveRayons(); renderShoppingList();
+};
+window.removeFromShoppingList=function(i){
+  cart.recipes.splice(i,1);
+  saveCart(); renderShoppingList();
+};
+window.clearShoppingList=function(){
+  if(!cart.recipes.length) return;
+  if(!confirm('Vider toute la liste de courses ?')) return;
+  cart = {recipes:[], off:{}};
+  saveCart(); renderShoppingList();
+  toast('Liste vidée');
+};
+window.shareShoppingList=async function(){
+  const aPrendre = shopList.filter(i=>!cart.off[i.key]);
+  if(!aPrendre.length){ toast('⚠ Aucun produit coché'); return; }
+  let text = 'Liste de courses\n';
+  text += cart.recipes.map(r=>r.title).join(' · ') + '\n';
+  RAYONS.forEach(ray=>{
+    const items = aPrendre.filter(i=>i.rayon===ray.key);
+    if(!items.length) return;
+    text += `\n${ray.icon} ${ray.label.toUpperCase()}\n`;
+    items.forEach(i=>{ text += `☐ ${i.label}\n`; });
+  });
   await shareOrCopy('Liste de courses', text.trim());
 };
 
@@ -359,6 +745,9 @@ window.openSettings=function(){
   document.getElementById('set-owner').value = cfg.owner||'';
   document.getElementById('set-repo').value = cfg.repo||'';
   document.getElementById('set-token').value = cfg.token||'';
+  const ai = getAiConfig();
+  document.getElementById('set-aikey').value = ai.key||'';
+  document.getElementById('set-aimodel').value = ai.model||MODELE_DEFAUT;
   openOverlay('settings-overlay');
 };
 window.saveSettings=function(){
@@ -473,7 +862,10 @@ function renderDetail(r){
   if(r.source) html += `<div class="source-line">Source : ${esc(r.source)}</div>`;
   html += `<div class="btn-row">
       <button class="btn btn-secondary" style="flex:1" onclick="shareRecipe('${r.id}')">📤 Partager</button>
-      <button class="btn btn-secondary" style="flex:1" onclick="showShoppingList('${r.id}')">🛒 Liste de courses</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="addToShoppingList('${r.id}')">🛒 Ajouter aux courses</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary btn-full" onclick="openShoppingList()">Voir ma liste de courses${cart.recipes.length?` (${cart.recipes.length} recette${cart.recipes.length>1?'s':''})`:''}</button>
     </div>
     <div class="btn-row">
       <button class="btn btn-danger btn-full" onclick="deleteRecipe('${r.id}')">🗑 Supprimer</button>
@@ -534,10 +926,217 @@ window.deleteRecipe=async function(id){
   await loadRecipes();
 };
 // ══════════════════════════════════
-// ADD / EDIT
+// IMPORT D'UNE RECETTE (photo, PDF, texte)
+// ══════════════════════════════════
+const MODELE_DEFAUT = 'claude-sonnet-5';
+let importFiles = [];
+
+function getAiConfig(){
+  try{ return JSON.parse(localStorage.getItem('ai-config')||'null') || {}; }catch(e){ return {}; }
+}
+window.saveAiSettings=function(){
+  const key = document.getElementById('set-aikey').value.trim();
+  const model = document.getElementById('set-aimodel').value.trim() || MODELE_DEFAUT;
+  if(!key){ toast('⚠ Collez d’abord votre clé d’API'); return; }
+  localStorage.setItem('ai-config', JSON.stringify({key, model}));
+  toast('✓ Clé enregistrée sur cet appareil');
+};
+
+window.openAddChoice=function(){ openOverlay('add-overlay'); };
+window.openImport=function(){
+  importFiles = [];
+  closeOverlay('add-overlay');
+  document.getElementById('import-text').value = '';
+  renderImportFiles();
+  setImportStatus('', false);
+  openOverlay('import-overlay');
+};
+function setImportStatus(msg, erreur){
+  const el = document.getElementById('import-status');
+  el.innerHTML = msg;
+  el.classList.toggle('show', !!msg);
+  el.classList.toggle('err', !!erreur);
+}
+window.addImportFiles=function(input){
+  for(const f of input.files){
+    if(f.size > 12*1024*1024){ toast('⚠ Fichier trop lourd : '+f.name); continue; }
+    importFiles.push(f);
+  }
+  input.value = '';
+  renderImportFiles();
+};
+window.removeImportFile=function(i){ importFiles.splice(i,1); renderImportFiles(); };
+function renderImportFiles(){
+  document.getElementById('import-files').innerHTML = importFiles.map((f,i)=>
+    `<span class="file-chip">${f.type==='application/pdf'?'📄':'🖼'}<span>${esc(f.name||('photo '+(i+1)))}</span>
+     <button onclick="removeImportFile(${i})" title="Retirer">✕</button></span>`).join('');
+}
+function fileToBase64(file){
+  return new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = e=>res(String(e.target.result).split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+const CONSIGNE_IMPORT = `Tu transcris une recette de cuisine pour un carnet personnel.
+Réponds UNIQUEMENT par un objet JSON valide, sans texte autour et sans balises Markdown.
+
+Format exact attendu :
+{
+  "title": "Nom de la recette",
+  "category": "Entrée" | "Plat" | "Dessert" | "Boulangerie",
+  "difficulty": "" | "Facile" | "Moyen" | "Difficile",
+  "servingsBase": nombre de portions (0 si non indiqué),
+  "servingsUnit": "personnes" | "parts" | "cookies" | …,
+  "prepMin": minutes de préparation (0 si non indiqué),
+  "cookMin": minutes de cuisson (0 si non indiqué),
+  "restMin": minutes de repos / réfrigération (0 si non indiqué),
+  "source": "livre, magazine ou site d'origine si visible, sinon vide",
+  "notes": "conseils, variantes, remarques du texte d'origine, sinon vide",
+  "labels": ["mots-clés éventuels, ex. Noël, pique-nique"],
+  "parts": [
+    { "name": "", "ingredients": ["250g de farine", "3 œufs"], "steps": ["Première étape…"] }
+  ]
+}
+
+Règles :
+- Transcris fidèlement, en français. N'invente jamais un ingrédient, une quantité ou une étape absents du document. Ce qui manque reste vide ou à 0.
+- Si la recette comporte des sous-préparations (pâte, garniture, ganache, sirop, montage…), fais une entrée par sous-préparation dans "parts", avec son "name". Sinon, une seule entrée avec "name": "".
+- Écris les ingrédients dans le style « 250g de farine », « 3 œufs », « 1 cuillère à soupe de miel » : la quantité d'abord, collée à l'unité.
+- Dans les étapes, rappelle les quantités quand c'est utile (« Mélanger les 250g de farine avec les 3 œufs »).
+- Une étape par action, dans l'ordre. Pas de numérotation dans le texte des étapes.
+- Si le document contient plusieurs recettes, ne retiens que la principale.
+- Si le document n'est pas une recette, réponds {"error":"Ce document ne semble pas contenir de recette."}`;
+
+async function appelerClaude(blocs){
+  const cfg = getAiConfig();
+  if(!cfg.key){
+    const e = new Error('sans-cle'); e.sansCle = true; throw e;
+  }
+  let res;
+  try{
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{
+        'content-type':'application/json',
+        'x-api-key': cfg.key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body: JSON.stringify({
+        model: cfg.model || MODELE_DEFAUT,
+        max_tokens: 4000,
+        messages: [{ role:'user', content: blocs }]
+      })
+    });
+  }catch(e){
+    throw new Error("Impossible de joindre le service de déchiffrage. Vérifiez votre connexion internet.");
+  }
+  if(!res.ok){
+    let detail = '';
+    try{ const j = await res.json(); detail = (j.error && j.error.message) || ''; }catch(e){}
+    if(res.status===401) throw new Error("Clé d'API refusée. Vérifiez-la dans ⚙️ Réglages.");
+    if(res.status===400 && /model/i.test(detail)) throw new Error("Modèle inconnu : corrigez le nom du modèle dans ⚙️ Réglages. ("+detail+")");
+    if(res.status===429) throw new Error("Trop de demandes d'affilée, ou crédit épuisé. Réessayez dans un instant.");
+    throw new Error("Erreur "+res.status+(detail?' : '+detail:''));
+  }
+  const data = await res.json();
+  return (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
+}
+
+function extraireJson(txt){
+  let t = (txt||'').replace(/```json/gi,'').replace(/```/g,'').trim();
+  const a = t.indexOf('{'), b = t.lastIndexOf('}');
+  if(a<0 || b<a) throw new Error("Réponse illisible.");
+  return JSON.parse(t.slice(a, b+1));
+}
+function normaliserRecette(d){
+  const cats = ['Entrée','Plat','Dessert','Boulangerie'];
+  const diffs = ['','Facile','Moyen','Difficile'];
+  const n = v => { const x = parseInt(v,10); return isNaN(x)||x<0 ? 0 : x; };
+  const parts = (Array.isArray(d.parts)?d.parts:[]).map(p=>({
+    name: String(p.name||''),
+    ingredients: (Array.isArray(p.ingredients)?p.ingredients:[]).map(s=>String(s).trim()).filter(Boolean),
+    steps: (Array.isArray(p.steps)?p.steps:[]).map(s=>String(s).replace(/^\s*\d+[.)]\s*/,'').trim()).filter(Boolean)
+  })).filter(p=>p.ingredients.length||p.steps.length);
+  return {
+    title: String(d.title||'').trim(),
+    category: cats.includes(d.category) ? d.category : 'Plat',
+    difficulty: diffs.includes(d.difficulty) ? d.difficulty : '',
+    servingsBase: n(d.servingsBase),
+    servingsUnit: String(d.servingsUnit||'personnes').trim() || 'personnes',
+    prepMin: n(d.prepMin), cookMin: n(d.cookMin), restMin: n(d.restMin),
+    source: String(d.source||'').trim(),
+    notes: String(d.notes||'').trim(),
+    labels: (Array.isArray(d.labels)?d.labels:[]).map(s=>String(s).trim()).filter(Boolean),
+    photoUrl: '',
+    parts: parts.length ? parts : [{name:'',ingredients:[''],steps:['']}]
+  };
+}
+
+window.runImport=async function(){
+  const texte = document.getElementById('import-text').value.trim();
+  if(!importFiles.length && !texte){ toast('⚠ Ajoutez une photo, un fichier ou un texte'); return; }
+  const btn = document.getElementById('import-go');
+  btn.disabled = true; btn.textContent = 'Déchiffrage…';
+  setImportStatus('📖 Lecture en cours… cela prend quelques secondes.', false);
+  try{
+    const blocs = [];
+    for(const f of importFiles){
+      if(f.type==='application/pdf'){
+        blocs.push({ type:'document', source:{ type:'base64', media_type:'application/pdf', data: await fileToBase64(f) } });
+      } else {
+        blocs.push({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data: await compressImage(f, 1600, 0.85) } });
+      }
+    }
+    let consigne = CONSIGNE_IMPORT;
+    if(texte) consigne += `\n\nVoici le texte de la recette :\n"""\n${texte}\n"""`;
+    blocs.push({ type:'text', text: consigne });
+
+    const brut = await appelerClaude(blocs);
+    const data = extraireJson(brut);
+    if(data.error){ setImportStatus('⚠ '+esc(data.error), true); return; }
+    const r = normaliserRecette(data);
+    if(!r.title && !r.parts.some(p=>p.ingredients.length)){
+      setImportStatus("⚠ Aucune recette n'a pu être lue. Essayez une photo plus nette, ou recadrée sur la recette.", true);
+      return;
+    }
+    ouvrirRelecture(r);
+  }catch(e){
+    if(e.sansCle){
+      setImportStatus("⚠ Il manque votre clé d'API Anthropic. Ouvrez ⚙️ Réglages pour l'ajouter — c'est à faire une seule fois.", true);
+    } else {
+      setImportStatus('⚠ '+esc(e.message||'Échec du déchiffrage.'), true);
+    }
+  }finally{
+    btn.disabled = false; btn.textContent = '✨ Déchiffrer la recette';
+  }
+};
+
+function ouvrirRelecture(r){
+  currentId = null;                       // la recette sera créée, pas modifiée
+  editingParts = JSON.parse(JSON.stringify(r.parts));
+  document.getElementById('edit-title').textContent = 'Vérifier la recette';
+  buildEditForm(r);
+  const body = document.getElementById('edit-body');
+  const banniere = document.createElement('div');
+  banniere.className = 'review-banner';
+  banniere.innerHTML = "📖 Recette déchiffrée. <b>Relisez-la</b> — surtout les quantités — puis corrigez ce qu'il faut avant d'enregistrer.";
+  body.insertBefore(banniere, body.firstChild);
+  closeOverlay('import-overlay');
+  closeOverlay('add-overlay');
+  openOverlay('edit-overlay');
+  toast('✓ Recette déchiffrée — à relire');
+}
+
+// ══════════════════════════════════
+// SAISIE MANUELLE / MODIFICATION
 // ══════════════════════════════════
 window.openAdd=function(){
   currentId = null;
+  closeOverlay('add-overlay');
   editingParts = [{name:'', ingredients:[''], steps:['']}];
   document.getElementById('edit-title').textContent = 'Nouvelle recette';
   buildEditForm({});
@@ -657,6 +1256,8 @@ window.saveRecipe=async function(){
   await loadRecipes();
 };
 
+loadCart();
+updateCartBadge();
 loadRecipes();
 </script>
 </body>
