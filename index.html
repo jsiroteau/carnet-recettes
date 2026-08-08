@@ -97,13 +97,15 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .vt-btn{border:none;background:none;padding:7px 16px;border-radius:50px;font-size:0.8rem;font-weight:600;color:var(--muted);cursor:pointer;font-family:'Work Sans',sans-serif}
 .vt-btn.active{background:var(--accent);color:var(--accent-ink)}
 
-.schema-wrap{display:flex;gap:14px;overflow-x:auto;padding:16px 2px 8px;margin:0 -2px}
-.schema-lane{display:flex;flex-direction:column;align-items:center;min-width:170px;flex-shrink:0}
+.schema-wrap{position:relative;display:flex;gap:36px;overflow-x:auto;padding:16px 8px 24px;margin:0 -2px}
+.schema-lane{display:flex;flex-direction:column;align-items:center;min-width:170px;flex-shrink:0;position:relative;z-index:2}
+.schema-lane[data-final]{min-width:190px}
 .schema-lane-title{font-family:'Fraunces',serif;font-weight:600;font-size:0.85rem;color:var(--accent);margin-bottom:8px;text-align:center}
-.schema-box{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:10px 12px;font-size:0.76rem;text-align:center;line-height:1.35;width:100%;box-shadow:0 2px 8px rgba(59,42,32,0.06)}
+.schema-box{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:10px 12px;font-size:0.76rem;text-align:center;line-height:1.35;width:100%;box-shadow:0 2px 8px rgba(59,42,32,0.06);position:relative}
 .schema-ing-box{background:var(--card-hi);border:2px dashed var(--accent);font-family:'IBM Plex Mono',monospace;font-size:0.72rem}
+.schema-box[data-merge-target]{border:2px solid var(--accent);background:var(--card-hi)}
 .schema-arrow{color:var(--accent);font-size:1.1rem;line-height:1;margin:3px 0}
-.schema-converge{text-align:center;color:var(--muted);margin-top:8px;font-family:'Fraunces',serif;font-style:italic}
+.schema-connectors{position:absolute;top:0;left:0;pointer-events:none;z-index:1}
 .source-line{font-size:0.78rem;color:var(--muted);margin-top:10px;font-style:italic}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:50px;font-family:'Work Sans',sans-serif;font-size:0.86rem;font-weight:600;cursor:pointer;border:none;transition:opacity .15s}
@@ -943,6 +945,7 @@ function renderDetail(r){
       <button class="btn btn-danger btn-full" onclick="deleteRecipe('${r.id}')">🗑 Supprimer</button>
     </div>`;
   document.getElementById('detail-body').innerHTML = html;
+  if(detailView==='schema') requestAnimationFrame(()=>requestAnimationFrame(drawSchemaConnectors));
 }
 window.setDetailView=function(v){ detailView=v; const r=recipes.find(x=>x.id===currentId); renderDetail(r); };
 function renderTextView(r, ratio){
@@ -965,26 +968,63 @@ function renderTextView(r, ratio){
 function renderSchemaView(r, ratio){
   const parts = r.parts||[];
   if(!parts.length) return '<div class="empty-state">Rien à afficher</div>';
-  let html = '<div class="schema-wrap">';
-  parts.forEach(p=>{
-    html += `<div class="schema-lane">`;
+  const multi = parts.length > 1;
+  let html = '<div class="schema-wrap" id="schema-wrap"><svg class="schema-connectors" id="schema-svg"></svg>';
+  parts.forEach((p,pi)=>{
+    const isFinal = multi && pi===parts.length-1;
+    html += `<div class="schema-lane" ${isFinal?'data-final="1"':''}>`;
     html += `<div class="schema-lane-title">${esc(p.name||r.title)}</div>`;
     if(p.ingredients && p.ingredients.length){
       html += `<div class="schema-box schema-ing-box">${p.ingredients.map(i=>esc(scaleIngredient(i,ratio))).join('<br>')}</div>`;
       html += `<div class="schema-arrow">↓</div>`;
     }
     (p.steps||[]).forEach((s,i)=>{
-      html += `<div class="schema-box">${esc(s)}</div>`;
+      const mergeTarget = isFinal && i===0 && parts.length>1;
+      html += `<div class="schema-box" ${mergeTarget?'data-merge-target="1"':''}>${esc(s)}</div>`;
       if(i<p.steps.length-1) html += `<div class="schema-arrow">↓</div>`;
     });
     html += `</div>`;
   });
   html += '</div>';
-  if(parts.length>1){
-    html += `<div class="schema-converge">↘ ↓ ↙<br><span style="font-size:0.72rem">Les couloirs se rejoignent au montage final</span></div>`;
-  }
   return html;
 }
+function drawSchemaConnectors(){
+  const wrap = document.getElementById('schema-wrap');
+  const svg = document.getElementById('schema-svg');
+  if(!wrap || !svg) return;
+  const lanes = [...wrap.querySelectorAll('.schema-lane')];
+  const finalLane = wrap.querySelector('.schema-lane[data-final]');
+  svg.innerHTML = '';
+  if(lanes.length<2 || !finalLane){ svg.setAttribute('width',0); svg.setAttribute('height',0); return; }
+  const target = finalLane.querySelector('[data-merge-target]') || finalLane.querySelector('.schema-box');
+  if(!target){ return; }
+
+  const W = wrap.scrollWidth, H = wrap.scrollHeight;
+  svg.setAttribute('width', W); svg.setAttribute('height', H);
+  svg.style.width = W+'px'; svg.style.height = H+'px';
+
+  const wrapRect = wrap.getBoundingClientRect();
+  const toLocal = rect => ({
+    x: rect.left - wrapRect.left + wrap.scrollLeft,
+    y: rect.top - wrapRect.top + wrap.scrollTop,
+    w: rect.width, h: rect.height
+  });
+  const tgt = toLocal(target.getBoundingClientRect());
+  const tx = tgt.x + tgt.w/2, ty = tgt.y;
+
+  let content = `<defs><marker id="schema-arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--accent)"/></marker></defs>`;
+  lanes.forEach(lane=>{
+    if(lane===finalLane) return;
+    const boxes = lane.querySelectorAll('.schema-box');
+    if(!boxes.length) return;
+    const last = toLocal(boxes[boxes.length-1].getBoundingClientRect());
+    const sx = last.x + last.w/2, sy = last.y + last.h;
+    const midY = (sy+ty)/2;
+    content += `<path d="M ${sx} ${sy} C ${sx} ${midY}, ${tx} ${midY}, ${tx} ${ty}" style="fill:none;stroke:var(--accent);stroke-width:2.5;opacity:0.8" marker-end="url(#schema-arrowhead)"/>`;
+  });
+  svg.innerHTML = content;
+}
+window.addEventListener('resize', ()=>{ if(document.getElementById('schema-wrap')) drawSchemaConnectors(); });
 window.changeServings=function(delta){
   const r = recipes.find(x=>x.id===currentId);
   currentServings[currentId] = Math.max(1, (currentServings[currentId]||r.servingsBase) + delta);
