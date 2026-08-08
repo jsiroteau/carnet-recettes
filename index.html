@@ -157,20 +157,20 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .choice-card .ic{font-size:1.7rem;line-height:1}
 .choice-card .tt{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;color:var(--text)}
 .choice-card .ds{font-size:0.79rem;color:var(--muted);margin-top:3px;line-height:1.4}
-.drop-zone{border:2px dashed var(--border);border-radius:var(--r);background:var(--card);padding:22px 16px;text-align:center;color:var(--muted);font-size:0.85rem;line-height:1.5}
-.pick-row{display:flex;gap:10px;margin-top:12px}
-.pick-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--card-hi);border:1px solid var(--border);border-radius:12px;padding:14px 8px;font-size:0.78rem;font-weight:600;color:var(--text);cursor:pointer;font-family:'Work Sans',sans-serif}
-.pick-btn .ic{font-size:1.3rem}
-.file-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.file-chip{display:flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--border);border-radius:50px;padding:6px 8px 6px 13px;font-size:0.75rem;max-width:100%}
-.file-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px}
-.file-chip button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;padding:0 3px}
 .import-status{margin-top:16px;padding:13px 15px;border-radius:12px;background:var(--card-hi);font-size:0.83rem;line-height:1.5;color:var(--text);display:none}
 .import-status.show{display:block}
 .import-status.err{background:rgba(201,112,100,0.14);color:var(--rose)}
 .import-sep{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;margin:24px 0 14px;font-family:'IBM Plex Mono',monospace}
 .import-sep::before,.import-sep::after{content:'';flex:1;height:1px;background:var(--border)}
 .review-banner{background:var(--card-hi);border-radius:12px;padding:12px 15px;font-size:0.82rem;line-height:1.45;color:var(--text);margin-bottom:6px}
+
+.maj-banner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--card-hi);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;font-size:0.83rem;line-height:1.45;margin-bottom:14px}
+.maj-banner span{flex:1;min-width:180px}
+.export-pastille{position:absolute;top:-5px;right:-5px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--bg)}
+.export-pastille.hidden{display:none}
+.export-etat{font-size:0.82rem;line-height:1.5;margin-top:10px;padding:11px 14px;border-radius:11px}
+.export-etat.ok{background:rgba(76,154,106,0.12);color:#3B7A53}
+.export-etat.att{background:var(--card-hi);color:var(--text)}
 
 #toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:var(--card-hi);border:1px solid var(--border);border-radius:50px;padding:11px 22px;font-size:0.85rem;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
 #toast.show{opacity:1}
@@ -182,7 +182,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
   <div class="logo">Carnet <span>de recettes</span></div>
   <div class="header-actions">
     <button class="btn btn-secondary cart-btn" style="padding:8px 12px;font-size:0.78rem" onclick="openShoppingList()" title="Liste de courses">🛒<span class="cart-badge hidden" id="cart-badge">0</span></button>
-    <button class="btn btn-secondary" style="padding:8px 12px;font-size:0.78rem" onclick="openSettings()">⚙️</button>
+    <button class="btn btn-secondary" style="padding:8px 12px;font-size:0.78rem;position:relative" onclick="openSettings()">⚙️<span class="export-pastille hidden" id="export-pastille"></span></button>
   </div>
 </div>
 
@@ -228,8 +228,25 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
     <h2>Réglages</h2>
   </div>
   <div class="overlay-body edit-form">
+    <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-bottom:8px">Sauvegarde</h3>
     <p style="color:var(--muted);font-size:0.85rem;line-height:1.5">
-      Pour ajouter des photos directement depuis l'application, elle a besoin d'un accès en écriture à votre dépôt GitHub. Ces informations restent uniquement sur cet appareil (jamais partagées ni envoyées ailleurs qu'à GitHub).
+      Vos recettes sont enregistrées dans cet appareil. Exporter les écrit dans le fichier <span class="mono">recipes-seed.js</span> de votre dépôt GitHub : c'est votre sauvegarde, et c'est ce que liront vos autres appareils.
+    </p>
+    <div class="export-etat ok" id="export-etat">—</div>
+    <div class="btn-row">
+      <button class="btn btn-primary btn-full" id="export-btn" onclick="exporterRecettes()">☁️ Exporter mes recettes vers GitHub</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary btn-full" onclick="rechargerDepuisGitHub()">⬇️ Recharger depuis GitHub</button>
+    </div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:8px;line-height:1.5">
+      Recharger remplace les recettes de cet appareil par celles du dépôt. À utiliser sur un deuxième téléphone, ou pour revenir à la dernière sauvegarde.
+    </div>
+
+    <div style="height:1px;background:var(--border);margin:28px 0 4px"></div>
+    <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-top:20px;margin-bottom:8px">Dépôt GitHub</h3>
+    <p style="color:var(--muted);font-size:0.85rem;line-height:1.5">
+      Nécessaire pour la sauvegarde et pour l'envoi des photos. Ces informations restent uniquement sur cet appareil, et ne sont envoyées qu'à GitHub.
     </p>
     <label>Nom d'utilisateur GitHub</label>
     <input id="set-owner" placeholder="ex. jsiroteau">
@@ -241,25 +258,11 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
       <button class="btn btn-primary btn-full" onclick="saveSettings()">💾 Enregistrer</button>
     </div>
 
-    <div style="height:1px;background:var(--border);margin:28px 0 4px"></div>
-    <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-top:20px">Déchiffrage des recettes photographiées</h3>
-    <p style="color:var(--muted);font-size:0.85rem;line-height:1.5;margin-top:8px">
-      Pour lire une recette prise en photo, l'application a besoin d'une clé d'API Anthropic, que vous créez sur <span class="mono">console.anthropic.com</span>. Elle reste elle aussi uniquement sur cet appareil. Ne la mettez jamais dans votre dépôt GitHub : il est public.
-    </p>
-    <label>Clé d'API Anthropic</label>
-    <input id="set-aikey" type="password" placeholder="sk-ant-…">
-    <label>Modèle</label>
-    <input id="set-aimodel" placeholder="claude-sonnet-5">
-    <div style="font-size:0.72rem;color:var(--muted);margin-top:5px">Laissez tel quel sauf si le déchiffrage renvoie une erreur de modèle inconnu.</div>
-    <div class="btn-row">
-      <button class="btn btn-primary btn-full" onclick="saveAiSettings()">💾 Enregistrer la clé</button>
-    </div>
-    <div style="height:1px;background:var(--border);margin:28px 0 4px"></div>
     <div class="btn-row">
       <button class="btn btn-secondary btn-full" onclick="clearSettings()">Effacer ces réglages de cet appareil</button>
     </div>
     <div class="btn-row">
-      <button class="btn btn-danger btn-full" onclick="wipeAllRecipes()">🗑 Vider tout le carnet (supprime toutes les recettes)</button>
+      <button class="btn btn-danger btn-full" onclick="wipeAllRecipes()">🗑 Effacer le carnet de cet appareil</button>
     </div>
   </div>
 </div>
@@ -282,9 +285,9 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
   </div>
   <div class="overlay-body">
     <button class="choice-card" onclick="openImport()">
-      <span class="ic">📷</span>
-      <span><span class="tt">Photographier ou importer</span>
-      <span class="ds">Une page de livre, une photo, un PDF, un texte copié… l'application déchiffre et remplit la fiche toute seule.</span></span>
+      <span class="ic">📋</span>
+      <span><span class="tt">Coller un texte de recette</span>
+      <span class="ds">Collez le texte d'une recette, ou photographiez-la : l'application la découpe en ingrédients et en étapes, et remplit la fiche.</span></span>
     </button>
     <button class="choice-card" onclick="openAdd()">
       <span class="ic">✍️</span>
@@ -298,33 +301,21 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 <div id="import-overlay" class="overlay">
   <div class="overlay-header">
     <button class="back-btn" onclick="closeAllOverlays()">‹</button>
-    <h2>Importer une recette</h2>
+    <h2>Coller une recette</h2>
   </div>
   <div class="overlay-body">
-    <div class="drop-zone">
-      Photographiez la recette dans votre livre ou votre magazine.<br>
-      Plusieurs photos possibles si elle tient sur plusieurs pages.
+    <label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;display:block;margin-bottom:5px">Texte de la recette</label>
+    <textarea id="import-text" placeholder="Collez ici le texte d'une recette : copié sur un site, ou extrait d'une photo par votre téléphone." style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'Work Sans',sans-serif;font-size:0.9rem;outline:none;resize:vertical;min-height:200px"></textarea>
+    <div style="font-size:0.76rem;color:var(--muted);margin-top:10px;line-height:1.55">
+      <b>Depuis un livre ou un magazine :</b> photographiez la page, puis faites extraire le texte par votre téléphone — sur Android, appuyez longuement sur la photo dans Google Photos puis « Copier le texte ». Collez le résultat ici.
     </div>
-    <div class="pick-row">
-      <label class="pick-btn"><span class="ic">📷</span>Prendre une photo
-        <input type="file" accept="image/*" capture="environment" multiple style="display:none" onchange="addImportFiles(this)">
-      </label>
-      <label class="pick-btn"><span class="ic">🖼</span>Choisir un fichier
-        <input type="file" accept="image/*,application/pdf" multiple style="display:none" onchange="addImportFiles(this)">
-      </label>
-    </div>
-    <div class="file-chips" id="import-files"></div>
-
-    <div class="import-sep">ou</div>
-    <label style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;display:block;margin-bottom:5px">Coller le texte d'une recette</label>
-    <textarea id="import-text" placeholder="Collez ici le texte d'une recette trouvée sur un site, dans un mail, un document…" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'Work Sans',sans-serif;font-size:0.9rem;outline:none;resize:vertical;min-height:110px"></textarea>
 
     <div class="import-status" id="import-status"></div>
     <div class="btn-row">
-      <button class="btn btn-primary btn-full" id="import-go" onclick="runImport()">✨ Déchiffrer la recette</button>
+      <button class="btn btn-primary btn-full" id="import-go" onclick="runImport()">✨ Analyser la recette</button>
     </div>
     <div style="font-size:0.72rem;color:var(--muted);margin-top:14px;line-height:1.5">
-      La recette déchiffrée s'ouvre dans le formulaire habituel : vous la relisez et la corrigez avant d'enregistrer. Rien n'est ajouté à votre carnet sans votre validation.
+      L'analyse se fait entièrement sur votre appareil : rien n'est envoyé sur internet. La recette s'ouvre ensuite dans le formulaire habituel, où vous la relisez et la corrigez avant d'enregistrer.
     </div>
   </div>
 </div>
@@ -332,29 +323,74 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 <div id="toast"></div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-import {
-  getFirestore, collection, doc, getDocs, setDoc, deleteDoc, addDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-import { SEED } from "./recipes-seed.js";
+// ══════════════════════════════════
+// STOCKAGE
+// ══════════════════════════════════
+// Les recettes vivent dans cet appareil (localStorage). Le fichier
+// recipes-seed.js du dépôt GitHub sert de référence : il est relu au
+// démarrage, et réécrit quand vous exportez.
 
-const firebaseConfig = {
-  apiKey: "AIzaSyD2EeT8zzZKR08xMhCz8lYyphyE3CoeLc8",
-  authDomain: "carnet-de-recettes-ebbdd.firebaseapp.com",
-  projectId: "carnet-de-recettes-ebbdd",
-  storageBucket: "carnet-de-recettes-ebbdd.firebasestorage.app",
-  messagingSenderId: "996108837851",
-  appId: "1:996108837851:web:6bb2d03433463af8fe7dfe"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const recipesCol = collection(db, "recipes");
+const STORE = 'carnet-v2';
+
+function lireStore(){
+  try{ const s = JSON.parse(localStorage.getItem(STORE)||'null');
+       return (s && Array.isArray(s.recipes)) ? s : null; }catch(e){ return null; }
+}
+function ecrireStore(s){
+  try{ localStorage.setItem(STORE, JSON.stringify(s)); return true; }
+  catch(e){ toast('⚠ Mémoire de l’appareil saturée'); return false; }
+}
+let enAttente = 0;                      // modifications non encore exportées
+let signatureSeed = '';                 // état du fichier GitHub au dernier accord
+
+function sauver(marquerModifie){
+  if(marquerModifie) enAttente++;
+  ecrireStore({recipes, seedSig:signatureSeed, enAttente});
+  majIndicateurExport();
+}
+function empreinte(liste){
+  const txt = (liste||[]).map(r=>JSON.stringify(nettoyerPourExport(r))).join('\n');
+  let x = 5381;
+  for(let i=0;i<txt.length;i++){ x = ((x*33) ^ txt.charCodeAt(i)) >>> 0; }
+  return liste.length + '-' + x.toString(36);
+}
+function identifiant(titre, i){
+  const base = (titre||'recette').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+  return (base||'recette') + '-' + i;
+}
+function nettoyerPourExport(r){
+  return {
+    title:r.title||'', category:r.category||'Plat', difficulty:r.difficulty||'',
+    servingsBase:r.servingsBase||0, servingsUnit:r.servingsUnit||'',
+    prepMin:r.prepMin||0, cookMin:r.cookMin||0, restMin:r.restMin||0,
+    source:r.source||'', notes:r.notes||'', labels:r.labels||[],
+    photoUrl:r.photoUrl||'',
+    parts:(r.parts||[]).map(p=>({name:p.name||'', ingredients:p.ingredients||[], steps:p.steps||[]}))
+  };
+}
+
+// Le fichier du dépôt est relu à chaque démarrage, en contournant le cache,
+// pour repérer une version plus récente exportée depuis un autre appareil.
+async function lireSeedDistant(){
+  try{ const m = await import('./recipes-seed.js?v=' + Date.now()); return m.SEED || null; }
+  catch(e){ return null; }             // hors ligne : on se contente du local
+}
 
 // ══════════════════════════════════
 // SEED DATA — vos 23 recettes de départ
 // ══════════════════════════════════
 // Les recettes de départ vivent maintenant dans recipes-seed.js (importé en haut du fichier)
 
+
+// ══════════════════════════════════
+// CATÉGORIES
+// ══════════════════════════════════
+const CATEGORIES = ['Apéritif','Entrée','Plat','Dessert','Goûter'];
+// Anciennes catégories renommées : les recettes concernées sont reclassées
+// automatiquement, une seule fois, au premier lancement.
+const CATEGORIES_RENOMMEES = { 'Boulangerie': 'Goûter' };
 
 // ══════════════════════════════════
 // STATE
@@ -374,31 +410,67 @@ window.closeAllOverlays=function(){ closeOverlay('detail-overlay'); closeOverlay
 
 // ── LOAD ──
 async function loadRecipes(){
-  const snap = await getDocs(recipesCol);
-  recipes = snap.docs.map(d=>({id:d.id, ...d.data()}));
-  if(recipes.length===0){ showSeedPrompt(); }
-  else { renderCategories(); renderList(); }
+  const store = lireStore();
+  const seed = await lireSeedDistant();
+
+  if(!store){                                   // tout premier lancement
+    recipes = (seed||[]).map((r,i)=>({id:identifiant(r.title,i), ...r}));
+    signatureSeed = empreinte(recipes);
+    enAttente = 0;
+    sauver(false);
+  } else {
+    recipes = store.recipes;
+    signatureSeed = store.seedSig || '';
+    enAttente = store.enAttente || 0;
+    if(seed){
+      const sigDistante = empreinte(seed.map((r,i)=>({id:identifiant(r.title,i), ...r})));
+      if(sigDistante !== signatureSeed && sigDistante !== empreinte(recipes)){
+        proposerVersionDistante(seed, sigDistante);
+      }
+    }
+  }
+  await reclasserAnciennesCategories();
+  majIndicateurExport();
+  renderCategories(); renderList();
 }
-function showSeedPrompt(){
-  document.getElementById('recipe-list').innerHTML = `<div class="empty-state">
-    <div style="font-size:2rem;margin-bottom:8px">🍲</div>
-    Votre carnet est vide.<br>Importez les 23 recettes de départ pour commencer.
-    <br><button class="btn btn-primary" id="seed-btn">📥 Importer mes recettes</button>
-  </div>`;
-  document.getElementById('seed-btn').onclick = importSeed;
+
+function proposerVersionDistante(seed, sig){
+  const bandeau = document.createElement('div');
+  bandeau.className = 'maj-banner';
+  bandeau.innerHTML = `<span>Une version plus récente de votre carnet est disponible sur GitHub
+    (${seed.length} recette${seed.length>1?'s':''}).</span>
+    <button class="btn btn-primary" style="padding:8px 16px;font-size:0.78rem" id="maj-oui">Charger</button>
+    <button class="btn btn-secondary" style="padding:8px 14px;font-size:0.78rem" id="maj-non">Plus tard</button>`;
+  const home = document.getElementById('home');
+  home.insertBefore(bandeau, home.firstChild.nextSibling);
+  document.getElementById('maj-non').onclick = ()=>bandeau.remove();
+  document.getElementById('maj-oui').onclick = ()=>{
+    if(enAttente && !confirm(`Vous avez ${enAttente} modification${enAttente>1?'s':''} non exportée${enAttente>1?'s':''} sur cet appareil. Charger la version de GitHub les remplacera. Continuer ?`)) return;
+    recipes = seed.map((r,i)=>({id:identifiant(r.title,i), ...r}));
+    signatureSeed = sig; enAttente = 0;
+    sauver(false);
+    bandeau.remove();
+    renderCategories(); renderList();
+    toast('✓ Carnet mis à jour depuis GitHub');
+  };
 }
-async function importSeed(){
-  const btn = document.getElementById('seed-btn');
-  if(btn){ btn.disabled = true; btn.textContent = 'Import en cours…'; }
-  toast('Import en cours…');
-  for(const r of SEED){ await addDoc(recipesCol, {...r, createdAt: serverTimestamp()}); }
-  toast('✓ Recettes importées !');
-  await loadRecipes();
+
+async function reclasserAnciennesCategories(){
+  const aReprendre = recipes.filter(r=>CATEGORIES_RENOMMEES[r.category]);
+  if(!aReprendre.length) return;
+  aReprendre.forEach(r=>{ r.category = CATEGORIES_RENOMMEES[r.category]; });
+  if(CATEGORIES_RENOMMEES[activeCategory]) activeCategory = 'Toutes';
+  sauver(true);
+  const n = aReprendre.length;
+  toast(`✓ ${n} recette${n>1?'s':''} reclassée${n>1?'s':''} en Goûter`);
 }
 
 // ── CATEGORIES ──
 function renderCategories(){
-  const cats = ['Toutes', ...new Set(recipes.map(r=>r.category).filter(Boolean))];
+  const presentes = new Set(recipes.map(r=>r.category).filter(Boolean));
+  const cats = ['Toutes',
+    ...CATEGORIES.filter(c=>presentes.has(c)),
+    ...[...presentes].filter(c=>!CATEGORIES.includes(c)).sort()];
   document.getElementById('cat-chips').innerHTML = cats.map(c=>
     `<div class="chip ${c===activeCategory?'active':''}" onclick="setCategory('${esc(c)}')">${esc(c)}</div>`
   ).join('');
@@ -745,9 +817,7 @@ window.openSettings=function(){
   document.getElementById('set-owner').value = cfg.owner||'';
   document.getElementById('set-repo').value = cfg.repo||'';
   document.getElementById('set-token').value = cfg.token||'';
-  const ai = getAiConfig();
-  document.getElementById('set-aikey').value = ai.key||'';
-  document.getElementById('set-aimodel').value = ai.model||MODELE_DEFAUT;
+  majIndicateurExport();
   openOverlay('settings-overlay');
 };
 window.saveSettings=function(){
@@ -765,13 +835,15 @@ window.clearSettings=function(){
   toast('Réglages effacés');
   closeOverlay('settings-overlay');
 };
-window.wipeAllRecipes=async function(){
-  if(!confirm(`Supprimer les ${recipes.length} recettes actuelles du carnet ? Cette action est irréversible (vous pourrez ensuite réimporter les recettes de départ).`)) return;
-  toast('Suppression en cours…');
-  for(const r of recipes){ await deleteDoc(doc(db,'recipes',r.id)); }
-  toast('✓ Carnet vidé');
+window.wipeAllRecipes=function(){
+  if(!confirm(`Effacer les ${recipes.length} recettes de cet appareil ? Le fichier recipes-seed.js de votre dépôt GitHub n'est pas touché : vous pourrez le recharger ensuite.`)) return;
+  recipes = [];
+  signatureSeed = ''; enAttente = 0;
+  ecrireStore({recipes, seedSig:'', enAttente:0});
+  majIndicateurExport();
+  toast('✓ Carnet vidé sur cet appareil');
   closeAllOverlays();
-  await loadRecipes();
+  renderCategories(); renderList();
 };
 
 // ── COMPRESSION + ENVOI PHOTO VERS GITHUB ──
@@ -810,11 +882,11 @@ window.uploadPhoto=async function(input, id){
     });
     if(!res.ok){ const err = await res.json(); throw new Error(err.message||'Erreur GitHub'); }
     const photoUrl = `https://raw.githubusercontent.com/${cfg.owner}/${cfg.repo}/main/${path}`;
-    await setDoc(doc(db,'recipes',id), {photoUrl}, {merge:true});
-    toast('✓ Photo ajoutée à GitHub');
-    await loadRecipes();
     const r = recipes.find(x=>x.id===id);
-    renderDetail(r);
+    if(r){ r.photoUrl = photoUrl; sauver(true); }
+    toast('✓ Photo ajoutée à GitHub');
+    renderList();
+    if(r) renderDetail(r);
   }catch(e){
     toast('⚠ Échec : '+e.message);
   }
@@ -918,36 +990,210 @@ window.changeServings=function(delta){
   currentServings[currentId] = Math.max(1, (currentServings[currentId]||r.servingsBase) + delta);
   renderDetail(r);
 };
-window.deleteRecipe=async function(id){
+window.deleteRecipe=function(id){
   if(!confirm('Supprimer cette recette définitivement ?')) return;
-  await deleteDoc(doc(db,'recipes',id));
+  recipes = recipes.filter(r=>r.id!==id);
+  sauver(true);
   closeOverlay('detail-overlay');
   toast('Recette supprimée');
-  await loadRecipes();
+  renderCategories(); renderList();
 };
-// ══════════════════════════════════
-// IMPORT D'UNE RECETTE (photo, PDF, texte)
-// ══════════════════════════════════
-const MODELE_DEFAUT = 'claude-sonnet-5';
-let importFiles = [];
+// ── ANALYSE D'UN TEXTE DE RECETTE, SANS AUCUNE CLÉ D'API ──
+// Uniquement des règles : reconnaissance des quantités, des verbes de cuisine,
+// des en-têtes de rubrique et des sous-préparations.
 
-function getAiConfig(){
-  try{ return JSON.parse(localStorage.getItem('ai-config')||'null') || {}; }catch(e){ return {}; }
+const NOMBRES = 'un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|douze|quinze|vingt|quelques|plusieurs';
+const UNITES = 'g|kg|mg|ml|cl|dl|l|litres?|grammes?|kilos?|cuill?[eè]res?|cuill?[eè]r[ée]es?|c\\.?\\s*[àa]\\.?\\s*[scv]\\.?|cas|cac|pinc[ée]es?|gousses?|sachets?|tranches?|bottes?|brins?|branches?|verres?|tasses?|bols?|bo[îi]tes?|boites?|pots?|briques?|feuilles?|doses?|filets?|zestes?|louches?|traits?|morceaux?|carr[ée]s?|batons?|b[âa]tons?';
+
+const RE_QTE_DEBUT = new RegExp('^\\s*(?:[-–—•*·▪◦>]\\s*)?(?:\\d+[.,]?\\d*|½|¼|¾|⅓|⅔|\\d+\\s*/\\s*\\d+|'+NOMBRES+')\\b', 'i');
+const RE_UNITE = new RegExp('(?:^|[\\s\\d(])(?:'+UNITES+')(?:[\\s.,)]|$)', 'i');
+const RE_VERBE = /\b(?:cuire|fai(?:re|tes)|bat(?:tre|tez)|servir|servez|fondre|r[ée]duire|fendre|couvrir|dissoudre|(?:m[ée]lang|ajout|vers|pr[ée]chauff|incorpor|laiss|fouett|mont|[ée]tal|d[ée]coup|coup|sal|poivr|r[ée]serv|enfourn|remu|d[ée]pos|garni|napp|d[ée]moul|p[ée]tri|refroidi|dor|badigeon|filtr|[ée]goutt|r[âa]p|hach|mix|blanchi|assaisonn|arros|farin|beurr|tremp|imbib|dress|pel|[ée]minc|tamis|dilu|chauff|plong|saupoudr|parsem|rectifi|prolong|superpos|roul|piqu|gratt|d[ée]glac|flamb|lustr|bouill|d[ée]nooyaut|d[ée]noyaut|d[ée]tail|m[ée]lang)(?:er|ez|ons|e|es|ent|[ée]|[ée]e|[ée]s|[ée]es|ir|issez|ant))\b|\b[ée]bullition\b/i;
+
+// Lignes structurelles à ignorer (titres de colonnes d'un magazine)
+const RE_ENTETE_ING = /^\s*(ingr[ée]dients?|il vous faut|pour la recette|liste des courses)\s*:?\s*$/i;
+const RE_ENTETE_ETAPES = /^\s*(pr[ée]paration|r[ée]alisation|[ée]tapes?|m[ée]thode|recette|instructions?|marche [àa] suivre|d[ée]roul[ée]?)\s*:?\s*$/i;
+const RE_NOTE = /^\s*(astuce|conseil|variante|remarque|note|bon [àa] savoir|[àa] savoir|vous pouvez|on peut|cette recette|la recette|le petit plus|suggestion|se conserve|accompagne)/i;
+const RE_BRUIT = /^\s*(page\s*\d+|\d{1,3}|photos?\s*:.*|©.*|www\..*|https?:\/\/\S+)\s*$/i;
+
+// « Pour la pâte », « Le sirop », « Ganache : »
+const MOTS_SOUSPARTIE = 'p[âa]te|garniture|cr[èe]me|ganache|sirop|sauce|montage|assemblage|gla[çc]age|d[ée]cor|appareil|fourrage|marinade|farce|biscuit|g[ée]noise|streusel|cr[ée]meux|insert|mousse|coulis|compot[ée]e|caramel|praline?|meringue|chantilly|nappage|fond|garnissage|dressage|finition|levain|d[ée]trempe|beurre manier|croustillant|sabl[ée]|cr[êe]pe|socle';
+const RE_SOUSPARTIE = new RegExp('^\\s*(?:pour\\s+(?:la|le|les|l\')\\s*)?((?:'+MOTS_SOUSPARTIE+')[^.!?]{0,40})\\s*:?\\s*$', 'i');
+
+function nettoyerLigne(l){
+  return l.replace(/^\s*[-–—•*·▪◦>]\s*/, '')      // puces
+          .replace(/^\s*(?:étape\s*)?\d{1,2}\s*[.)°]\s+/i, '')  // « 1. » « Étape 2) »
+          .replace(/\s+/g, ' ')
+          .trim();
 }
-window.saveAiSettings=function(){
-  const key = document.getElementById('set-aikey').value.trim();
-  const model = document.getElementById('set-aimodel').value.trim() || MODELE_DEFAUT;
-  if(!key){ toast('⚠ Collez d’abord votre clé d’API'); return; }
-  localStorage.setItem('ai-config', JSON.stringify({key, model}));
-  toast('✓ Clé enregistrée sur cet appareil');
-};
+function minutes(nombre, unite){
+  const n = parseFloat(String(nombre).replace(',','.'));
+  if(!isFinite(n)) return 0;
+  return /h|heure/i.test(unite||'') ? Math.round(n*60) : Math.round(n);
+}
+function lireDuree(txt){
+  // « 1 h 30 », « 1h30 », « 45 min », « 2 heures », « une heure »
+  const hm = txt.match(/(\d+)\s*(?:h|heures?)\s*(\d{1,2})\b/i);
+  const simple = txt.match(/(\d+[.,]?\d*)\s*(h\b|heures?|min\b|minutes?|mn\b)/i);
+  if(hm && (!simple || hm.index <= simple.index)) return parseInt(hm[1])*60 + parseInt(hm[2]);
+  if(simple) return minutes(simple[1], simple[2]);
+  if(/\bune?\s+heure/i.test(txt)) return 60;
+  if(/\bune?\s+nuit/i.test(txt)) return 720;
+  if(/\bdemi[-\s]heure/i.test(txt)) return 30;
+  return 0;
+}
 
+function dureeApres(ligne, motifLabel){
+  const m = ligne.match(new RegExp('(?:'+motifLabel+')\\s*:?\\s*([^-–—|;•·,/]{0,26})', 'i'));
+  return m ? lireDuree(m[1]) : 0;
+}
+function estIngredient(l){
+  if(RE_VERBE.test(l) && l.length > 55) return false;
+  if(RE_QTE_DEBUT.test(l)) return true;
+  if(RE_UNITE.test(l) && l.length < 90) return true;
+  if(l.length < 45 && !/[.!?]$/.test(l) && !RE_VERBE.test(l)) return true;
+  return false;
+}
+function estEtape(l){
+  if(RE_VERBE.test(l)) return true;
+  if(l.length > 75) return true;
+  return false;
+}
+
+function analyserTexteRecette(brut){
+  const lignesBrutes = String(brut||'').split(/\r?\n/);
+  const meta = {servingsBase:0, servingsUnit:'', prepMin:0, cookMin:0, restMin:0, difficulty:'', source:'', notes:''};
+  const corps = [];
+
+  for(let ligne of lignesBrutes){
+    let l = ligne.trim();
+    if(!l) { corps.push({vide:true}); continue; }
+    if(RE_BRUIT.test(l)) continue;
+
+    // — portions —
+    let m = l.match(/pour\s+(\d+)\s*(?:[àa-]\s*\d+\s*)?(personnes?|parts?|pi[èe]ces?|convives?|portions?|verrines?|cookies?|biscuits?|g[âa]teaux?|tartelettes?|bouch[ée]es?|croissants?)/i);
+    if(m){ meta.servingsBase = parseInt(m[1]); meta.servingsUnit = m[2].toLowerCase(); if(l.length < 40) continue; }
+    else if(l.length < 70){
+      m = l.match(/(?:^|[^a-zà-ÿ0-9])(\d+)\s+(personnes?|parts?|pi[èe]ces?|portions?|convives?)\b/i);
+      if(m){
+        meta.servingsBase = parseInt(m[1]); meta.servingsUnit = m[2].toLowerCase();
+        if(/^[^a-zà-ÿ]*\d+\s+\w+\s*$/i.test(l)) continue;
+      }
+    }
+
+    // — temps (plusieurs peuvent tenir sur la même ligne) —
+    const dPrep = dureeApres(l, 'pr[\u00e9e]paration|pr[\u00e9e]p\\.');
+    const dCook = dureeApres(l, 'cuisson|cuiss\\.');
+    const dRest = dureeApres(l, 'repos|r[\u00e9e]frig[\u00e9e]ration|attente|marinade|lev[\u00e9e]e|prise|cong[\u00e9e]lation');
+    if(dPrep || dCook || dRest){
+      if(dPrep) meta.prepMin = dPrep;
+      if(dCook) meta.cookMin = dCook;
+      if(dRest) meta.restMin = dRest;
+      if(l.length < 110 && !RE_VERBE.test(l)) continue;   // la ligne ne contenait que ces informations
+    }
+
+    // — difficulté —
+    m = l.match(/^\s*(?:difficult[ée]\s*:?\s*)?(tr[èe]s facile|facile|moyen(?:ne)?|difficile)\s*$/i);
+    if(m){ const d = m[1].toLowerCase();
+      meta.difficulty = /difficile/.test(d) ? 'Difficile' : /moyen/.test(d) ? 'Moyen' : 'Facile';
+      continue; }
+
+    if(RE_NOTE.test(l) && l.length > 15){ meta.notes = (meta.notes ? meta.notes+'\n' : '') + l; continue; }
+    corps.push({texte: l});
+  }
+
+  // — titre : première ligne utile qui n'est pas un ingrédient —
+  let titre = '';
+  let iDebut = 0;
+  for(let i=0; i<corps.length; i++){
+    const c = corps[i];
+    if(c.vide) continue;
+    const l = nettoyerLigne(c.texte);
+    if(RE_ENTETE_ING.test(l) || RE_ENTETE_ETAPES.test(l)) break;
+    if(estIngredient(l) && RE_QTE_DEBUT.test(l)) break;
+    titre = l.replace(/\s*:\s*$/, '');
+    iDebut = i+1;
+    break;
+  }
+  if(titre.length > 90){ titre = titre.slice(0,90); }
+  if(/^[A-ZÀÂÉÈÊËÎÏÔÙÛÜÇ\s'’-]{4,}$/.test(titre) && titre.length > 4){
+    titre = titre.charAt(0) + titre.slice(1).toLowerCase();
+  }
+
+  // — répartition ingrédients / étapes / sous-parties —
+  const parts = [];
+  let courante = {name:'', ingredients:[], steps:[]};
+  let mode = 'auto';
+  const pousser = ()=>{ if(courante.ingredients.length || courante.steps.length) parts.push(courante); };
+
+  for(let i=iDebut; i<corps.length; i++){
+    const c = corps[i];
+    if(c.vide) continue;
+    const l = nettoyerLigne(c.texte);
+    if(!l) continue;
+
+    if(RE_ENTETE_ING.test(l)){ mode = 'ing'; continue; }
+    if(RE_ENTETE_ETAPES.test(l)){ mode = 'step'; continue; }
+
+    const sp = l.match(RE_SOUSPARTIE);
+    if(sp && l.length < 55){
+      const nom = sp[1].trim().replace(/\s*:\s*$/,'');
+      if(courante.ingredients.length || courante.steps.length){ pousser(); courante = {name:'', ingredients:[], steps:[]}; }
+      courante.name = nom.charAt(0).toUpperCase() + nom.slice(1);
+      mode = 'auto';
+      continue;
+    }
+
+    const numerotee = /^\s*(?:étape\s*)?\d{1,2}\s*[.)°]\s+/i.test(c.texte);
+    const ligneQuantite = RE_QTE_DEBUT.test(l) && l.length < 70 && !/[.!?]$/.test(l);
+    let type;
+    if(numerotee) type = 'step';
+    else if(mode==='step') type = 'step';
+    else if(ligneQuantite) type = 'ing';
+    else if(mode==='ing') type = (l.length > 80 && RE_VERBE.test(l)) ? 'step' : 'ing';
+    else type = (estIngredient(l) && !estEtape(l)) ? 'ing' : 'step';
+
+    if(type==='ing') courante.ingredients.push(l);
+    else courante.steps.push(l);
+  }
+  pousser();
+
+  if(parts.length > 1){
+    const avecEtapes = parts.filter(p=>p.steps.length);
+    const derniere = parts[parts.length-1];
+    if(avecEtapes.length === 1 && avecEtapes[0] === derniere && derniere.ingredients.length){
+      const etapes = derniere.steps;
+      derniere.steps = [];
+      parts.push({name:'Préparation', ingredients:[], steps:etapes});
+    }
+  }
+
+  // — catégorie —
+  const tout = (titre + ' ' + parts.map(p=>p.ingredients.join(' ')+' '+p.steps.join(' ')).join(' ')).toLowerCase();
+  let categorie = 'Plat';
+  if(/\b(ap[ée]ritif|amuse-bouches?|amuse-gueules?|verrines?|gough?[èe]res?|tapenade|houmous|toasts?|canap[ée]s?|dips?|cake sal[ée]|feuillet[ée]s? sal[ée]s?|rillettes?|tartinade)\b/.test(tout)) categorie = 'Apéritif';
+  else if(/\b(pain|brioche|baguette|viennoiserie|bredele|kouign|croissant|levure de boulanger|fougasse|focaccia|go[ûu]ter|biscuits?|cookies?|madeleines?|gaufres?|cr[êe]pes?|sabl[ée]s?|muffins?|quatre-quarts|cake|scones?|chouquettes?|pains? au chocolat)\b/.test(tout)) categorie = 'Goûter';
+  else if(/\b(tarte|g[âa]teau|cr[èe]me|mousse|glace|sorbet|clafoutis|entremets|dessert|chocolat|compote|confiture|flan|charlotte|tiramisu|macarons?|panna cotta|profiterole)\b/.test(tout)) categorie = 'Dessert';
+  else if(/\b(soupe|velout[ée]|salade|entr[ée]e|terrine|tartare|gaspacho|potage|quiche|feuillet[ée])\b/.test(tout)) categorie = 'Entrée';
+
+  return {
+    title: titre,
+    category: categorie,
+    difficulty: meta.difficulty,
+    servingsBase: meta.servingsBase,
+    servingsUnit: meta.servingsUnit || 'personnes',
+    prepMin: meta.prepMin, cookMin: meta.cookMin, restMin: meta.restMin,
+    source: '', notes: meta.notes, labels: [],
+    parts: parts.length ? parts : [{name:'', ingredients:[], steps:[]}]
+  };
+}
+
+// ══════════════════════════════════
+// IMPORT D'UNE RECETTE COLLÉE
+// ══════════════════════════════════
 window.openAddChoice=function(){ openOverlay('add-overlay'); };
 window.openImport=function(){
-  importFiles = [];
   closeOverlay('add-overlay');
   document.getElementById('import-text').value = '';
-  renderImportFiles();
   setImportStatus('', false);
   openOverlay('import-overlay');
 };
@@ -957,103 +1203,8 @@ function setImportStatus(msg, erreur){
   el.classList.toggle('show', !!msg);
   el.classList.toggle('err', !!erreur);
 }
-window.addImportFiles=function(input){
-  for(const f of input.files){
-    if(f.size > 12*1024*1024){ toast('⚠ Fichier trop lourd : '+f.name); continue; }
-    importFiles.push(f);
-  }
-  input.value = '';
-  renderImportFiles();
-};
-window.removeImportFile=function(i){ importFiles.splice(i,1); renderImportFiles(); };
-function renderImportFiles(){
-  document.getElementById('import-files').innerHTML = importFiles.map((f,i)=>
-    `<span class="file-chip">${f.type==='application/pdf'?'📄':'🖼'}<span>${esc(f.name||('photo '+(i+1)))}</span>
-     <button onclick="removeImportFile(${i})" title="Retirer">✕</button></span>`).join('');
-}
-function fileToBase64(file){
-  return new Promise((res,rej)=>{
-    const r = new FileReader();
-    r.onload = e=>res(String(e.target.result).split(',')[1]);
-    r.onerror = rej;
-    r.readAsDataURL(file);
-  });
-}
 
-const CONSIGNE_IMPORT = `Tu transcris une recette de cuisine pour un carnet personnel.
-Réponds UNIQUEMENT par un objet JSON valide, sans texte autour et sans balises Markdown.
-
-Format exact attendu :
-{
-  "title": "Nom de la recette",
-  "category": "Entrée" | "Plat" | "Dessert" | "Boulangerie",
-  "difficulty": "" | "Facile" | "Moyen" | "Difficile",
-  "servingsBase": nombre de portions (0 si non indiqué),
-  "servingsUnit": "personnes" | "parts" | "cookies" | …,
-  "prepMin": minutes de préparation (0 si non indiqué),
-  "cookMin": minutes de cuisson (0 si non indiqué),
-  "restMin": minutes de repos / réfrigération (0 si non indiqué),
-  "source": "livre, magazine ou site d'origine si visible, sinon vide",
-  "notes": "conseils, variantes, remarques du texte d'origine, sinon vide",
-  "labels": ["mots-clés éventuels, ex. Noël, pique-nique"],
-  "parts": [
-    { "name": "", "ingredients": ["250g de farine", "3 œufs"], "steps": ["Première étape…"] }
-  ]
-}
-
-Règles :
-- Transcris fidèlement, en français. N'invente jamais un ingrédient, une quantité ou une étape absents du document. Ce qui manque reste vide ou à 0.
-- Si la recette comporte des sous-préparations (pâte, garniture, ganache, sirop, montage…), fais une entrée par sous-préparation dans "parts", avec son "name". Sinon, une seule entrée avec "name": "".
-- Écris les ingrédients dans le style « 250g de farine », « 3 œufs », « 1 cuillère à soupe de miel » : la quantité d'abord, collée à l'unité.
-- Dans les étapes, rappelle les quantités quand c'est utile (« Mélanger les 250g de farine avec les 3 œufs »).
-- Une étape par action, dans l'ordre. Pas de numérotation dans le texte des étapes.
-- Si le document contient plusieurs recettes, ne retiens que la principale.
-- Si le document n'est pas une recette, réponds {"error":"Ce document ne semble pas contenir de recette."}`;
-
-async function appelerClaude(blocs){
-  const cfg = getAiConfig();
-  if(!cfg.key){
-    const e = new Error('sans-cle'); e.sansCle = true; throw e;
-  }
-  let res;
-  try{
-    res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{
-        'content-type':'application/json',
-        'x-api-key': cfg.key,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body: JSON.stringify({
-        model: cfg.model || MODELE_DEFAUT,
-        max_tokens: 4000,
-        messages: [{ role:'user', content: blocs }]
-      })
-    });
-  }catch(e){
-    throw new Error("Impossible de joindre le service de déchiffrage. Vérifiez votre connexion internet.");
-  }
-  if(!res.ok){
-    let detail = '';
-    try{ const j = await res.json(); detail = (j.error && j.error.message) || ''; }catch(e){}
-    if(res.status===401) throw new Error("Clé d'API refusée. Vérifiez-la dans ⚙️ Réglages.");
-    if(res.status===400 && /model/i.test(detail)) throw new Error("Modèle inconnu : corrigez le nom du modèle dans ⚙️ Réglages. ("+detail+")");
-    if(res.status===429) throw new Error("Trop de demandes d'affilée, ou crédit épuisé. Réessayez dans un instant.");
-    throw new Error("Erreur "+res.status+(detail?' : '+detail:''));
-  }
-  const data = await res.json();
-  return (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
-}
-
-function extraireJson(txt){
-  let t = (txt||'').replace(/```json/gi,'').replace(/```/g,'').trim();
-  const a = t.indexOf('{'), b = t.lastIndexOf('}');
-  if(a<0 || b<a) throw new Error("Réponse illisible.");
-  return JSON.parse(t.slice(a, b+1));
-}
 function normaliserRecette(d){
-  const cats = ['Entrée','Plat','Dessert','Boulangerie'];
   const diffs = ['','Facile','Moyen','Difficile'];
   const n = v => { const x = parseInt(v,10); return isNaN(x)||x<0 ? 0 : x; };
   const parts = (Array.isArray(d.parts)?d.parts:[]).map(p=>({
@@ -1063,7 +1214,7 @@ function normaliserRecette(d){
   })).filter(p=>p.ingredients.length||p.steps.length);
   return {
     title: String(d.title||'').trim(),
-    category: cats.includes(d.category) ? d.category : 'Plat',
+    category: CATEGORIES.includes(d.category) ? d.category : 'Plat',
     difficulty: diffs.includes(d.difficulty) ? d.difficulty : '',
     servingsBase: n(d.servingsBase),
     servingsUnit: String(d.servingsUnit||'personnes').trim() || 'personnes',
@@ -1076,43 +1227,16 @@ function normaliserRecette(d){
   };
 }
 
-window.runImport=async function(){
+window.runImport=function(){
   const texte = document.getElementById('import-text').value.trim();
-  if(!importFiles.length && !texte){ toast('⚠ Ajoutez une photo, un fichier ou un texte'); return; }
-  const btn = document.getElementById('import-go');
-  btn.disabled = true; btn.textContent = 'Déchiffrage…';
-  setImportStatus('📖 Lecture en cours… cela prend quelques secondes.', false);
-  try{
-    const blocs = [];
-    for(const f of importFiles){
-      if(f.type==='application/pdf'){
-        blocs.push({ type:'document', source:{ type:'base64', media_type:'application/pdf', data: await fileToBase64(f) } });
-      } else {
-        blocs.push({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data: await compressImage(f, 1600, 0.85) } });
-      }
-    }
-    let consigne = CONSIGNE_IMPORT;
-    if(texte) consigne += `\n\nVoici le texte de la recette :\n"""\n${texte}\n"""`;
-    blocs.push({ type:'text', text: consigne });
-
-    const brut = await appelerClaude(blocs);
-    const data = extraireJson(brut);
-    if(data.error){ setImportStatus('⚠ '+esc(data.error), true); return; }
-    const r = normaliserRecette(data);
-    if(!r.title && !r.parts.some(p=>p.ingredients.length)){
-      setImportStatus("⚠ Aucune recette n'a pu être lue. Essayez une photo plus nette, ou recadrée sur la recette.", true);
-      return;
-    }
-    ouvrirRelecture(r);
-  }catch(e){
-    if(e.sansCle){
-      setImportStatus("⚠ Il manque votre clé d'API Anthropic. Ouvrez ⚙️ Réglages pour l'ajouter — c'est à faire une seule fois.", true);
-    } else {
-      setImportStatus('⚠ '+esc(e.message||'Échec du déchiffrage.'), true);
-    }
-  }finally{
-    btn.disabled = false; btn.textContent = '✨ Déchiffrer la recette';
+  if(!texte){ toast('⚠ Collez d’abord le texte d’une recette'); return; }
+  setImportStatus('📖 Analyse du texte…', false);
+  const r = normaliserRecette(analyserTexteRecette(texte));
+  if(!r.parts.some(p=>p.ingredients.length || p.steps.length)){
+    setImportStatus("⚠ Aucune recette n'a pu être reconnue dans ce texte.", true);
+    return;
   }
+  ouvrirRelecture(r);
 };
 
 function ouvrirRelecture(r){
@@ -1123,13 +1247,108 @@ function ouvrirRelecture(r){
   const body = document.getElementById('edit-body');
   const banniere = document.createElement('div');
   banniere.className = 'review-banner';
-  banniere.innerHTML = "📖 Recette déchiffrée. <b>Relisez-la</b> — surtout les quantités — puis corrigez ce qu'il faut avant d'enregistrer.";
+  banniere.innerHTML = "📖 Texte analysé. Le classement en ingrédients et en étapes est automatique : <b>vérifiez-le</b>, corrigez ce qu'il faut, puis enregistrez.";
   body.insertBefore(banniere, body.firstChild);
   closeOverlay('import-overlay');
   closeOverlay('add-overlay');
   openOverlay('edit-overlay');
-  toast('✓ Recette déchiffrée — à relire');
+  toast('✓ Recette prête — à relire');
 }
+
+// ══════════════════════════════════
+// EXPORT VERS GITHUB
+// ══════════════════════════════════
+function genererSeed(liste){
+  const entete = "// Contenu de vos recettes — séparé du code de l'application (index.html).\n"
+    + "// Ce fichier est réécrit par le bouton « Exporter mes recettes » de l'application.\n"
+    + "// Dernière exportation : " + new Date().toLocaleString('fr-FR') + "\n\n";
+  const corps = liste.map(r=>JSON.stringify(nettoyerPourExport(r))).join(',\n');
+  return entete + "export const SEED = [\n" + corps + "\n];\n";
+}
+function enBase64(texte){
+  const octets = new TextEncoder().encode(texte);
+  let bin = '';
+  octets.forEach(o=>{ bin += String.fromCharCode(o); });
+  return btoa(bin);
+}
+function majIndicateurExport(){
+  const p = document.getElementById('export-pastille');
+  if(p) p.classList.toggle('hidden', enAttente===0);
+  const t = document.getElementById('export-etat');
+  if(t){
+    t.textContent = enAttente===0
+      ? '✓ Tout est sauvegardé sur GitHub.'
+      : (enAttente>1
+          ? `${enAttente} modifications sur cet appareil ne sont pas encore sauvegardées.`
+          : `1 modification sur cet appareil n'est pas encore sauvegardée.`);
+    t.className = enAttente===0 ? 'export-etat ok' : 'export-etat att';
+  }
+}
+
+window.exporterRecettes=async function(){
+  const cfg = getGhConfig();
+  if(!cfg){ toast('⚠ Renseignez d’abord votre dépôt GitHub'); return; }
+  if(!recipes.length && !confirm('Votre carnet est vide : exporter écrasera le fichier du dépôt. Continuer ?')) return;
+  const btn = document.getElementById('export-btn');
+  btn.disabled = true; btn.textContent = 'Sauvegarde en cours…';
+  try{
+    const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/recipes-seed.js`;
+    const entetes = { 'Authorization':`token ${cfg.token}`, 'Accept':'application/vnd.github+json' };
+
+    // empreinte du fichier actuel, exigée par GitHub pour le remplacer
+    let sha = null;
+    const actuel = await fetch(url + '?ref=main', {headers:entetes});
+    if(actuel.ok){ sha = (await actuel.json()).sha; }
+    else if(actuel.status!==404){
+      const e = await actuel.json().catch(()=>({}));
+      throw new Error(e.message || ('lecture du dépôt impossible (' + actuel.status + ')'));
+    }
+
+    const contenu = genererSeed(recipes);
+    const res = await fetch(url, {
+      method:'PUT',
+      headers:{...entetes, 'Content-Type':'application/json'},
+      body: JSON.stringify({
+        message: `Carnet : ${recipes.length} recettes (${new Date().toLocaleDateString('fr-FR')})`,
+        content: enBase64(contenu),
+        branch: 'main',
+        ...(sha ? {sha} : {})
+      })
+    });
+    if(!res.ok){
+      const e = await res.json().catch(()=>({}));
+      if(res.status===401) throw new Error("jeton GitHub refusé — vérifiez-le dans les Réglages");
+      if(res.status===403) throw new Error("ce jeton n'a pas le droit d'écrire dans le dépôt");
+      if(res.status===409) throw new Error("le fichier a changé entre-temps sur GitHub ; rechargez la page et réessayez");
+      throw new Error(e.message || ('erreur ' + res.status));
+    }
+    signatureSeed = empreinte(recipes);
+    enAttente = 0;
+    sauver(false);
+    toast(`✓ ${recipes.length} recettes sauvegardées sur GitHub`);
+  }catch(e){
+    toast('⚠ Échec : ' + e.message);
+  }finally{
+    btn.disabled = false; btn.textContent = '☁️ Exporter mes recettes vers GitHub';
+  }
+};
+
+window.rechargerDepuisGitHub=async function(){
+  if(enAttente && !confirm(
+      (enAttente>1 ? `${enAttente} modifications de cet appareil n'ont pas été exportées.`
+                   : `1 modification de cet appareil n'a pas été exportée.`)
+      + ` Recharger depuis GitHub la${enAttente>1?'s':''} remplacera définitivement. Continuer ?`)) return;
+  toast('Lecture du dépôt…');
+  const seed = await lireSeedDistant();
+  if(!seed){ toast('⚠ Fichier introuvable ou illisible'); return; }
+  recipes = seed.map((r,i)=>({id:identifiant(r.title,i), ...r}));
+  signatureSeed = empreinte(recipes);
+  enAttente = 0;
+  sauver(false);
+  closeAllOverlays();
+  renderCategories(); renderList();
+  toast(`✓ ${recipes.length} recettes chargées depuis GitHub`);
+};
 
 // ══════════════════════════════════
 // SAISIE MANUELLE / MODIFICATION
@@ -1157,7 +1376,7 @@ function buildEditForm(r){
     <div class="row2">
       <div><label>Catégorie</label>
         <select id="ed-category">
-          ${['Entrée','Plat','Dessert','Boulangerie'].map(c=>`<option ${r.category===c?'selected':''}>${c}</option>`).join('')}
+          ${CATEGORIES.map(c=>`<option ${(r.category||'Plat')===c?'selected':''}>${c}</option>`).join('')}
         </select></div>
       <div><label>Difficulté</label>
         <select id="ed-difficulty">
@@ -1245,15 +1464,16 @@ window.saveRecipe=async function(){
     photoUrl: document.getElementById('ed-photo').value.trim(),
     parts: cleanParts
   };
-  toast('Enregistrement…');
   if(currentId){
-    await setDoc(doc(db,'recipes',currentId), data, {merge:true});
+    const i = recipes.findIndex(r=>r.id===currentId);
+    if(i>=0) recipes[i] = {...recipes[i], ...data};
   } else {
-    await addDoc(recipesCol, {...data, createdAt: serverTimestamp()});
+    recipes.push({ id: identifiant(data.title, Date.now()%100000), ...data });
   }
+  sauver(true);
   closeOverlay('edit-overlay');
   toast('✓ Recette enregistrée');
-  await loadRecipes();
+  renderCategories(); renderList();
 };
 
 loadCart();
