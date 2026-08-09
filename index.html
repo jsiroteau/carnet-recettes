@@ -97,14 +97,17 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .vt-btn{border:none;background:none;padding:7px 16px;border-radius:50px;font-size:0.8rem;font-weight:600;color:var(--muted);cursor:pointer;font-family:'Work Sans',sans-serif}
 .vt-btn.active{background:var(--accent);color:var(--accent-ink)}
 
-.schema-wrap{position:relative;display:flex;gap:36px;overflow-x:auto;padding:16px 8px 24px;margin:0 -2px}
-.schema-lane{display:flex;flex-direction:column;align-items:center;min-width:170px;flex-shrink:0;position:relative;z-index:2}
-.schema-lane[data-final]{min-width:190px}
-.schema-lane-title{font-family:'Fraunces',serif;font-weight:600;font-size:0.85rem;color:var(--accent);margin-bottom:8px;text-align:center}
-.schema-box{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:10px 12px;font-size:0.76rem;text-align:center;line-height:1.35;width:100%;box-shadow:0 2px 8px rgba(59,42,32,0.06);position:relative}
-.schema-ing-box{background:var(--card-hi);border:2px dashed var(--accent);font-family:'IBM Plex Mono',monospace;font-size:0.72rem}
+.schema-wrap{position:relative;display:flex;gap:28px;overflow-x:auto;padding:16px 8px 24px;margin:0 -2px;align-items:flex-start}
+.schema-ing-col{display:flex;flex-direction:column;gap:8px;min-width:150px;max-width:170px;flex-shrink:0;position:relative;z-index:2}
+.schema-ing-part-label{font-family:'Fraunces',serif;font-weight:600;font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:10px}
+.schema-ing-part-label:first-child{margin-top:0}
+.schema-ing-item{background:var(--card-hi);border:2px dashed var(--accent);border-radius:10px;padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:0.66rem;line-height:1.3}
+.schema-rows{display:flex;flex-direction:column;gap:26px;flex:1;min-width:0;position:relative;z-index:2}
+.schema-row-title{font-family:'Fraunces',serif;font-weight:600;font-size:0.75rem;color:var(--accent);margin-bottom:6px}
+.schema-row{display:flex;align-items:center;gap:4px;flex-wrap:nowrap}
+.schema-box{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:9px 11px;font-size:0.72rem;text-align:center;line-height:1.3;box-shadow:0 2px 8px rgba(59,42,32,0.06);position:relative;min-width:110px;max-width:150px;flex-shrink:0}
 .schema-box[data-merge-target]{border:2px solid var(--accent);background:var(--card-hi)}
-.schema-arrow{color:var(--accent);font-size:1.1rem;line-height:1;margin:3px 0}
+.schema-h-arrow{color:var(--accent);font-size:1rem;flex-shrink:0}
 .schema-connectors{position:absolute;top:0;left:0;pointer-events:none;z-index:1}
 .source-line{font-size:0.78rem;color:var(--muted);margin-top:10px;font-style:italic}
 
@@ -510,12 +513,33 @@ window.renderList=function(){
 // ── SCALING ──
 function scaleIngredient(str, ratio){
   if(ratio===1) return str;
-  return str.replace(/(\d+)([.,](\d+))?/g, (m, intPart, dec, decPart)=>{
+  // Protéger les valeurs qui ne doivent JAMAIS être recalculées avec les portions :
+  // températures, temps de cuisson/repos, dimensions, thermostat.
+  const protect = [];
+  const toLetters = n => { n++; let s=''; while(n>0){ n--; s=String.fromCharCode(97+(n%26))+s; n=Math.floor(n/26); } return s; };
+  let s = str;
+  const nonScalablePatterns = [
+    /\d+([.,]\d+)?\s?°C/g,
+    /\d+([.,]\d+)?\s?°/g,
+    /\d+(\s?(à|et|ou|-)\s?\d+)?\s?(minutes?|min\b|mn\b|heures?\b|secondes?\b)/gi,
+    /\d+(\s?[x×]\s?\d+)?\s?(cm|mm)\b/gi,
+    /th\.?\s?\d+/gi,
+    /\d+\s?(jours?|nuits?|semaines?|mois)\b/gi
+  ];
+  nonScalablePatterns.forEach(re=>{
+    s = s.replace(re, m=>{ protect.push(m); return `\u0000${toLetters(protect.length-1)}\u0000`; });
+  });
+  s = s.replace(/(\d+)([.,](\d+))?/g, (m, intPart, dec, decPart)=>{
     const num = parseFloat((intPart+(dec?'.'+decPart:'')));
     let v = num*ratio;
     v = Math.round(v*10)/10;
     return (v % 1 === 0) ? String(v) : String(v).replace('.', ',');
   });
+  s = s.replace(/\u0000([a-z]+)\u0000/g, (m, letters)=>{
+    let n=0; for(const c of letters){ n = n*26 + (c.charCodeAt(0)-96); }
+    return protect[n-1];
+  });
+  return s;
 }
 
 // ── PARTAGE & LISTE DE COURSES ──
@@ -537,7 +561,7 @@ window.shareRecipe=async function(id){
   (r.parts||[]).forEach(p=>{
     if(p.name) text += `— ${p.name} —\n`;
     if(p.ingredients&&p.ingredients.length){ text += 'Ingrédients :\n'; p.ingredients.forEach(i=>text+=`• ${scaleIngredient(i,ratio)}\n`); text+='\n'; }
-    if(p.steps&&p.steps.length){ text += 'Étapes :\n'; p.steps.forEach((s,i)=>text+=`${i+1}. ${s}\n`); text+='\n'; }
+    if(p.steps&&p.steps.length){ text += 'Étapes :\n'; p.steps.forEach((s,i)=>text+=`${i+1}. ${scaleIngredient(s,ratio)}\n`); text+='\n'; }
   });
   if(r.notes) text += `Notes : ${r.notes}\n`;
   if(r.source) text += `Source : ${r.source}\n`;
@@ -959,46 +983,94 @@ function renderTextView(r, ratio){
     }
     if(p.steps && p.steps.length){
       html += `<div class="section-title">${p.name?('Étapes — '+esc(p.name)):'Recette'}</div><ol class="steps-list">`;
-      p.steps.forEach(s=>{ html+=`<li>${esc(s)}</li>`; });
+      p.steps.forEach(s=>{ html+=`<li>${esc(scaleIngredient(s,ratio))}</li>`; });
       html += `</ol>`;
     }
   });
   return html;
 }
+function shortActionLabel(stepText){
+  const protect = [];
+  const toLetters = n => { n++; let s=''; while(n>0){ n--; s=String.fromCharCode(97+(n%26))+s; n=Math.floor(n/26); } return s; };
+  let t = stepText;
+  const keepPatterns = [
+    /\d+([.,]\d+)?\s?°C/g, /\d+([.,]\d+)?\s?°/g,
+    /\d+(\s?(à|et|ou|-)\s?\d+)?\s?(minutes?|min\b|mn\b|heures?\b|secondes?\b)/gi,
+    /\d+(\s?[x×]\s?\d+)?\s?(cm|mm)\b/gi, /th\.?\s?\d+/gi,
+    /\d+\s?(jours?|nuits?|semaines?|mois)\b/gi
+  ];
+  keepPatterns.forEach(re=>{ t = t.replace(re, m=>{ protect.push(m); return `\u0000${toLetters(protect.length-1)}\u0000`; }); });
+  t = t.replace(/\d+([.,\/]\d+)?\s?(g|kg|mg|ml|mL|cl|cL|l|L|cuillères?\s?à\s?(soupe|café)|cuillers?\s?à\s?(soupe|café)|cc\b|cas\b)?(\s?(de\s|d'|du\s|des\s))?/gi, '');
+  t = t.replace(/\s{2,}/g,' ').trim();
+  t = t.replace(/\u0000([a-z]+)\u0000/g, (m, letters)=>{ let n=0; for(const c of letters){ n=n*26+(c.charCodeAt(0)-96); } return protect[n-1]; });
+  let clause = t.split(/[.;:]/)[0].trim();
+  if(!clause) clause = t.trim();
+  if(clause.length>55) clause = clause.slice(0,52).trim()+'…';
+  if(!clause) return stepText.slice(0,40);
+  return clause.charAt(0).toUpperCase()+clause.slice(1);
+}
+function matchIngredientStepIndex(ingredient, steps){
+  const ingLower = ingredient.toLowerCase();
+  for(let i=0;i<steps.length;i++){ if(steps[i].toLowerCase().includes(ingLower)) return i; }
+  const qtyMatch = ingredient.match(/^(\d+([.,\/]\d+)?)\s?(g|kg|mg|ml|mL|cl|cL|l|L)?/i);
+  if(qtyMatch){
+    const num = qtyMatch[1].replace(/[.]/g,'\\.');
+    const unit = qtyMatch[3] ? '\\s?'+qtyMatch[3] : '';
+    const re = new RegExp('(?<!\\d)'+num+unit+'(?!\\d)', 'i');
+    for(let i=0;i<steps.length;i++){ if(re.test(steps[i])) return i; }
+  }
+  const words = ingredient.replace(/\(.*?\)/g,'').split(/\s+/).filter(w=>w.length>3 && !/^\d/.test(w));
+  const lastWord = (words[words.length-1]||'').toLowerCase().replace(/[.,;]/g,'');
+  if(lastWord){ for(let i=0;i<steps.length;i++){ if(steps[i].toLowerCase().includes(lastWord)) return i; } }
+  return 0;
+}
 function renderSchemaView(r, ratio){
   const parts = r.parts||[];
   if(!parts.length) return '<div class="empty-state">Rien à afficher</div>';
   const multi = parts.length > 1;
-  let html = '<div class="schema-wrap" id="schema-wrap"><svg class="schema-connectors" id="schema-svg"></svg>';
+
+  let ingHtml = '';
+  const matches = []; // {gi, partIndex, stepIndex}
+  let gi = 0;
+  parts.forEach((p, pi)=>{
+    if(!p.ingredients || !p.ingredients.length) return;
+    if(multi) ingHtml += `<div class="schema-ing-part-label">${esc(p.name||('Partie '+(pi+1)))}</div>`;
+    p.ingredients.forEach(ing=>{
+      const stepIdx = (p.steps&&p.steps.length) ? matchIngredientStepIndex(ing, p.steps) : 0;
+      ingHtml += `<div class="schema-ing-item" id="schema-ing-${gi}">${esc(scaleIngredient(ing,ratio))}</div>`;
+      matches.push({gi, partIndex:pi, stepIndex:stepIdx});
+      gi++;
+    });
+  });
+
+  let rowsHtml = '';
   parts.forEach((p,pi)=>{
     const isFinal = multi && pi===parts.length-1;
-    html += `<div class="schema-lane" ${isFinal?'data-final="1"':''}>`;
-    html += `<div class="schema-lane-title">${esc(p.name||r.title)}</div>`;
-    if(p.ingredients && p.ingredients.length){
-      html += `<div class="schema-box schema-ing-box">${p.ingredients.map(i=>esc(scaleIngredient(i,ratio))).join('<br>')}</div>`;
-      html += `<div class="schema-arrow">↓</div>`;
-    }
-    (p.steps||[]).forEach((s,i)=>{
-      const mergeTarget = isFinal && i===0 && parts.length>1;
-      html += `<div class="schema-box" ${mergeTarget?'data-merge-target="1"':''}>${esc(s)}</div>`;
-      if(i<p.steps.length-1) html += `<div class="schema-arrow">↓</div>`;
+    const steps = p.steps||[];
+    if(!steps.length) return;
+    rowsHtml += `<div class="schema-row-block">`;
+    if(multi) rowsHtml += `<div class="schema-row-title">${esc(p.name||('Partie '+(pi+1)))}</div>`;
+    rowsHtml += `<div class="schema-row" data-part="${pi}" ${isFinal?'data-final="1"':''}>`;
+    steps.forEach((s,si)=>{
+      const mergeTarget = isFinal && si===0 && multi;
+      rowsHtml += `<div class="schema-box schema-action-box" id="schema-box-${pi}-${si}" ${mergeTarget?'data-merge-target="1"':''} title="${esc(scaleIngredient(s,ratio))}">${esc(scaleIngredient(shortActionLabel(s),ratio))}</div>`;
+      if(si<steps.length-1) rowsHtml += `<div class="schema-h-arrow">→</div>`;
     });
-    html += `</div>`;
+    rowsHtml += `</div></div>`;
   });
-  html += '</div>';
+
+  let html = `<div class="schema-wrap" id="schema-wrap"><svg class="schema-connectors" id="schema-svg"></svg>
+    <div class="schema-ing-col">${ingHtml}</div>
+    <div class="schema-rows">${rowsHtml}</div></div>`;
+  // stocker les correspondances pour le traçage des connecteurs
+  window.__schemaMatches = matches;
   return html;
 }
 function drawSchemaConnectors(){
   const wrap = document.getElementById('schema-wrap');
   const svg = document.getElementById('schema-svg');
   if(!wrap || !svg) return;
-  const lanes = [...wrap.querySelectorAll('.schema-lane')];
-  const finalLane = wrap.querySelector('.schema-lane[data-final]');
   svg.innerHTML = '';
-  if(lanes.length<2 || !finalLane){ svg.setAttribute('width',0); svg.setAttribute('height',0); return; }
-  const target = finalLane.querySelector('[data-merge-target]') || finalLane.querySelector('.schema-box');
-  if(!target){ return; }
-
   const W = wrap.scrollWidth, H = wrap.scrollHeight;
   svg.setAttribute('width', W); svg.setAttribute('height', H);
   svg.style.width = W+'px'; svg.style.height = H+'px';
@@ -1009,19 +1081,41 @@ function drawSchemaConnectors(){
     y: rect.top - wrapRect.top + wrap.scrollTop,
     w: rect.width, h: rect.height
   });
-  const tgt = toLocal(target.getBoundingClientRect());
-  const tx = tgt.x + tgt.w/2, ty = tgt.y;
 
   let content = `<defs><marker id="schema-arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--accent)"/></marker></defs>`;
-  lanes.forEach(lane=>{
-    if(lane===finalLane) return;
-    const boxes = lane.querySelectorAll('.schema-box');
-    if(!boxes.length) return;
-    const last = toLocal(boxes[boxes.length-1].getBoundingClientRect());
-    const sx = last.x + last.w/2, sy = last.y + last.h;
-    const midY = (sy+ty)/2;
-    content += `<path d="M ${sx} ${sy} C ${sx} ${midY}, ${tx} ${midY}, ${tx} ${ty}" style="fill:none;stroke:var(--accent);stroke-width:2.5;opacity:0.8" marker-end="url(#schema-arrowhead)"/>`;
+
+  // 1) connecteurs ingrédient → première étape qui l'utilise
+  (window.__schemaMatches||[]).forEach(m=>{
+    const ingEl = document.getElementById(`schema-ing-${m.gi}`);
+    const boxEl = document.getElementById(`schema-box-${m.partIndex}-${m.stepIndex}`);
+    if(!ingEl || !boxEl) return;
+    const a = toLocal(ingEl.getBoundingClientRect());
+    const b = toLocal(boxEl.getBoundingClientRect());
+    const sx = a.x + a.w, sy = a.y + a.h/2;
+    const tx = b.x, ty = b.y + b.h/2;
+    const midX = (sx+tx)/2;
+    content += `<path d="M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}" style="fill:none;stroke:var(--accent);stroke-width:1.5;opacity:0.4" marker-end="url(#schema-arrowhead)"/>`;
   });
+
+  // 2) convergence des rangées (parties) vers la rangée finale
+  const rows = [...wrap.querySelectorAll('.schema-row')];
+  const finalRow = wrap.querySelector('.schema-row[data-final]');
+  if(rows.length>1 && finalRow){
+    const target = finalRow.querySelector('[data-merge-target]') || finalRow.querySelector('.schema-box');
+    if(target){
+      const tgt = toLocal(target.getBoundingClientRect());
+      const tx = tgt.x + tgt.w/2, ty = tgt.y;
+      rows.forEach(row=>{
+        if(row===finalRow) return;
+        const boxes = row.querySelectorAll('.schema-box');
+        if(!boxes.length) return;
+        const last = toLocal(boxes[boxes.length-1].getBoundingClientRect());
+        const sx = last.x + last.w/2, sy = last.y + last.h;
+        const midY = (sy+ty)/2;
+        content += `<path d="M ${sx} ${sy} C ${sx} ${midY}, ${tx} ${midY}, ${tx} ${ty}" style="fill:none;stroke:var(--accent);stroke-width:2.5;opacity:0.85" marker-end="url(#schema-arrowhead)"/>`;
+      });
+    }
+  }
   svg.innerHTML = content;
 }
 window.addEventListener('resize', ()=>{ if(document.getElementById('schema-wrap')) drawSchemaConnectors(); });
