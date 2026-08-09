@@ -1026,60 +1026,172 @@ function matchIngredientStepIndex(ingredient, steps){
   if(lastWord){ for(let i=0;i<steps.length;i++){ if(steps[i].toLowerCase().includes(lastWord)) return i; } }
   return 0;
 }
-// ══ DÉRIVATION AUTOMATIQUE D'UN GRAPHE (pour les recettes sans schemaGraph écrit à la main) ══
-const SCHEMA_MOTS_GENERIQUES = new Set(['pate','pâte','creme','crème','appareil','biscuit',
-  'montage','assemblage','garniture','sauce','pour','avec','maison','fait','partie']);
-function schemaMotsCles(nom){
-  return (nom||'').toLowerCase().split(/[^a-zà-ÿ]+/)
-    .filter(w=>w.length>3 && !SCHEMA_MOTS_GENERIQUES.has(w));
+// Générateur de schemaGraph — v2 : branches parallèles + libellés d'action courts.
+
+const SG_STOP = new Set(['pour','avec','sans','dans','très','bien','petit','petite','gros','grosse',
+ 'moyen','moyenne','entier','entiere','entiers','entieres','environ','frais','fraiche','liquide',
+ 'poudre','morceaux','cubes','rapees','rape','moulu','doux','sale','salee','molle','ambiante',
+ 'temperature','matiere','grasse','boite','brique','sachet','gousse','gousses','pincee','pincees',
+ 'cuillere','cuilleres','cafe','soupe','tasse','verre','bol','dose','optionnel','plan','travail',
+ 'restants','restant','tranches','emondees','grillees','concassees','tamisee','fondu','fondue',
+ 'niege','neige','type','sorte','petits','grands','quelques','gouttes','peu']);
+
+// verbes qui poursuivent ou fusionnent une préparation en cours
+const SG_SUITE = new Set(['ajouter','incorporer','verser','melanger','mettre','cuire','enfourner',
+ 'laisser','couvrir','reserver','rouler','etaler','napper','recouvrir','saupoudrer','garnir',
+ 'demouler','servir','petrir','faconner','former','dresser','pocher','remuer','tremper','egoutter',
+ 'badigeonner','chemiser','plier','tourner','amalgamer','lisser','debarrasser','retirer','eteindre',
+ 'poursuivre','renouveler','repartir','deposer','placer','incorporez','arreter','continuer',
+ 'refroidir','congeler','reunir','terminer']);
+
+// étapes annexes : aucune matière, on ne crée pas de boîte
+const SG_ANNEXE = new Set(['prechauffer','fariner','beurrer','tapisser','chemiser']);
+
+const SG_ANAPHORE = /\b(m[ée]lange|pr[ée]paration|appareil|p[âa]te|le tout|ensemble|pr[ée]c[ée]dent|dessus|celui|celle)\b/i;
+
+const sgNorm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+function sgMotsCles(str){
+  return sgNorm(str||'').replace(/\(.*?\)/g,' ').split(/[^a-z]+/)
+    .filter(w=>w.length>2 && !SG_STOP.has(w));
 }
+
+function sgMatchStep(ingredient, steps){
+  const low = ingredient.toLowerCase();
+  for(let i=0;i<steps.length;i++) if(steps[i].toLowerCase().includes(low)) return i;
+  const q = ingredient.match(/^(\d+([.,\/]\d+)?)\s?(g|kg|mg|ml|cl|l)?/i);
+  if(q){
+    const re = new RegExp('(?<!\\d)'+q[1].replace(/\./g,'\\.')+(q[3]?'\\s?'+q[3]:'')+'(?!\\d)','i');
+    for(let i=0;i<steps.length;i++) if(re.test(steps[i])) return i;
+  }
+  const m = sgMotsCles(ingredient).sort((a,b)=>b.length-a.length);
+  for(const w of m) for(let i=0;i<steps.length;i++) if(sgNorm(steps[i]).includes(w)) return i;
+  return 0;
+}
+
+// Libellé court : on retire ce que les flèches montrent déjà (ingrédients câblés, renvois au mélange)
+const SG_L="a-zA-Zà-ÿœ";                       // \b de JS ignore les accents : on utilise des lookarounds
+const SG_CONN="les|le|la|des|du|de|d|l|au|aux|avec|et|ou|en|y|un|une|à";
+const SG_PREP="pour|sans|puis|jusqu|avant|après|entre|sur|dans|entre";
+const sgReC=(motif,extra)=>new RegExp("(?<!["+SG_L+"])(?:"+motif+")"+(extra||""),"gi");
+
+function sgMotsPhrase(str){            // tous les mots d'un ingrédient, sans filtre thématique
+  return (str||'').replace(/\(.*?\)/g,' ').split(/[^a-zA-Zà-ÿœ']+/)
+    .map(sgNorm).filter(w=>w.length>2);
+}
+
+function sgLabel(step, motsARetirer, aEntreeNoeud, verbe){
+  const gardes=[]; const jeton=n=>'\u0001'+String.fromCharCode(97+n)+'\u0001';
+  let t=step;
+  [/\d+([.,]\d+)?\s?°C?/g,
+   /\d+(\s?(à|et|-)\s?\d+)?\s?(minutes?|heures?|secondes?|jours?|nuits?)/gi,
+   /\d+(\s?[x×]\s?\d+)?\s?(cm|mm)\b/gi]
+   .forEach(re=>{ t=t.replace(re,m=>{gardes.push(m);return jeton(gardes.length-1);}); });
+  t=t.replace(/\d+([.,\/]\d+)?\s?(g|kg|mg|ml|cl|l)(?![a-z])(\s?(de |d'|du |des ))?/gi,' ')
+     .replace(/\d+([.,\/]\d+)?\s(de |d'|du |des )/gi,' ');
+
+  // on coupe le complément antéposé : « Dans un petit bol, mélanger… » → « mélanger… »
+  if(verbe){
+    const i=t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').indexOf(verbe);
+    if(i>0 && t.slice(0,i).indexOf(',')>=0) t=t.slice(i);
+  }
+  const retirer=new Set(motsARetirer);
+  if(aEntreeNoeud) ['melange','preparation','appareil','pate','tout','ensemble','contenu'].forEach(w=>retirer.add(w));
+  const jetons=t.split(/([^a-zA-Zà-ÿœ\u0001]+)/);
+  for(let k=0;k<jetons.length;k+=2) if(retirer.has(sgNorm(jetons[k]))) jetons[k]='';
+  t=jetons.join('');
+
+  for(let i=0;i<5;i++){
+    t=t.replace(sgReC(SG_CONN,"\\s*'?\\s*(?=([,.;:]|\\s*$))"),' ')
+       .replace(sgReC(SG_CONN,"\\s*'?\\s+(?=(?:"+SG_CONN+"|"+SG_PREP+")(?!["+SG_L+"]))"),' ')
+       .replace(/\s+([,.;:])/g,'$1').replace(/([,;:])\s*(?=[,.;:])/g,'')
+       .replace(/^[\s,;:]+/,'').replace(/\s{2,}/g,' ');
+  }
+  let c=t.split(/[.;]/)[0].trim()||t.trim();
+  c=c.replace(new RegExp("[\\s,]*(?<!["+SG_L+"])(?:"+SG_CONN+")\\s*'?\\s*$","i"),'');
+  c=c.replace(/\u0001([a-z])\u0001/g,(m,x)=>gardes[x.charCodeAt(0)-97]);
+  c=c.replace(/\s{2,}/g,' ').replace(/^[\s,'’]+|[\s,'’]+$/g,'');
+  if(c.length>42) c=c.slice(0,39).replace(/\s+\S*$/,'')+'…';
+  if(!c) c=(verbe||step.split(/\s+/)[0]).replace(/[^a-zA-Zà-ÿœ]/g,'');
+  return c.charAt(0).toUpperCase()+c.slice(1);
+}
+
 function deriveSchemaGraph(r){
   const parts = r.parts||[];
   if(!parts.length) return null;
   const base=[]; let g=0;
   parts.forEach(p=>{ base.push(g); g += (p.ingredients||[]).length; });
-  const cles = parts.map(p=>schemaMotsCles(p.name));
-  // un mot-clé porté par plusieurs composantes n'en identifie aucune : on l'écarte
-  const freq={}; cles.forEach(l=>new Set(l).forEach(c=>freq[c]=(freq[c]||0)+1));
-  const clesU = cles.map(l=>l.filter(c=>freq[c]===1));
-  const nodes=[]; const dernierDe={}; const premierDe={};
+  const clesP = parts.map(p=>sgMotsCles(p.name));
+  const freq={}; clesP.forEach(l=>new Set(l).forEach(c=>freq[c]=(freq[c]||0)+1));
+  const clesU = clesP.map(l=>l.filter(c=>freq[c]===1));
+
+  const nodes=[]; const motsDe={}; const dernierDe={}; const premierDe={};
+
   parts.forEach((p,pi)=>{
-    const steps = p.steps||[]; if(!steps.length) return;
+    const steps=p.steps||[]; if(!steps.length) return;
     const parEtape = steps.map(()=>[]);
     (p.ingredients||[]).forEach((ing,k)=>
-      parEtape[matchIngredientStepIndex(ing, steps)].push('ing:'+(base[pi]+k)));
-    let prec=null;
+      parEtape[sgMatchStep(ing, steps)].push(k));
+
+    let ouvertes=[]; let dernier=null;
     steps.forEach((s,si)=>{
-      const inputs=[];
-      if(prec) inputs.push(prec);
-      parEtape[si].forEach(x=>inputs.push(x));
-      const low=s.toLowerCase();
+      const ks = parEtape[si];
+      const ingIds = ks.map(k=>'ing:'+(base[pi]+k));
+      const ingTxt = ks.map(k=>p.ingredients[k]);
+      const jets = s.split(/[^A-Za-zà-ÿ']+/).filter(Boolean).slice(0,10).map(sgNorm);
+      let verbe = jets[0];
+      for(const j of jets){ if(/(er|ir|re|oir)$/.test(j)){ verbe=j; break; } }
+      const nsl = sgNorm(s);
+
+      if(!ingIds.length && SG_ANNEXE.has(verbe)) return;           // étape annexe : pas de boîte
+
+      const nouvelle = !SG_SUITE.has(verbe) && ingIds.length && !SG_ANAPHORE.test(s) && dernier;
+      const inputs=[]; const consommees=[];
+      if(!nouvelle){
+        if(dernier){ inputs.push(dernier); consommees.push(dernier); }
+        // fusionner les branches ouvertes que l'étape mentionne
+        ouvertes.forEach(id=>{
+          if(inputs.includes(id)) return;
+          if((motsDe[id]||[]).some(w=>nsl.includes(w))){ inputs.push(id); consommees.push(id); }
+        });
+      }
+      ingIds.forEach(x=>inputs.push(x));
+      // renvoi vers une composante précédente nommée dans l'étape
       for(let j=0;j<pi;j++){
-        if(!dernierDe[j] || inputs.indexOf(dernierDe[j])>=0 || !clesU[j].length) continue;
-        if(!clesU[j].some(c=>low.indexOf(c)>=0)) continue;
-        // composante préparée en lot : si son produit est déjà listé en ingrédient ici, ne pas doubler le lien
-        if((p.ingredients||[]).some(x=>clesU[j].some(c=>x.toLowerCase().indexOf(c)>=0))) continue;
+        if(!dernierDe[j] || inputs.includes(dernierDe[j]) || !clesU[j].length) continue;
+        if(!clesU[j].some(c=>nsl.includes(c))) continue;
+        if((p.ingredients||[]).some(x=>clesU[j].some(c=>sgNorm(x).includes(c)))) continue;
         inputs.push(dernierDe[j]);
       }
       if(!inputs.length && si===0 && pi>0)
         for(let j=0;j<pi;j++) if(dernierDe[j]) inputs.push(dernierDe[j]);
       if(!inputs.length) return;
+
       const id='auto'+pi+'_'+si;
-      nodes.push({id, label:shortActionLabel(s), inputs});
+      const motsEntrants = [].concat(...ingTxt.map(sgMotsPhrase), ...consommees.map(c=>motsDe[c]||[]));
+      nodes.push({id, label:sgLabel(s, motsEntrants, inputs.some(x=>!x.startsWith('ing:')), verbe), inputs});
+      motsDe[id] = [].concat(...ingTxt.map(sgMotsCles),
+                    ...consommees.map(c=>motsDe[c]||[]));
+      ouvertes = ouvertes.filter(x=>!consommees.includes(x)); ouvertes.push(id);
       if(!premierDe[pi]) premierDe[pi]=id;
-      prec=id;
+      dernier = id;
     });
-    if(prec) dernierDe[pi]=prec;
+    // fin de composante : rattacher les branches restées ouvertes
+    if(dernier){
+      const fin = nodes.filter(n=>n.id===dernier)[0];
+      ouvertes.forEach(id=>{ if(id!==dernier && !fin.inputs.includes(id)) fin.inputs.push(id); });
+      dernierDe[pi]=dernier;
+    }
   });
+
   if(!nodes.length) return null;
-  // connexité : rattacher les composantes qu'aucune étape ne consomme
-  const consommes={}; nodes.forEach(n=>n.inputs.forEach(i=>{ if(i.indexOf('ing:')!==0) consommes[i]=1; }));
-  const cles2 = Object.keys(dernierDe).map(Number);
-  const derniere = Math.max.apply(null, cles2);
+  const consommes={}; nodes.forEach(n=>n.inputs.forEach(i=>{ if(!i.startsWith('ing:')) consommes[i]=1; }));
+  const ids = Object.keys(dernierDe).map(Number);
+  const derniere = Math.max.apply(null, ids);
   const cible = nodes.filter(n=>n.id===premierDe[derniere])[0];
-  cles2.forEach(j=>{
+  ids.forEach(j=>{
     if(j===derniere || consommes[dernierDe[j]]) return;
-    if(cible && cible.inputs.indexOf(dernierDe[j])<0) cible.inputs.push(dernierDe[j]);
+    if(cible && !cible.inputs.includes(dernierDe[j])) cible.inputs.push(dernierDe[j]);
   });
   return {nodes};
 }
