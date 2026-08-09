@@ -1026,10 +1026,71 @@ function matchIngredientStepIndex(ingredient, steps){
   if(lastWord){ for(let i=0;i<steps.length;i++){ if(steps[i].toLowerCase().includes(lastWord)) return i; } }
   return 0;
 }
+// ══ DÉRIVATION AUTOMATIQUE D'UN GRAPHE (pour les recettes sans schemaGraph écrit à la main) ══
+const SCHEMA_MOTS_GENERIQUES = new Set(['pate','pâte','creme','crème','appareil','biscuit',
+  'montage','assemblage','garniture','sauce','pour','avec','maison','fait','partie']);
+function schemaMotsCles(nom){
+  return (nom||'').toLowerCase().split(/[^a-zà-ÿ]+/)
+    .filter(w=>w.length>3 && !SCHEMA_MOTS_GENERIQUES.has(w));
+}
+function deriveSchemaGraph(r){
+  const parts = r.parts||[];
+  if(parts.length<2) return null;
+  const base=[]; let g=0;
+  parts.forEach(p=>{ base.push(g); g += (p.ingredients||[]).length; });
+  const cles = parts.map(p=>schemaMotsCles(p.name));
+  // un mot-clé porté par plusieurs composantes n'en identifie aucune : on l'écarte
+  const freq={}; cles.forEach(l=>new Set(l).forEach(c=>freq[c]=(freq[c]||0)+1));
+  const clesU = cles.map(l=>l.filter(c=>freq[c]===1));
+  const nodes=[]; const dernierDe={}; const premierDe={};
+  parts.forEach((p,pi)=>{
+    const steps = p.steps||[]; if(!steps.length) return;
+    const parEtape = steps.map(()=>[]);
+    (p.ingredients||[]).forEach((ing,k)=>
+      parEtape[matchIngredientStepIndex(ing, steps)].push('ing:'+(base[pi]+k)));
+    let prec=null;
+    steps.forEach((s,si)=>{
+      const inputs=[];
+      if(prec) inputs.push(prec);
+      parEtape[si].forEach(x=>inputs.push(x));
+      const low=s.toLowerCase();
+      for(let j=0;j<pi;j++){
+        if(!dernierDe[j] || inputs.indexOf(dernierDe[j])>=0 || !clesU[j].length) continue;
+        if(!clesU[j].some(c=>low.indexOf(c)>=0)) continue;
+        // composante préparée en lot : si son produit est déjà listé en ingrédient ici, ne pas doubler le lien
+        if((p.ingredients||[]).some(x=>clesU[j].some(c=>x.toLowerCase().indexOf(c)>=0))) continue;
+        inputs.push(dernierDe[j]);
+      }
+      if(!inputs.length && si===0 && pi>0)
+        for(let j=0;j<pi;j++) if(dernierDe[j]) inputs.push(dernierDe[j]);
+      if(!inputs.length) return;
+      const id='auto'+pi+'_'+si;
+      nodes.push({id, label:shortActionLabel(s), inputs});
+      if(!premierDe[pi]) premierDe[pi]=id;
+      prec=id;
+    });
+    if(prec) dernierDe[pi]=prec;
+  });
+  if(!nodes.length) return null;
+  // connexité : rattacher les composantes qu'aucune étape ne consomme
+  const consommes={}; nodes.forEach(n=>n.inputs.forEach(i=>{ if(i.indexOf('ing:')!==0) consommes[i]=1; }));
+  const cles2 = Object.keys(dernierDe).map(Number);
+  const derniere = Math.max.apply(null, cles2);
+  const cible = nodes.filter(n=>n.id===premierDe[derniere])[0];
+  cles2.forEach(j=>{
+    if(j===derniere || consommes[dernierDe[j]]) return;
+    if(cible && cible.inputs.indexOf(dernierDe[j])<0) cible.inputs.push(dernierDe[j]);
+  });
+  return {nodes};
+}
 function renderSchemaView(r, ratio){
   const parts = r.parts||[];
   if(!parts.length) return '<div class="empty-state">Rien à afficher</div>';
   if(r.schemaGraph) return renderGraphSchema(r, ratio);
+  let derive = null;
+  try { derive = deriveSchemaGraph(r); } catch(e){ derive = null; }
+  if(derive && derive.nodes.length)
+    return renderGraphSchema(Object.assign({}, r, {schemaGraph:derive}), ratio);
   return renderLegacySchema(r, ratio);
 }
 
