@@ -1042,8 +1042,15 @@ function renderGraphSchema(r, ratio){
   parts.forEach((p,pi)=>(p.ingredients||[]).forEach(ing=>{ flatIngredients.push(ing); partOfIngredient.push(pi); }));
 
   let ingHtml = '';
-  flatIngredients.forEach((ing,i)=>{
-    ingHtml += `<div class="schema-ing-item" id="schema-ing-${i}">${esc(scaleIngredient(ing,ratio))}</div>`;
+  const multiIngParts = parts.filter(p=>p.ingredients && p.ingredients.length).length > 1;
+  let gi = 0;
+  parts.forEach((p,pi)=>{
+    if(!p.ingredients || !p.ingredients.length) return;
+    if(multiIngParts) ingHtml += `<div class="schema-ing-part-label">${esc(p.name||('Partie '+(pi+1)))}</div>`;
+    p.ingredients.forEach(ing=>{
+      ingHtml += `<div class="schema-ing-item" id="schema-ing-${gi}">${esc(scaleIngredient(ing,ratio))}</div>`;
+      gi++;
+    });
   });
 
   const nodes = r.schemaGraph.nodes;
