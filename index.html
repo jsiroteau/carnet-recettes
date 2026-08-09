@@ -1035,7 +1035,7 @@ function schemaMotsCles(nom){
 }
 function deriveSchemaGraph(r){
   const parts = r.parts||[];
-  if(parts.length<2) return null;
+  if(!parts.length) return null;
   const base=[]; let g=0;
   parts.forEach(p=>{ base.push(g); g += (p.ingredients||[]).length; });
   const cles = parts.map(p=>schemaMotsCles(p.name));
