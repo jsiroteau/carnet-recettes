@@ -103,6 +103,8 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .schema-ing-part-label:first-child{margin-top:0}
 .schema-ing-item{background:var(--card-hi);border:2px dashed var(--accent);border-radius:10px;padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:0.66rem;line-height:1.3}
 .schema-rows{display:flex;flex-direction:column;gap:26px;flex:1;min-width:0;position:relative;z-index:2}
+.schema-graph-cols-wrap{position:relative;flex-shrink:0;z-index:2}
+.schema-graph-cols-wrap .schema-box{position:absolute;transition:top .15s}
 .schema-row-title{font-family:'Fraunces',serif;font-weight:600;font-size:0.75rem;color:var(--accent);margin-bottom:6px}
 .schema-row{display:flex;align-items:center;gap:4px;flex-wrap:nowrap}
 .schema-box{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:9px 11px;font-size:0.72rem;text-align:center;line-height:1.3;box-shadow:0 2px 8px rgba(59,42,32,0.06);position:relative;min-width:110px;max-width:150px;flex-shrink:0}
@@ -969,7 +971,7 @@ function renderDetail(r){
       <button class="btn btn-danger btn-full" onclick="deleteRecipe('${r.id}')">🗑 Supprimer</button>
     </div>`;
   document.getElementById('detail-body').innerHTML = html;
-  if(detailView==='schema') requestAnimationFrame(()=>requestAnimationFrame(drawSchemaConnectors));
+  if(detailView==='schema') requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(window.__schemaGraphNodes) alignGraphNodes(); drawSchemaConnectors(); }));
 }
 window.setDetailView=function(v){ detailView=v; const r=recipes.find(x=>x.id===currentId); renderDetail(r); };
 function renderTextView(r, ratio){
@@ -1027,6 +1029,95 @@ function matchIngredientStepIndex(ingredient, steps){
 function renderSchemaView(r, ratio){
   const parts = r.parts||[];
   if(!parts.length) return '<div class="empty-state">Rien à afficher</div>';
+  if(r.schemaGraph) return renderGraphSchema(r, ratio);
+  return renderLegacySchema(r, ratio);
+}
+
+// ══ MODE GRAPHE (précis, avec dépendances explicites) ══
+function renderGraphSchema(r, ratio){
+  window.__schemaMatches = null;
+  const parts = r.parts||[];
+  const flatIngredients = [];
+  const partOfIngredient = [];
+  parts.forEach((p,pi)=>(p.ingredients||[]).forEach(ing=>{ flatIngredients.push(ing); partOfIngredient.push(pi); }));
+
+  let ingHtml = '';
+  flatIngredients.forEach((ing,i)=>{
+    ingHtml += `<div class="schema-ing-item" id="schema-ing-${i}">${esc(scaleIngredient(ing,ratio))}</div>`;
+  });
+
+  const nodes = r.schemaGraph.nodes;
+  const nodesById = {}; nodes.forEach(n=>nodesById[n.id]=n);
+  const rankCache = {};
+  function rankOf(id){
+    if(id.startsWith('ing:')) return +id.slice(4);
+    if(rankCache[id]!==undefined) return rankCache[id];
+    const n = nodesById[id];
+    const r2 = n.inputs.reduce((a,b)=>a+rankOf(b),0)/n.inputs.length;
+    rankCache[id] = r2;
+    return r2;
+  }
+  const depthCache = {};
+  function depthOf(id){
+    if(id.startsWith('ing:')) return 0;
+    if(depthCache[id]!==undefined) return depthCache[id];
+    const n = nodesById[id];
+    const d = 1 + Math.max(0, ...n.inputs.map(depthOf));
+    depthCache[id] = d;
+    return d;
+  }
+  // bande d'origine : celle du tout premier ingrédient dont dépend (directement ou indirectement) le nœud
+  const laneCache = {};
+  function laneOf(id){
+    if(id.startsWith('ing:')) return partOfIngredient[+id.slice(4)];
+    if(laneCache[id]!==undefined) return laneCache[id];
+    const n = nodesById[id];
+    const l = laneOf(n.inputs[0]);
+    laneCache[id] = l;
+    return l;
+  }
+  nodes.forEach(n=>{ rankOf(n.id); depthOf(n.id); laneOf(n.id); });
+
+  const maxDepth = Math.max(...nodes.map(n=>depthCache[n.id]));
+  const COL_W = 160, COL_GAP = 34;
+  let boxesHtml = nodes.map(n=>{
+    const isLast = depthCache[n.id]===maxDepth;
+    const left = (depthCache[n.id]-1)*(COL_W+COL_GAP);
+    return `<div class="schema-box" id="schema-node-${n.id}" data-rank="${rankCache[n.id]}" style="left:${left}px;width:${COL_W}px" ${isLast?'data-merge-target="1"':''}>${esc(scaleIngredient(n.label,ratio))}</div>`;
+  }).join('');
+  const totalWidth = maxDepth*(COL_W+COL_GAP);
+
+  window.__schemaGraphNodes = nodes;
+  return `<div class="schema-wrap" id="schema-wrap"><svg class="schema-connectors" id="schema-svg"></svg>
+    <div class="schema-ing-col">${ingHtml}</div>
+    <div class="schema-graph-cols-wrap" id="schema-graph-cols" style="min-width:${totalWidth}px">${boxesHtml}</div></div>`;
+}
+function drawGraphConnectors(wrap, svg, toLocal){
+  const nodes = window.__schemaGraphNodes||[];
+  let content = '';
+  nodes.forEach(n=>{
+    const toEl = document.getElementById(`schema-node-${n.id}`);
+    if(!toEl) return;
+    const b = toLocal(toEl.getBoundingClientRect());
+    const tx = b.x, ty = b.y + b.h/2;
+    n.inputs.forEach(inp=>{
+      const fromEl = inp.startsWith('ing:') ? document.getElementById(`schema-ing-${inp.slice(4)}`) : document.getElementById(`schema-node-${inp}`);
+      if(!fromEl) return;
+      const a = toLocal(fromEl.getBoundingClientRect());
+      const sx = a.x + a.w, sy = a.y + a.h/2;
+      const midX = (sx+tx)/2;
+      const weight = inp.startsWith('ing:') ? '1.5' : '2.2';
+      const op = inp.startsWith('ing:') ? '0.4' : '0.8';
+      content += `<path d="M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}" style="fill:none;stroke:var(--accent);stroke-width:${weight};opacity:${op}" marker-end="url(#schema-arrowhead)"/>`;
+    });
+  });
+  return content;
+}
+
+// ══ MODE HÉRITÉ (repli : une rangée par sous-partie, sans dépendances fines) ══
+function renderLegacySchema(r, ratio){
+  window.__schemaGraphNodes = null;
+  const parts = r.parts||[];
   const multi = parts.length > 1;
 
   let ingHtml = '';
@@ -1059,12 +1150,81 @@ function renderSchemaView(r, ratio){
     rowsHtml += `</div></div>`;
   });
 
-  let html = `<div class="schema-wrap" id="schema-wrap"><svg class="schema-connectors" id="schema-svg"></svg>
+  window.__schemaMatches = matches;
+  return `<div class="schema-wrap" id="schema-wrap"><svg class="schema-connectors" id="schema-svg"></svg>
     <div class="schema-ing-col">${ingHtml}</div>
     <div class="schema-rows">${rowsHtml}</div></div>`;
-  // stocker les correspondances pour le traçage des connecteurs
-  window.__schemaMatches = matches;
-  return html;
+}
+function drawLegacyConnectors(wrap, toLocal){
+  let content = '';
+  (window.__schemaMatches||[]).forEach(m=>{
+    const ingEl = document.getElementById(`schema-ing-${m.gi}`);
+    const boxEl = document.getElementById(`schema-box-${m.partIndex}-${m.stepIndex}`);
+    if(!ingEl || !boxEl) return;
+    const a = toLocal(ingEl.getBoundingClientRect());
+    const b = toLocal(boxEl.getBoundingClientRect());
+    const sx = a.x + a.w, sy = a.y + a.h/2;
+    const tx = b.x, ty = b.y + b.h/2;
+    const midX = (sx+tx)/2;
+    content += `<path d="M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}" style="fill:none;stroke:var(--accent);stroke-width:1.5;opacity:0.4" marker-end="url(#schema-arrowhead)"/>`;
+  });
+  const rows = [...wrap.querySelectorAll('.schema-row')];
+  const finalRow = wrap.querySelector('.schema-row[data-final]');
+  if(rows.length>1 && finalRow){
+    const target = finalRow.querySelector('[data-merge-target]') || finalRow.querySelector('.schema-box');
+    if(target){
+      const tgt = toLocal(target.getBoundingClientRect());
+      const tx = tgt.x + tgt.w/2, ty = tgt.y;
+      rows.forEach(row=>{
+        if(row===finalRow) return;
+        const boxes = row.querySelectorAll('.schema-box');
+        if(!boxes.length) return;
+        const last = toLocal(boxes[boxes.length-1].getBoundingClientRect());
+        const sx = last.x + last.w/2, sy = last.y + last.h;
+        const midY = (sy+ty)/2;
+        content += `<path d="M ${sx} ${sy} C ${sx} ${midY}, ${tx} ${midY}, ${tx} ${ty}" style="fill:none;stroke:var(--accent);stroke-width:2.5;opacity:0.85" marker-end="url(#schema-arrowhead)"/>`;
+      });
+    }
+  }
+  return content;
+}
+
+function alignGraphNodes(){
+  const wrap = document.getElementById('schema-wrap');
+  const colsWrap = document.getElementById('schema-graph-cols');
+  if(!wrap || !colsWrap) return;
+  const wrapRect = wrap.getBoundingClientRect();
+  const colsRect = colsWrap.getBoundingClientRect();
+  const offsetY = colsRect.top - wrapRect.top; // décalage entre le début du wrap et le début de la zone de cases
+
+  // position Y (relative au wrap) du centre de chaque ingrédient, indexée par son rang
+  const ingY = [];
+  let i=0;
+  while(true){
+    const el = document.getElementById(`schema-ing-${i}`);
+    if(!el) break;
+    const r = el.getBoundingClientRect();
+    ingY[i] = (r.top - wrapRect.top) + r.height/2;
+    i++;
+  }
+  if(!ingY.length) return;
+  function interpolateY(rank){
+    const clamped = Math.max(0, Math.min(ingY.length-1, rank));
+    const i0 = Math.floor(clamped), i1 = Math.ceil(clamped);
+    if(i0===i1) return ingY[i0];
+    return ingY[i0] + (ingY[i1]-ingY[i0]) * (clamped-i0);
+  }
+  colsWrap.querySelectorAll('.schema-box').forEach(box=>{
+    const rank = parseFloat(box.dataset.rank);
+    const targetY = interpolateY(rank) - offsetY - box.offsetHeight/2;
+    box.style.top = Math.max(0, targetY) + 'px';
+  });
+  // hauteur totale nécessaire pour que le conteneur englobe toutes les cases positionnées
+  let maxBottom = 0;
+  colsWrap.querySelectorAll('.schema-box').forEach(box=>{
+    maxBottom = Math.max(maxBottom, box.offsetTop + box.offsetHeight);
+  });
+  colsWrap.style.minHeight = maxBottom + 'px';
 }
 function drawSchemaConnectors(){
   const wrap = document.getElementById('schema-wrap');
@@ -1084,38 +1244,7 @@ function drawSchemaConnectors(){
 
   let content = `<defs><marker id="schema-arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--accent)"/></marker></defs>`;
 
-  // 1) connecteurs ingrédient → première étape qui l'utilise
-  (window.__schemaMatches||[]).forEach(m=>{
-    const ingEl = document.getElementById(`schema-ing-${m.gi}`);
-    const boxEl = document.getElementById(`schema-box-${m.partIndex}-${m.stepIndex}`);
-    if(!ingEl || !boxEl) return;
-    const a = toLocal(ingEl.getBoundingClientRect());
-    const b = toLocal(boxEl.getBoundingClientRect());
-    const sx = a.x + a.w, sy = a.y + a.h/2;
-    const tx = b.x, ty = b.y + b.h/2;
-    const midX = (sx+tx)/2;
-    content += `<path d="M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}" style="fill:none;stroke:var(--accent);stroke-width:1.5;opacity:0.4" marker-end="url(#schema-arrowhead)"/>`;
-  });
-
-  // 2) convergence des rangées (parties) vers la rangée finale
-  const rows = [...wrap.querySelectorAll('.schema-row')];
-  const finalRow = wrap.querySelector('.schema-row[data-final]');
-  if(rows.length>1 && finalRow){
-    const target = finalRow.querySelector('[data-merge-target]') || finalRow.querySelector('.schema-box');
-    if(target){
-      const tgt = toLocal(target.getBoundingClientRect());
-      const tx = tgt.x + tgt.w/2, ty = tgt.y;
-      rows.forEach(row=>{
-        if(row===finalRow) return;
-        const boxes = row.querySelectorAll('.schema-box');
-        if(!boxes.length) return;
-        const last = toLocal(boxes[boxes.length-1].getBoundingClientRect());
-        const sx = last.x + last.w/2, sy = last.y + last.h;
-        const midY = (sy+ty)/2;
-        content += `<path d="M ${sx} ${sy} C ${sx} ${midY}, ${tx} ${midY}, ${tx} ${ty}" style="fill:none;stroke:var(--accent);stroke-width:2.5;opacity:0.85" marker-end="url(#schema-arrowhead)"/>`;
-      });
-    }
-  }
+  content += window.__schemaGraphNodes ? drawGraphConnectors(wrap, svg, toLocal) : drawLegacyConnectors(wrap, toLocal);
   svg.innerHTML = content;
 }
 window.addEventListener('resize', ()=>{ if(document.getElementById('schema-wrap')) drawSchemaConnectors(); });
