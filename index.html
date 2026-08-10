@@ -250,6 +250,12 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
       <button class="btn btn-primary btn-full" id="export-btn" onclick="exporterRecettes()">☁️ Exporter mes recettes vers GitHub</button>
     </div>
     <div class="btn-row">
+      <button class="btn btn-secondary btn-full" onclick="telechargerSeed()">⬇️ Télécharger le fichier recipes-seed.js</button>
+    </div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:6px;line-height:1.4">
+      Sans jeton d'accès, sur un appareil de passage : téléchargez le fichier, puis déposez-le sur la page du dépôt GitHub (bouton « Add file › Upload files »). Le résultat est identique à l'export.
+    </div>
+    <div class="btn-row">
       <button class="btn btn-secondary btn-full" onclick="rechargerDepuisGitHub()">⬇️ Recharger depuis GitHub</button>
     </div>
     <div style="font-size:0.72rem;color:var(--muted);margin-top:8px;line-height:1.5">
@@ -1098,7 +1104,7 @@ const SG_PREP="pour|sans|puis|jusqu|avant|après|entre|sur|dans|entre";
 const sgReC=(motif,extra)=>new RegExp("(?<!["+SG_L+"])(?:"+motif+")"+(extra||""),"gi");
 
 function sgMotsPhrase(str){            // tous les mots d'un ingrédient, sans filtre thématique
-  return (str||'').replace(/\(.*?\)/g,' ').split(/[^a-zA-Zà-ÿœ']+/)
+  return (str||'').replace(/\(.*?\)/g,' ').split(/[^a-zA-Zà-ÿœ]+/)
     .map(sgNorm).filter(w=>w.length>2);
 }
 
@@ -1126,10 +1132,14 @@ function sgLabel(step, motsARetirer, aEntreeNoeud, verbe){
    'concasses','concassees','torrefie','torrefiee','torrefies','torrefiees','caramelise','caramelisee',
    'caramelises','caramelisees','imbibe','imbibee','imbibes','imbibees','monte','montee','montes','montees',
    'battu','battue','battus','battues','grattee','grattees','fendue','fendues','refroidi','refroidie',
-   'puree','miettes','pepites','morceaux','poudre','cubes','rondelles','lamelles','des'].forEach(w=>retirer.add(w));
-  const jetons=t.split(/([^a-zA-Zà-ÿœ\u0001]+)/);
-  const oté=[];
-  for(let k=0;k<jetons.length;k+=2) oté[k]=retirer.has(sgNorm(jetons[k]));
+   'puree'].forEach(w=>retirer.add(w));
+  if(verbe) retirer.delete(verbe);
+  const jetons=t.split(/([^a-zA-Zà-ÿœ\u0001]+)/);   // l'apostrophe sépare les mots
+  const oté=[]; let vuVerbe=false;
+  for(let k=0;k<jetons.length;k+=2){
+    oté[k]=retirer.has(sgNorm(jetons[k]));
+    if(!vuVerbe && verbe && sgNorm(jetons[k])===verbe){ oté[k]=false; vuVerbe=true; }
+  }
   const SG_DET=new Set(['le','la','les','du','de','des','un','une','au','aux','mon','ce','ces','leur']);
   for(let k=0;k<jetons.length;k+=2){
     if(!oté[k] || (k>=2 && oté[k-2])) continue;          // on ne traite que le début d'une suite effacée
@@ -1149,12 +1159,40 @@ function sgLabel(step, motsARetirer, aEntreeNoeud, verbe){
        .replace(/^[\s,;:]+/,'').replace(/\s{2,}/g,' ');
   }
   let c=t.split(/[.;]/)[0].trim()||t.trim();
+  const dp=c.indexOf(':');
+  if(dp>10) c=c.slice(0,dp).trim();
+  c=c.replace(/,\s*(il|ils|elle|elles|on|le tout|la pâte|c'est)\b.*$/i,'');
   c=c.replace(new RegExp("[\\s,]*(?<!["+SG_L+"])(?:"+SG_CONN+")\\s*'?\\s*$","i"),'');
   c=c.replace(/\u0001([a-z])\u0001/g,(m,x)=>gardes[x.charCodeAt(0)-97]);
   c=c.replace(/\s{2,}/g,' ').replace(/^[\s,'’]+|[\s,'’]+$/g,'');
-  if(c.length>42) c=c.slice(0,39).replace(/\s+\S*$/,'')+'…';
+  // pas de points de suspension : on retire les subordonnées, qui n'apportent rien au schéma
+  c=c.replace(/,?\s+(jusqu'?[aà]|afin|en veillant|de manière|de façon)\b.*$/i,'');
+  if(c.length>26) c=c.replace(/,?\s+(pour|sans cesser|en remuant|en tournant|comme)\b.*$/i,'');
+  if(c.length>26) c=c.replace(/\s*\([^)]*\)/g,'');
+  // complément de contenant : le schéma dit l'action, pas la vaisselle
+  if(c.length>26) c=c.replace(/\s+(dans|sur|avec|sous|entre|à l'aide de|au dos de)\s+(un|une|le|la|les|des|du|deux|papier|film|tapis)\b.*$/i,'');
+  c=c.replace(/\s{2,}/g,' ').replace(/[\s,;:]+$/,'').trim();
   if(!c) c=(verbe||step.split(/\s+/)[0]).replace(/[^a-zA-Zà-ÿœ]/g,'');
   return c.charAt(0).toUpperCase()+c.slice(1);
+}
+
+// Une étape peut enchaîner plusieurs actions distinctes : chacune mérite sa boîte.
+function sgFragments(s){
+  const bouts = s.split(/(?:\.\s+)|(?:\s+puis\s+)|(?:\s*,\s+(?=[a-zà-ÿ]+(?:er|ir|re|oir)\b))|(?:\s+et\s+(?=[a-zà-ÿ]+(?:er|ir|re|oir)\b))/i)
+                 .map(x=>x.trim()).filter(Boolean);
+  if(bouts.length<2) return [s];
+  const aVerbe = x => { const v=sgNorm((x.split(/[^A-Za-zà-ÿ']+/).filter(Boolean)[0])||'');
+    return SG_SUITE.has(v)||SG_DEPART.has(v)||(/(er|ir|re|oir)$/.test(v)&&!SG_FAUXVERBES.has(v)); };
+  while(bouts.length>1 && !aVerbe(bouts[0])) bouts[1]=bouts[0]+', '+bouts[1], bouts.shift();
+  const out=[bouts[0]];
+  for(let i=1;i<bouts.length;i++){
+    let frag = bouts[i].replace(/^(puis|ensuite|enfin|alors|et)\s+/i,'');
+    const v = sgNorm((frag.split(/[^A-Za-zà-ÿ']+/).filter(Boolean)[0])||'');
+    const estVerbe = SG_SUITE.has(v)||SG_DEPART.has(v)||(/(er|ir|re|oir)$/.test(v)&&!SG_FAUXVERBES.has(v));
+    if(estVerbe){ bouts[i]=frag; out.push(frag); }
+    else out[out.length-1] += ', ' + bouts[i];
+  }
+  return out;
 }
 
 function deriveSchemaGraph(r){
@@ -1220,13 +1258,22 @@ function deriveSchemaGraph(r){
         for(let j=0;j<pi;j++) if(dernierDe[j]) inputs.push(dernierDe[j]);
       if(!inputs.length) return;
 
-      const id='auto'+pi+'_'+si;
       const motsEntrants = [].concat(...ingTxt.map(sgMotsPhrase), ...consommees.map(c=>motsDe[c]||[]));
-      nodes.push({id, label:sgLabel(s, motsEntrants, inputs.some(x=>!x.startsWith('ing:')), verbe), inputs});
-      motsDe[id] = [].concat(...ingTxt.map(sgMotsCles),
-                    ...consommees.map(c=>motsDe[c]||[]));
+      const herite = [].concat(...ingTxt.map(sgMotsCles), ...consommees.map(c=>motsDe[c]||[]));
+      let prec2=null, id=null;
+      sgFragments(s).forEach((fr,fi)=>{
+        const vf = (fr.split(/[^A-Za-zà-ÿ']+/).filter(Boolean).slice(0,12).map(sgNorm)
+                      .find(j=>SG_SUITE.has(j)||SG_DEPART.has(j))) || verbe;
+        const lab = sgLabel(fr, motsEntrants, fi>0 || inputs.some(x=>!x.startsWith('ing:')), vf);
+        if(fi>0 && (!lab || lab.length<3)) return;
+        id = 'auto'+pi+'_'+si+(fi?'_'+fi:'');
+        nodes.push({id, label:lab, inputs: fi===0 ? inputs : [prec2]});
+        motsDe[id] = herite;
+        prec2 = id;
+      });
+      if(!id) return;
       ouvertes = ouvertes.filter(x=>!consommees.includes(x)); ouvertes.push(id);
-      if(!premierDe[pi]) premierDe[pi]=id;
+      if(!premierDe[pi]) premierDe[pi]='auto'+pi+'_'+si;
       dernier = id;
     });
     // fin de composante : rattacher les branches restées ouvertes
@@ -1746,6 +1793,17 @@ function enBase64(texte){
   octets.forEach(o=>{ bin += String.fromCharCode(o); });
   return btoa(bin);
 }
+window.telechargerSeed=function(){
+  try{
+    const contenu = genererSeed(recipes);
+    const lien = document.createElement('a');
+    lien.href = URL.createObjectURL(new Blob([contenu], {type:'text/javascript;charset=utf-8'}));
+    lien.download = 'recipes-seed.js';
+    document.body.appendChild(lien); lien.click(); lien.remove();
+    setTimeout(()=>URL.revokeObjectURL(lien.href), 2000);
+    toast('✓ Fichier téléchargé — déposez-le sur GitHub');
+  }catch(e){ toast('⚠ Téléchargement impossible : '+e.message); }
+};
 function majIndicateurExport(){
   const p = document.getElementById('export-pastille');
   if(p) p.classList.toggle('hidden', enAttente===0);
