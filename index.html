@@ -1098,9 +1098,10 @@ function sgMotsPhrase(str){            // tous les mots d'un ingrédient, sans f
 function sgLabel(step, motsARetirer, aEntreeNoeud, verbe){
   const gardes=[]; const jeton=n=>'\u0001'+String.fromCharCode(97+n)+'\u0001';
   let t=step;
-  [/\d+\/\d+\s?(minutes?|heures?|jours?|nuits?|litres?|cuillères?)/gi,
+  [/\d+\/\d+\s?(minutes?|heures?|jours?|nuits?)/gi,
    /\d+([.,]\d+)?\s?°C?/g,
-   /\d+(\s?(à|et|-)\s?\d+)?\s?(minutes?|heures?|secondes?|jours?|nuits?)/gi,
+   /\d+\s?(à|et|ou|-|–)\s?\d+\s?(minutes?|heures?|secondes?|jours?|nuits?)/gi,
+   /\d+\s?(minutes?|heures?|secondes?|jours?|nuits?)/gi,
    /\d+(\s?[x×]\s?\d+)?\s?(cm|mm)\b/gi]
    .forEach(re=>{ t=t.replace(re,m=>{gardes.push(m);return jeton(gardes.length-1);}); });
   t=t.replace(/\d+([.,\/]\d+)?\s?(g|kg|mg|ml|cl|l)(?![a-z])(\s?(de |d'|du |des ))?/gi,' ')
@@ -1112,7 +1113,13 @@ function sgLabel(step, motsARetirer, aEntreeNoeud, verbe){
     if(i>0 && t.slice(0,i).indexOf(',')>=0) t=t.slice(i);
   }
   const retirer=new Set(motsARetirer);
-  if(aEntreeNoeud) ['melange','preparation','appareil','pate','tout','ensemble','contenu'].forEach(w=>retirer.add(w));
+  if(aEntreeNoeud) ['melange','preparation','appareil','pate','tout','ensemble','contenu',
+   'fondu','fondue','fondus','fondues','rape','rapee','rapes','rapees','hache','hachee','haches','hachees',
+   'coupe','coupee','coupes','coupees','essore','essoree','essores','essorees','concasse','concassee',
+   'concasses','concassees','torrefie','torrefiee','torrefies','torrefiees','caramelise','caramelisee',
+   'caramelises','caramelisees','imbibe','imbibee','imbibes','imbibees','monte','montee','montes','montees',
+   'battu','battue','battus','battues','grattee','grattees','fendue','fendues','refroidi','refroidie',
+   'puree','miettes','pepites','morceaux','poudre','cubes','rondelles','lamelles','des'].forEach(w=>retirer.add(w));
   const jetons=t.split(/([^a-zA-Zà-ÿœ\u0001]+)/);
   const oté=[];
   for(let k=0;k<jetons.length;k+=2) oté[k]=retirer.has(sgNorm(jetons[k]));
@@ -1129,6 +1136,8 @@ function sgLabel(step, motsARetirer, aEntreeNoeud, verbe){
     t=t.replace(sgReC(SG_CONN,"\\s*'?\\s*(?=([,.;:]|\\s*$))"),' ')
        .replace(sgReC(SG_CONN,"\\s*'?\\s+(?=(?:"+SG_CONN+"|"+SG_PREP+")(?!["+SG_L+"]))"),' ')
        .replace(new RegExp("(?<!["+SG_L+"])(?:"+SG_CONN+")?\\s*'?\\s*\\d+\\s*(?=([,.;:]|$|\\s(?:et|puis|ou|avec)(?!["+SG_L+"])))","gi"),' ')
+       .replace(/\([\s,;:'’-]*\)/g,' ')
+       .replace(/,\s*(?=(et|puis|ou|au|aux|à|dans|sur|avec)\b)/gi,' ')
        .replace(/\s+([,.;:])/g,'$1').replace(/([,;:])\s*(?=[,.;:])/g,'')
        .replace(/^[\s,;:]+/,'').replace(/\s{2,}/g,' ');
   }
