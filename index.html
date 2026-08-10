@@ -1085,15 +1085,20 @@ function sgMatchStep(ingredient, steps){
   const low = ingredient.toLowerCase();
   for(let i=0;i<steps.length;i++) if(steps[i].toLowerCase().includes(low)) return i;
   const q = ingredient.match(/^(\d+([.,\/]\d+)?)\s?(g|kg|mg|ml|cl|l)?/i);
-  if(q){
+  if(q && q[3]){
     // ni juste après ni juste avant une barre de fraction : « 1/2 heure » n'est pas « 2 »
-    const re = new RegExp('(?<![\\d/])'+q[1].replace(/\./g,'\\.')+(q[3]?'\\s?'+q[3]:'')+'(?![\\d/])','i');
+    const re = new RegExp('(?<![\\d/])'+q[1].replace(/\./g,'\\.')+'\\s?'+q[3]+'(?![\\d/])','i');
     for(let i=0;i<steps.length;i++) if(re.test(steps[i])) return i;
   }
   const m = sgMotsCles(ingredient).sort((a,b)=>b.length-a.length);
   // tolérance au pluriel : « blancs » doit retrouver « blanc »
   for(const w of m){ const r=w.replace(/s$/,'');
     for(let i=0;i<steps.length;i++) if(sgNorm(steps[i]).includes(r)) return i; }
+  // en dernier recours seulement : un nombre sans unité (« 3 » retrouverait « les 3 œufs »)
+  if(q && q[1] && !q[3]){
+    const re2 = new RegExp('(?<![\\d/])'+q[1].replace(/\./g,'\\.')+'(?![\\d/])');
+    for(let i=0;i<steps.length;i++) if(re2.test(steps[i])) return i;
+  }
   return 0;
 }
 
@@ -1166,8 +1171,8 @@ function sgLabel(step, motsARetirer, aEntreeNoeud, verbe){
   c=c.replace(/\u0001([a-z])\u0001/g,(m,x)=>gardes[x.charCodeAt(0)-97]);
   c=c.replace(/\s{2,}/g,' ').replace(/^[\s,'’]+|[\s,'’]+$/g,'');
   // pas de points de suspension : on retire les subordonnées, qui n'apportent rien au schéma
-  c=c.replace(/,?\s+(jusqu'?[aà]|afin|en veillant|de manière|de façon)\b.*$/i,'');
-  if(c.length>26) c=c.replace(/,?\s+(pour|sans cesser|en remuant|en tournant|comme)\b.*$/i,'');
+  c=c.replace(/,?\s+(jusqu'?[aà]|afin|en veillant|de manière|de façon)(?![a-zà-ÿ]).*$/i,'');
+  if(c.length>26) c=c.replace(/,?\s+(pour|sans cesser|en remuant|en tournant|comme)(?![a-zà-ÿ]).*$/i,'');
   if(c.length>26) c=c.replace(/\s*\([^)]*\)/g,'');
   // complément de contenant : le schéma dit l'action, pas la vaisselle
   if(c.length>26) c=c.replace(/\s+(dans|sur|avec|sous|entre|à l'aide de|au dos de)\s+(un|une|le|la|les|des|du|deux|papier|film|tapis)\b.*$/i,'');
@@ -1204,7 +1209,7 @@ function deriveSchemaGraph(r){
   const freq={}; clesP.forEach(l=>new Set(l).forEach(c=>freq[c]=(freq[c]||0)+1));
   const clesU = clesP.map(l=>l.filter(c=>freq[c]===1));
 
-  const nodes=[]; const motsDe={}; const dernierDe={}; const premierDe={};
+  const nodes=[]; const motsDe={}; const etiq={}; const dernierDe={}; const premierDe={};
 
   parts.forEach((p,pi)=>{
     const steps=p.steps||[]; if(!steps.length) return;
@@ -1258,7 +1263,10 @@ function deriveSchemaGraph(r){
         for(let j=0;j<pi;j++) if(dernierDe[j]) inputs.push(dernierDe[j]);
       if(!inputs.length) return;
 
-      const motsEntrants = [].concat(...ingTxt.map(sgMotsPhrase), ...consommees.map(c=>motsDe[c]||[]));
+      // « Casser en pépites » produit des pépites : le mot ne doit pas revenir dans la boîte suivante
+      const formes = [];
+      consommees.forEach(c=>{ const l=etiq[c]||''; const mm=l.match(/\ben\s+([a-zà-ÿ]+)/i); if(mm) formes.push(sgNorm(mm[1])); });
+      const motsEntrants = [].concat(...ingTxt.map(sgMotsPhrase), ...consommees.map(c=>motsDe[c]||[]), formes);
       const herite = [].concat(...ingTxt.map(sgMotsCles), ...consommees.map(c=>motsDe[c]||[]));
       let prec2=null, id=null;
       sgFragments(s).forEach((fr,fi)=>{
@@ -1268,7 +1276,7 @@ function deriveSchemaGraph(r){
         if(fi>0 && (!lab || lab.length<3)) return;
         id = 'auto'+pi+'_'+si+(fi?'_'+fi:'');
         nodes.push({id, label:lab, inputs: fi===0 ? inputs : [prec2]});
-        motsDe[id] = herite;
+        motsDe[id] = herite; etiq[id] = lab;
         prec2 = id;
       });
       if(!id) return;
