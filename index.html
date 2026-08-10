@@ -1098,7 +1098,8 @@ function sgMotsPhrase(str){            // tous les mots d'un ingrédient, sans f
 function sgLabel(step, motsARetirer, aEntreeNoeud, verbe){
   const gardes=[]; const jeton=n=>'\u0001'+String.fromCharCode(97+n)+'\u0001';
   let t=step;
-  [/\d+([.,]\d+)?\s?°C?/g,
+  [/\d+\/\d+\s?(minutes?|heures?|jours?|nuits?|litres?|cuillères?)/gi,
+   /\d+([.,]\d+)?\s?°C?/g,
    /\d+(\s?(à|et|-)\s?\d+)?\s?(minutes?|heures?|secondes?|jours?|nuits?)/gi,
    /\d+(\s?[x×]\s?\d+)?\s?(cm|mm)\b/gi]
    .forEach(re=>{ t=t.replace(re,m=>{gardes.push(m);return jeton(gardes.length-1);}); });
@@ -1113,7 +1114,15 @@ function sgLabel(step, motsARetirer, aEntreeNoeud, verbe){
   const retirer=new Set(motsARetirer);
   if(aEntreeNoeud) ['melange','preparation','appareil','pate','tout','ensemble','contenu'].forEach(w=>retirer.add(w));
   const jetons=t.split(/([^a-zA-Zà-ÿœ\u0001]+)/);
-  for(let k=0;k<jetons.length;k+=2) if(retirer.has(sgNorm(jetons[k]))) jetons[k]='';
+  const oté=[];
+  for(let k=0;k<jetons.length;k+=2) oté[k]=retirer.has(sgNorm(jetons[k]));
+  const SG_DET=new Set(['le','la','les','du','de','des','un','une','au','aux','mon','ce','ces','leur']);
+  for(let k=0;k<jetons.length;k+=2){
+    if(!oté[k] || (k>=2 && oté[k-2])) continue;          // on ne traite que le début d'une suite effacée
+    if(k>=1) jetons[k-1]=jetons[k-1].replace(/\d+([.,\/]\d+)?/g,' ');   // le nombre qui précédait
+    if(k>=2 && SG_DET.has(sgNorm(jetons[k-2]))) oté[k-2]=true;                // et son déterminant
+  }
+  for(let k=0;k<jetons.length;k+=2) if(oté[k]) jetons[k]='';
   t=jetons.join('');
 
   for(let i=0;i<5;i++){
@@ -1216,7 +1225,9 @@ function deriveSchemaGraph(r){
   const consommes={}; nodes.forEach(n=>n.inputs.forEach(i=>{ if(!i.startsWith('ing:')) consommes[i]=1; }));
   const ids = Object.keys(dernierDe).map(Number);
   const derniere = Math.max.apply(null, ids);
-  const cible = nodes.filter(n=>n.id===premierDe[derniere])[0];
+  const dansDerniere = nodes.filter(n=>n.id.indexOf('auto'+derniere+'_')===0);
+  const cible = dansDerniere.filter(n=>n.inputs.some(i=>i.indexOf('ing:')!==0))[0]
+             || nodes.filter(n=>n.id===premierDe[derniere])[0];
   ids.forEach(j=>{
     if(j===derniere || consommes[dernierDe[j]]) return;
     if(cible && !cible.inputs.includes(dernierDe[j])) cible.inputs.push(dernierDe[j]);
