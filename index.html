@@ -371,10 +371,11 @@ function nettoyerPourExport(r){
   return {
     title:r.title||'', category:r.category||'Plat', difficulty:r.difficulty||'',
     servingsBase:r.servingsBase||0, servingsUnit:r.servingsUnit||'',
-    prepMin:r.prepMin||0, cookMin:r.cookMin||0, restMin:r.restMin||0,
     source:r.source||'', notes:r.notes||'', labels:r.labels||[],
     photoUrl:r.photoUrl||'',
-    parts:(r.parts||[]).map(p=>({name:p.name||'', ingredients:p.ingredients||[], steps:p.steps||[]}))
+    parts:(r.parts||[]).map(p=>({name:p.name||'', ingredients:p.ingredients||[], steps:p.steps||[]})),
+    // le schéma écrit à la main doit survivre à l'aller-retour d'export
+    ...(r.schemaGraph ? {schemaGraph:r.schemaGraph} : {})
   };
 }
 
@@ -505,7 +506,6 @@ window.renderList=function(){
         <div class="recipe-meta">
           <span class="tag">${esc(r.category||'')}</span>
           ${r.difficulty?`<span class="tag diff-${r.difficulty}">${esc(r.difficulty)}</span>`:''}
-          ${(r.prepMin||r.cookMin)?`<span class="tag">⏱ ${(r.prepMin||0)+(r.cookMin||0)}min</span>`:''}
           ${(r.labels||[]).map(l=>`<span class="tag" style="color:var(--accent);border-color:var(--accent)">🏷 ${esc(l)}</span>`).join('')}
         </div>
       </div>
@@ -942,9 +942,6 @@ function renderDetail(r){
     <div class="meta-row">
       <div class="meta-pill"><div class="v">${esc(r.category||'—')}</div><div class="l">Catégorie</div></div>
       ${r.difficulty?`<div class="meta-pill"><div class="v">${esc(r.difficulty)}</div><div class="l">Difficulté</div></div>`:''}
-      ${r.prepMin?`<div class="meta-pill"><div class="v">${r.prepMin}min</div><div class="l">Préparation</div></div>`:''}
-      ${r.cookMin?`<div class="meta-pill"><div class="v">${r.cookMin}min</div><div class="l">Cuisson</div></div>`:''}
-      ${r.restMin?`<div class="meta-pill"><div class="v">${r.restMin>=60?Math.round(r.restMin/60)+'h':r.restMin+'min'}</div><div class="l">Repos</div></div>`:''}
     </div>`;
   if(r.servingsBase){
     html += `<div class="servings-ctrl">
@@ -1044,12 +1041,27 @@ const SG_SUITE = new Set(['ajouter','incorporer','verser','melanger','mettre','c
  'poursuivre','renouveler','repartir','deposer','placer','incorporez','arreter','continuer',
  'refroidir','congeler','reunir','terminer']);
 
+// verbes qui ouvrent une préparation
+const SG_DEPART = new Set(['hacher','battre','fouetter','fondre','torrefier','monter','concasser',
+ 'chauffer','porter','delayer','separer','raper','eplucher','couper','mixer','secher','tiedir',
+ 'cremer','broyer','casser','denoyauter','travailler','bouillir','imbiber','zester','presser',
+ 'emincer','ecraser','reduire','sabler','blanchir','griller','peler','laver','essorer','tremper',
+ 'faire','prendre','crever','ciseler','degorger','beurrer','huiler','saler','poivrer']);
+// mots qui finissent en -er/-re/-ir sans être des verbes
+const SG_FAUXVERBES = new Set(['autre','autres','notre','votre','entre','contre','quatre','litre',
+ 'metre','sucre','beurre','poudre','verre','terre','fibre','sombre','chambre','pierre','vinaigre',
+ 'gingembre','concombre','livre','ordre','cidre','cuivre','marbre','nombre','centre','arriere']);
+
+// assaisonnements : jamais une boîte à eux seuls, ils rejoignent l'action voisine
+const SG_ASSAISON = /^(sel|poivre|fleur de sel|gros sel|sel fin|poivre noir|sel,\s*poivre|piment|muscade)\b/i;
+
 // étapes annexes : aucune matière, on ne crée pas de boîte
 const SG_ANNEXE = new Set(['prechauffer','fariner','beurrer','tapisser','chemiser']);
 
 const SG_ANAPHORE = /\b(m[ée]lange|pr[ée]paration|appareil|p[âa]te|le tout|ensemble|pr[ée]c[ée]dent|dessus|celui|celle)\b/i;
 
-const sgNorm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const sgNorm = s => s.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae')
+  .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 
 function sgMotsCles(str){
   return sgNorm(str||'').replace(/\(.*?\)/g,' ').split(/[^a-z]+/)
@@ -1061,11 +1073,14 @@ function sgMatchStep(ingredient, steps){
   for(let i=0;i<steps.length;i++) if(steps[i].toLowerCase().includes(low)) return i;
   const q = ingredient.match(/^(\d+([.,\/]\d+)?)\s?(g|kg|mg|ml|cl|l)?/i);
   if(q){
-    const re = new RegExp('(?<!\\d)'+q[1].replace(/\./g,'\\.')+(q[3]?'\\s?'+q[3]:'')+'(?!\\d)','i');
+    // ni juste après ni juste avant une barre de fraction : « 1/2 heure » n'est pas « 2 »
+    const re = new RegExp('(?<![\\d/])'+q[1].replace(/\./g,'\\.')+(q[3]?'\\s?'+q[3]:'')+'(?![\\d/])','i');
     for(let i=0;i<steps.length;i++) if(re.test(steps[i])) return i;
   }
   const m = sgMotsCles(ingredient).sort((a,b)=>b.length-a.length);
-  for(const w of m) for(let i=0;i<steps.length;i++) if(sgNorm(steps[i]).includes(w)) return i;
+  // tolérance au pluriel : « blancs » doit retrouver « blanc »
+  for(const w of m){ const r=w.replace(/s$/,'');
+    for(let i=0;i<steps.length;i++) if(sgNorm(steps[i]).includes(r)) return i; }
   return 0;
 }
 
@@ -1104,6 +1119,7 @@ function sgLabel(step, motsARetirer, aEntreeNoeud, verbe){
   for(let i=0;i<5;i++){
     t=t.replace(sgReC(SG_CONN,"\\s*'?\\s*(?=([,.;:]|\\s*$))"),' ')
        .replace(sgReC(SG_CONN,"\\s*'?\\s+(?=(?:"+SG_CONN+"|"+SG_PREP+")(?!["+SG_L+"]))"),' ')
+       .replace(new RegExp("(?<!["+SG_L+"])(?:"+SG_CONN+")?\\s*'?\\s*\\d+\\s*(?=([,.;:]|$|\\s(?:et|puis|ou|avec)(?!["+SG_L+"])))","gi"),' ')
        .replace(/\s+([,.;:])/g,'$1').replace(/([,;:])\s*(?=[,.;:])/g,'')
        .replace(/^[\s,;:]+/,'').replace(/\s{2,}/g,' ');
   }
@@ -1138,14 +1154,26 @@ function deriveSchemaGraph(r){
       const ks = parEtape[si];
       const ingIds = ks.map(k=>'ing:'+(base[pi]+k));
       const ingTxt = ks.map(k=>p.ingredients[k]);
-      const jets = s.split(/[^A-Za-zà-ÿ']+/).filter(Boolean).slice(0,10).map(sgNorm);
-      let verbe = jets[0];
-      for(const j of jets){ if(/(er|ir|re|oir)$/.test(j)){ verbe=j; break; } }
+      const jets = s.split(/[^A-Za-zà-ÿ']+/).filter(Boolean).slice(0,12).map(sgNorm);
+      let verbe = jets.find(j=>SG_SUITE.has(j)||SG_DEPART.has(j));
+      if(!verbe) verbe = jets.find(j=>/(er|ir|re|oir)$/.test(j) && !SG_FAUXVERBES.has(j));
+      if(!verbe) verbe = jets[0];
       const nsl = sgNorm(s);
 
       if(!ingIds.length && SG_ANNEXE.has(verbe)) return;           // étape annexe : pas de boîte
+      // une étape qui n'apporte que du sel ou du poivre ne mérite pas sa boîte :
+      // on rattache l'assaisonnement à l'action déjà en cours
+      if(dernier && ingIds.length && ingTxt.every(x=>SG_ASSAISON.test(x.trim()))){
+        const n0 = nodes.filter(x=>x.id===dernier)[0];
+        ingIds.forEach(x=>{ if(!n0.inputs.includes(x)) n0.inputs.push(x); });
+        motsDe[dernier] = (motsDe[dernier]||[]).concat(...ingTxt.map(sgMotsCles));
+        return;
+      }
 
-      const nouvelle = !SG_SUITE.has(verbe) && ingIds.length && !SG_ANAPHORE.test(s) && dernier;
+      // une étape qui nomme une branche ouverte la poursuit, elle n'en ouvre pas une autre
+      const nommees = ouvertes.filter(id=>(motsDe[id]||[]).some(w=>nsl.includes(w)));
+      const nouvelle = !SG_SUITE.has(verbe) && ingIds.length && !SG_ANAPHORE.test(s)
+                       && dernier && !nommees.length;
       const inputs=[]; const consommees=[];
       if(!nouvelle){
         if(dernier){ inputs.push(dernier); consommees.push(dernier); }
@@ -1484,11 +1512,6 @@ function lireDuree(txt){
   if(/\bdemi[-\s]heure/i.test(txt)) return 30;
   return 0;
 }
-
-function dureeApres(ligne, motifLabel){
-  const m = ligne.match(new RegExp('(?:'+motifLabel+')\\s*:?\\s*([^-–—|;•·,/]{0,26})', 'i'));
-  return m ? lireDuree(m[1]) : 0;
-}
 function estIngredient(l){
   if(RE_VERBE.test(l) && l.length > 55) return false;
   if(RE_QTE_DEBUT.test(l)) return true;
@@ -1504,7 +1527,7 @@ function estEtape(l){
 
 function analyserTexteRecette(brut){
   const lignesBrutes = String(brut||'').split(/\r?\n/);
-  const meta = {servingsBase:0, servingsUnit:'', prepMin:0, cookMin:0, restMin:0, difficulty:'', source:'', notes:''};
+  const meta = {servingsBase:0, servingsUnit:'', difficulty:'', source:'', notes:''};
   const corps = [];
 
   for(let ligne of lignesBrutes){
@@ -1513,26 +1536,10 @@ function analyserTexteRecette(brut){
     if(RE_BRUIT.test(l)) continue;
 
     // — portions —
-    let m = l.match(/pour\s+(\d+)\s*(?:[àa-]\s*\d+\s*)?(personnes?|parts?|pi[èe]ces?|convives?|portions?|verrines?|cookies?|biscuits?|g[âa]teaux?|tartelettes?|bouch[ée]es?|croissants?)/i);
+    // on ne déduit qu'un nombre d'objets produits ; jamais un nombre de personnes
+    let m = l.match(/pour\s+(\d+)\s*(?:[àa-]\s*\d+\s*)?(verrines?|cookies?|biscuits?|g[âa]teaux?|tartelettes?|tartes?|bouch[ée]es?|croissants?|muffins?|brioches?|parts?)/i);
     if(m){ meta.servingsBase = parseInt(m[1]); meta.servingsUnit = m[2].toLowerCase(); if(l.length < 40) continue; }
-    else if(l.length < 70){
-      m = l.match(/(?:^|[^a-zà-ÿ0-9])(\d+)\s+(personnes?|parts?|pi[èe]ces?|portions?|convives?)\b/i);
-      if(m){
-        meta.servingsBase = parseInt(m[1]); meta.servingsUnit = m[2].toLowerCase();
-        if(/^[^a-zà-ÿ]*\d+\s+\w+\s*$/i.test(l)) continue;
-      }
-    }
 
-    // — temps (plusieurs peuvent tenir sur la même ligne) —
-    const dPrep = dureeApres(l, 'pr[\u00e9e]paration|pr[\u00e9e]p\\.');
-    const dCook = dureeApres(l, 'cuisson|cuiss\\.');
-    const dRest = dureeApres(l, 'repos|r[\u00e9e]frig[\u00e9e]ration|attente|marinade|lev[\u00e9e]e|prise|cong[\u00e9e]lation');
-    if(dPrep || dCook || dRest){
-      if(dPrep) meta.prepMin = dPrep;
-      if(dCook) meta.cookMin = dCook;
-      if(dRest) meta.restMin = dRest;
-      if(l.length < 110 && !RE_VERBE.test(l)) continue;   // la ligne ne contenait que ces informations
-    }
 
     // — difficulté —
     m = l.match(/^\s*(?:difficult[ée]\s*:?\s*)?(tr[èe]s facile|facile|moyen(?:ne)?|difficile)\s*$/i);
@@ -1623,8 +1630,7 @@ function analyserTexteRecette(brut){
     category: categorie,
     difficulty: meta.difficulty,
     servingsBase: meta.servingsBase,
-    servingsUnit: meta.servingsUnit || 'personnes',
-    prepMin: meta.prepMin, cookMin: meta.cookMin, restMin: meta.restMin,
+    servingsUnit: meta.servingsUnit || '',
     source: '', notes: meta.notes, labels: [],
     parts: parts.length ? parts : [{name:'', ingredients:[], steps:[]}]
   };
@@ -1660,8 +1666,7 @@ function normaliserRecette(d){
     category: CATEGORIES.includes(d.category) ? d.category : 'Plat',
     difficulty: diffs.includes(d.difficulty) ? d.difficulty : '',
     servingsBase: n(d.servingsBase),
-    servingsUnit: String(d.servingsUnit||'personnes').trim() || 'personnes',
-    prepMin: n(d.prepMin), cookMin: n(d.cookMin), restMin: n(d.restMin),
+    servingsUnit: String(d.servingsUnit||'').trim(),
     source: String(d.source||'').trim(),
     notes: String(d.notes||'').trim(),
     labels: (Array.isArray(d.labels)?d.labels:[]).map(s=>String(s).trim()).filter(Boolean),
@@ -1828,21 +1833,14 @@ function buildEditForm(r){
         </select></div>
     </div>
     <div class="row2">
-      <div><label>Préparation (min)</label><input id="ed-prep" type="number" value="${r.prepMin||''}"></div>
-      <div><label>Cuisson (min)</label><input id="ed-cook" type="number" value="${r.cookMin||''}"></div>
+      <div><label>Nombre produit (laisser vide si sans objet)</label><input id="ed-servbase" type="number" value="${r.servingsBase||''}"></div>
+      <div><label>Unité (ex. cookies, tarte, gâteau…)</label><input id="ed-servunit" value="${esc(r.servingsUnit||'')}"></div>
     </div>
-    <div class="row2">
-      <div><label>Repos (min)</label><input id="ed-rest" type="number" value="${r.restMin||''}"></div>
-      <div><label>Portions de base</label><input id="ed-servbase" type="number" value="${r.servingsBase!==undefined?r.servingsBase:4}"></div>
-    </div>
-    <label>Unité de portion (ex. personnes, parts, cookies…)</label><input id="ed-servunit" value="${esc(r.servingsUnit||'personnes')}">
     <label>Labels (séparés par des virgules)</label>
     <input id="ed-labels" value="${esc((r.labels||[]).join(', '))}" placeholder="ex. Noël, pique-nique, anniversaire">
     <div style="font-size:0.72rem;color:var(--muted);margin-top:5px">Pris en compte dans la recherche, comme les ingrédients.</div>
-    <label>Photo (URL)</label>
-    <input id="ed-photo" value="${esc(r.photoUrl||'')}" placeholder="https://raw.githubusercontent.com/…">
-    <div style="font-size:0.72rem;color:var(--muted);margin-top:5px;line-height:1.4">
-      Ajoutez d'abord la photo dans le dossier <span class="mono">photos/</span> de votre dépôt GitHub, puis collez son adresse ici.
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:12px;line-height:1.4">
+      📸 La photo s'ajoute depuis la fiche de la recette, avec le bouton sous l'image : elle est compressée sur l'appareil puis envoyée dans votre dépôt. Rien à saisir ici.
     </div>
     <div id="parts-container"></div>
     <button type="button" class="btn-ghost" onclick="addPart()">+ Ajouter une sous-partie (ex. pâte, ganache…)</button>
@@ -1896,15 +1894,11 @@ window.saveRecipe=async function(){
     title,
     category: document.getElementById('ed-category').value,
     difficulty: document.getElementById('ed-difficulty').value,
-    prepMin: parseInt(document.getElementById('ed-prep').value)||0,
-    cookMin: parseInt(document.getElementById('ed-cook').value)||0,
-    restMin: parseInt(document.getElementById('ed-rest').value)||0,
-    servingsBase: parseInt(document.getElementById('ed-servbase').value)||4,
-    servingsUnit: document.getElementById('ed-servunit').value.trim()||'personnes',
+    servingsBase: parseInt(document.getElementById('ed-servbase').value)||0,
+    servingsUnit: document.getElementById('ed-servunit').value.trim(),
     labels: document.getElementById('ed-labels').value.split(',').map(s=>s.trim()).filter(Boolean),
     notes: document.getElementById('ed-notes').value.trim(),
     source: document.getElementById('ed-source').value.trim(),
-    photoUrl: document.getElementById('ed-photo').value.trim(),
     parts: cleanParts
   };
   if(currentId){
