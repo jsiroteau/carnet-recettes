@@ -228,10 +228,10 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 <!-- EDIT/ADD OVERLAY -->
 <div id="edit-overlay" class="overlay">
   <div class="overlay-header">
-    <button class="back-btn" onclick="closeAllOverlays()">‹</button>
+    <button class="back-btn" onclick="fermerEditeur()">‹</button>
     <h2 id="edit-title">Nouvelle recette</h2>
   </div>
-  <div class="overlay-body edit-form" id="edit-body"></div>
+  <div class="overlay-body edit-form" id="edit-body" oninput="editModifie=true"></div>
 </div>
 
 <!-- SETTINGS OVERLAY -->
@@ -420,6 +420,11 @@ let currentId = null;
 let currentServings = {};
 let activeCategory = 'Toutes';
 let editingParts = [];
+let editModifie = false;                // saisie en cours non enregistrée
+window.fermerEditeur=function(){
+  if(editModifie && !confirm("Des modifications de cette recette ne sont pas enregistrées. Les abandonner ?")) return;
+  editModifie = false; closeAllOverlays();
+};
 let editingIngKeys = [];   // index d'origine de chaque ingrédient, null si nouveau
 let editingPhoto = null;
 
@@ -1131,7 +1136,7 @@ function sgLabel(step, motsARetirer, aEntreeNoeud, verbe){
     if(i>0 && t.slice(0,i).indexOf(',')>=0) t=t.slice(i);
   }
   const retirer=new Set(motsARetirer);
-  if(aEntreeNoeud) ['melange','preparation','appareil','pate','tout','ensemble','contenu',
+  if(aEntreeNoeud) ['melange','preparation','appareil','pate','tout','ensemble','contenu','precedent','precedente','precedents',
    'fondu','fondue','fondus','fondues','rape','rapee','rapes','rapees','hache','hachee','haches','hachees',
    'coupe','coupee','coupes','coupees','essore','essoree','essores','essorees','concasse','concassee',
    'concasses','concassees','torrefie','torrefiee','torrefies','torrefiees','caramelise','caramelisee',
@@ -1245,10 +1250,11 @@ function deriveSchemaGraph(r){
       const inputs=[]; const consommees=[];
       if(!nouvelle){
         if(dernier){ inputs.push(dernier); consommees.push(dernier); }
-        // fusionner les branches ouvertes que l'étape mentionne
+        // « ajouter au mélange précédent » : la préparation en cours rejoint l'étape
+        const rappel = SG_ANAPHORE.test(s);
         ouvertes.forEach(id=>{
           if(inputs.includes(id)) return;
-          if((motsDe[id]||[]).some(w=>nsl.includes(w))){ inputs.push(id); consommees.push(id); }
+          if(rappel || (motsDe[id]||[]).some(w=>nsl.includes(w))){ inputs.push(id); consommees.push(id); }
         });
       }
       ingIds.forEach(x=>inputs.push(x));
@@ -1945,6 +1951,7 @@ function buildEditForm(r){
       <button class="btn btn-primary btn-full" onclick="saveRecipe()">💾 Enregistrer</button>
     </div>`;
   renderParts();
+  editModifie = false;
 }
 function renderParts(){
   const c = document.getElementById('parts-container');
@@ -1977,7 +1984,7 @@ function ligneEdit(pi,field,i,val,ph){
       onclick="removeLine(${pi},'${field}',${i})">✕</button>
   </div>`;
 }
-window.insertLine=function(pi,field,i){
+window.insertLine=function(pi,field,i){ editModifie=true;
   editingParts[pi][field].splice(i+1,0,'');
   if(field==='ingredients') majCleIng(pi,'insert',i+1);
   renderParts();
@@ -2034,6 +2041,7 @@ function finGlisser(ev){
   ev.currentTarget.onpointermove = ev.currentTarget.onpointerup = ev.currentTarget.onpointercancel = null;
   glisse = null;
   if(to !== from){
+    editModifie = true;
     const t = editingParts[pi][field];
     t.splice(to,0,t.splice(from,1)[0]);
     if(field==='ingredients') majCleIng(pi,'move',from,to);
@@ -2047,12 +2055,12 @@ window.majCleIng=function(pi,op,a,b){
   else if(op==='move') t.splice(b,0,t.splice(a,1)[0]);
   else if(op==='push') t.push(null);
 };
-window.addPart=function(){ editingParts.push({name:'',ingredients:[''],steps:['']}); editingIngKeys.push([null]); renderParts(); };
-window.removePart=function(i){ editingParts.splice(i,1); editingIngKeys.splice(i,1); renderParts(); };
-window.setPartName=function(pi,val){ editingParts[pi].name=val; };
-window.setPartField=function(pi,field,idx,val){ editingParts[pi][field][idx]=val; };
-window.addLine=function(pi,field){ editingParts[pi][field].push(''); if(field==='ingredients') majCleIng(pi,'push'); renderParts(); };
-window.removeLine=function(pi,field,i){ editingParts[pi][field].splice(i,1); if(field==='ingredients') majCleIng(pi,'remove',i);
+window.addPart=function(){ editModifie=true; editingParts.push({name:'',ingredients:[''],steps:['']}); editingIngKeys.push([null]); renderParts(); };
+window.removePart=function(i){ editModifie=true; editingParts.splice(i,1); editingIngKeys.splice(i,1); renderParts(); };
+window.setPartName=function(pi,val){ editModifie=true; editingParts[pi].name=val; };
+window.setPartField=function(pi,field,idx,val){ editModifie=true; editingParts[pi][field][idx]=val; };
+window.addLine=function(pi,field){ editModifie=true; editingParts[pi][field].push(''); if(field==='ingredients') majCleIng(pi,'push'); renderParts(); };
+window.removeLine=function(pi,field,i){ editModifie=true; editingParts[pi][field].splice(i,1); if(field==='ingredients') majCleIng(pi,'remove',i);
   if(editingParts[pi][field].length===0) editingParts[pi][field].push(''); renderParts(); };
 
 window.saveRecipe=async function(){
@@ -2108,6 +2116,7 @@ window.saveRecipe=async function(){
   } else {
     recipes.push({ id: identifiant(data.title, Date.now()%100000), ...data });
   }
+  editModifie = false;
   sauver(true);
   closeOverlay('edit-overlay');
   toast('✓ Recette enregistrée');
