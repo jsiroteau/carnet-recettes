@@ -1044,10 +1044,10 @@ function matchIngredientStepIndex(ingredient, steps){
 // Générateur de schemaGraph — v2 : branches parallèles + libellés d'action courts.
 
 const SG_STOP = new Set(['pour','avec','sans','dans','très','bien','petit','petite','gros','grosse',
- 'moyen','moyenne','entier','entiere','entiers','entieres','environ','frais','fraiche','liquide',
+ 'moyen','moyenne','entier','entiere','entiers','entieres','environ','frais','fraiche',
  'poudre','morceaux','cubes','rapees','rape','moulu','doux','sale','salee','molle','ambiante',
  'temperature','matiere','grasse','boite','brique','sachet','gousse','gousses','pincee','pincees',
- 'cuillere','cuilleres','cafe','soupe','tasse','verre','bol','dose','optionnel','plan','travail',
+ 'cuillere','cuilleres','cafe','soupe','tasse','verre','bol','dose','optionnel',
  'restants','restant','tranches','emondees','grillees','concassees','tamisee','fondu','fondue',
  'niege','neige','type','sorte','petits','grands','quelques','gouttes','peu']);
 
@@ -1095,10 +1095,19 @@ function sgMatchStep(ingredient, steps){
     const re = new RegExp('(?<![\\d/])'+q[1].replace(/\./g,'\\.')+'\\s?'+q[3]+'(?![\\d/])','i');
     for(let i=0;i<steps.length;i++) if(re.test(steps[i])) return i;
   }
-  const m = sgMotsCles(ingredient).sort((a,b)=>b.length-a.length);
-  // tolérance au pluriel : « blancs » doit retrouver « blanc »
-  for(const w of m){ const r=w.replace(/s$/,'');
-    for(let i=0;i<steps.length;i++) if(sgNorm(steps[i]).includes(r)) return i; }
+  // on retient l'étape qui reprend le PLUS de mots de l'ingrédient :
+  // « vanille liquide » ne doit pas s'accrocher à une étape qui ne dit que « vanille »
+  const m = sgMotsCles(ingredient);
+  if(m.length){
+    let best=-1, score=0;
+    for(let i=0;i<steps.length;i++){
+      const t=sgNorm(steps[i]);
+      // pondéré par la longueur : « pistaches » pèse plus que « écrasées »
+      let k=0; m.forEach(w=>{ if(t.includes(w.replace(/s$/,''))) k+=w.length; });
+      if(k>score){ score=k; best=i; }
+    }
+    if(best>=0) return best;
+  }
   // en dernier recours seulement : un nombre sans unité (« 3 » retrouverait « les 3 œufs »)
   if(q && q[1] && !q[3]){
     const re2 = new RegExp('(?<![\\d/])'+q[1].replace(/\./g,'\\.')+'(?![\\d/])');
