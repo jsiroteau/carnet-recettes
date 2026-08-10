@@ -129,8 +129,14 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .part-edit-block{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-top:16px}
 .part-edit-block .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
 .ph .lbl{font-size:0.78rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
-.line-row{display:flex;gap:8px;align-items:center;margin-top:8px}
+.line-row{display:flex;gap:6px;align-items:center;margin-top:8px;background:var(--card);border-radius:8px}
 .line-row input{flex:1}
+.drag-handle{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;color:var(--muted);
+  font-size:1rem;padding:6px 4px;line-height:1;background:none;border:none;flex:0 0 auto}
+.drag-handle:active{cursor:grabbing}
+.line-row.dragging{opacity:.85;box-shadow:0 6px 18px rgba(0,0,0,.18);position:relative;z-index:30}
+.drop-marker{height:2px;background:var(--accent);border-radius:2px;margin:3px 0}
+.btn-icon-add{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:4px 5px}
 .btn-icon-del{background:none;border:none;color:var(--rose);cursor:pointer;font-size:1.05rem;padding:4px 6px}
 .btn-ghost{background:none;border:1px dashed var(--border);color:var(--muted);border-radius:10px;width:100%;padding:9px;font-size:0.82rem;margin-top:8px;cursor:pointer}
 
@@ -256,11 +262,11 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
       Nécessaire pour la sauvegarde et pour l'envoi des photos. Ces informations restent uniquement sur cet appareil, et ne sont envoyées qu'à GitHub.
     </p>
     <label>Nom d'utilisateur GitHub</label>
-    <input id="set-owner" placeholder="ex. jsiroteau">
+    <input id="set-owner" placeholder="ex. jsiroteau" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
     <label>Nom du dépôt</label>
-    <input id="set-repo" placeholder="ex. carnet-recettes">
+    <input id="set-repo" placeholder="ex. carnet-recettes" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
     <label>Jeton d'accès personnel (Personal Access Token)</label>
-    <input id="set-token" type="password" placeholder="ghp_…">
+    <input id="set-token" type="password" placeholder="ghp_…" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false">
     <div class="btn-row">
       <button class="btn btn-primary btn-full" onclick="saveSettings()">💾 Enregistrer</button>
     </div>
@@ -408,6 +414,7 @@ let currentId = null;
 let currentServings = {};
 let activeCategory = 'Toutes';
 let editingParts = [];
+let editingIngKeys = [];   // index d'origine de chaque ingrédient, null si nouveau
 let editingPhoto = null;
 
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
@@ -1825,6 +1832,7 @@ window.openAdd=function(){
   currentId = null;
   closeOverlay('add-overlay');
   editingParts = [{name:'', ingredients:[''], steps:['']}];
+  editingIngKeys = [[null]];
   document.getElementById('edit-title').textContent = 'Nouvelle recette';
   buildEditForm({});
   openOverlay('edit-overlay');
@@ -1833,6 +1841,7 @@ window.startEdit=function(){
   const r = recipes.find(x=>x.id===currentId);
   if(!r) return;
   editingParts = JSON.parse(JSON.stringify(r.parts && r.parts.length ? r.parts : [{name:'',ingredients:[''],steps:['']}]));
+  let k=0; editingIngKeys = editingParts.map(p=>p.ingredients.map(()=>k++));
   document.getElementById('edit-title').textContent = 'Modifier la recette';
   buildEditForm(r);
   closeOverlay('detail-overlay');
@@ -1880,27 +1889,105 @@ function renderParts(){
       </div>
       ${editingParts.length>1?`<input placeholder="Nom (ex. Ganache)" value="${esc(p.name)}" oninput="setPartName(${pi},this.value)">`:''}
       <label>Ingrédients</label>
-      ${p.ingredients.map((ing,ii)=>`
-        <div class="line-row">
-          <input value="${esc(ing)}" placeholder="ex. 250g de farine" oninput="setPartField(${pi},'ingredients',${ii},this.value)">
-          <button class="btn-icon-del" onclick="removeLine(${pi},'ingredients',${ii})">✕</button>
-        </div>`).join('')}
+      <div class="line-list" data-pi="${pi}" data-field="ingredients">
+      ${p.ingredients.map((ing,ii)=>ligneEdit(pi,'ingredients',ii,ing,'ex. 250g de farine')).join('')}
+      </div>
       <button type="button" class="btn-ghost" onclick="addLine(${pi},'ingredients')">+ Ingrédient</button>
       <label>Étapes</label>
-      ${p.steps.map((s,si)=>`
-        <div class="line-row">
-          <input value="${esc(s)}" placeholder="ex. Préchauffer le four à 180°C" oninput="setPartField(${pi},'steps',${si},this.value)">
-          <button class="btn-icon-del" onclick="removeLine(${pi},'steps',${si})">✕</button>
-        </div>`).join('')}
+      <div class="line-list" data-pi="${pi}" data-field="steps">
+      ${p.steps.map((s,si)=>ligneEdit(pi,'steps',si,s,'ex. Préchauffer le four à 180°C')).join('')}
+      </div>
       <button type="button" class="btn-ghost" onclick="addLine(${pi},'steps')">+ Étape</button>
     </div>`).join('');
 }
-window.addPart=function(){ editingParts.push({name:'',ingredients:[''],steps:['']}); renderParts(); };
-window.removePart=function(i){ editingParts.splice(i,1); renderParts(); };
+function ligneEdit(pi,field,i,val,ph){
+  return `<div class="line-row" data-i="${i}">
+    <button type="button" class="drag-handle" title="Glisser pour déplacer"
+      onpointerdown="debutGlisser(event,${pi},'${field}',${i})">⠿</button>
+    <input value="${esc(val)}" placeholder="${ph}" oninput="setPartField(${pi},'${field}',${i},this.value)">
+    <button type="button" class="btn-icon-add" title="Insérer une ligne en dessous"
+      onclick="insertLine(${pi},'${field}',${i})">＋</button>
+    <button type="button" class="btn-icon-del" title="Supprimer"
+      onclick="removeLine(${pi},'${field}',${i})">✕</button>
+  </div>`;
+}
+window.insertLine=function(pi,field,i){
+  editingParts[pi][field].splice(i+1,0,'');
+  if(field==='ingredients') majCleIng(pi,'insert',i+1);
+  renderParts();
+  const l=document.querySelector(`.line-list[data-pi="${pi}"][data-field="${field}"]`);
+  if(l){ const e=l.querySelector(`.line-row[data-i="${i+1}"] input`); if(e) e.focus(); }
+};
+
+// ── glisser-déposer, souris et tactile ──
+let glisse = null;
+window.debutGlisser=function(ev,pi,field,i){
+  ev.preventDefault();
+  const row = ev.currentTarget.closest('.line-row');
+  const liste = row.parentNode;
+  const rows = [...liste.querySelectorAll('.line-row')];
+  glisse = {pi, field, from:i, row, liste, y0:ev.clientY, dy:0,
+            hauteurs:rows.map(r=>r.getBoundingClientRect()), to:i};
+  row.classList.add('dragging');
+  const marque = document.createElement('div');
+  marque.className='drop-marker'; glisse.marque=marque;
+  ev.currentTarget.setPointerCapture(ev.pointerId);
+  ev.currentTarget.onpointermove = surGlisser;
+  ev.currentTarget.onpointerup = ev.currentTarget.onpointercancel = finGlisser;
+};
+function surGlisser(ev){
+  if(!glisse) return;
+  glisse.dy = ev.clientY - glisse.y0;
+  glisse.row.style.transform = `translateY(${glisse.dy}px)`;
+  // positions recalculées à chaque mouvement : le défilement automatique les fait bouger
+  const rows = [...glisse.liste.querySelectorAll('.line-row')];
+  const rects = rows.map(r=>r.getBoundingClientRect());
+  const centre = rects[glisse.from].top + rects[glisse.from].height/2;
+  let to = 0;
+  rects.forEach((r,k)=>{ if(k!==glisse.from && centre > r.top + r.height/2) to++; });
+  glisse.to = to;
+  const autres = rows.filter((_,k)=>k!==glisse.from);
+  glisse.marque.remove();
+  if(autres.length){
+    if(to < autres.length) autres[to].before(glisse.marque);
+    else autres[autres.length-1].after(glisse.marque);
+  }
+  const boite = glisse.liste.closest('.overlay');
+  if(boite){
+    if(ev.clientY < 100) boite.scrollBy(0,-14);
+    else if(ev.clientY > window.innerHeight-100) boite.scrollBy(0,14);
+  }
+}
+function finGlisser(ev){
+  if(!glisse) return;
+  const {pi,field,from,to} = glisse;
+  glisse.row.classList.remove('dragging');
+  glisse.row.style.transform='';
+  if(glisse.marque.parentNode) glisse.marque.remove();
+  try{ ev.currentTarget.releasePointerCapture(ev.pointerId); }catch(e){}
+  ev.currentTarget.onpointermove = ev.currentTarget.onpointerup = ev.currentTarget.onpointercancel = null;
+  glisse = null;
+  if(to !== from){
+    const t = editingParts[pi][field];
+    t.splice(to,0,t.splice(from,1)[0]);
+    if(field==='ingredients') majCleIng(pi,'move',from,to);
+    renderParts();
+  }
+}
+window.majCleIng=function(pi,op,a,b){
+  const t = editingIngKeys[pi] || (editingIngKeys[pi]=[]);
+  if(op==='insert') t.splice(a,0,null);
+  else if(op==='remove'){ t.splice(a,1); if(!t.length) t.push(null); }
+  else if(op==='move') t.splice(b,0,t.splice(a,1)[0]);
+  else if(op==='push') t.push(null);
+};
+window.addPart=function(){ editingParts.push({name:'',ingredients:[''],steps:['']}); editingIngKeys.push([null]); renderParts(); };
+window.removePart=function(i){ editingParts.splice(i,1); editingIngKeys.splice(i,1); renderParts(); };
 window.setPartName=function(pi,val){ editingParts[pi].name=val; };
 window.setPartField=function(pi,field,idx,val){ editingParts[pi][field][idx]=val; };
-window.addLine=function(pi,field){ editingParts[pi][field].push(''); renderParts(); };
-window.removeLine=function(pi,field,i){ editingParts[pi][field].splice(i,1); if(editingParts[pi][field].length===0) editingParts[pi][field].push(''); renderParts(); };
+window.addLine=function(pi,field){ editingParts[pi][field].push(''); if(field==='ingredients') majCleIng(pi,'push'); renderParts(); };
+window.removeLine=function(pi,field,i){ editingParts[pi][field].splice(i,1); if(field==='ingredients') majCleIng(pi,'remove',i);
+  if(editingParts[pi][field].length===0) editingParts[pi][field].push(''); renderParts(); };
 
 window.saveRecipe=async function(){
   const title = document.getElementById('ed-title').value.trim();
@@ -1923,7 +2010,35 @@ window.saveRecipe=async function(){
   };
   if(currentId){
     const i = recipes.findIndex(r=>r.id===currentId);
-    if(i>=0) recipes[i] = {...recipes[i], ...data};
+    if(i>=0){
+      const ancien = recipes[i];
+      if(ancien.schemaGraph){
+        // les lignes vides ont été retirées : on reconstruit la correspondance ancien -> nouveau
+        const corr = {}; let n=0;
+        editingParts.forEach((p,pi)=>p.ingredients.forEach((val,ii)=>{
+          if(!String(val).trim()) return;
+          const cle=(editingIngKeys[pi]||[])[ii];
+          if(cle!==null && cle!==undefined) corr[cle]=n;
+          n++;
+        }));
+        let perdu=false;
+        const noeuds = ancien.schemaGraph.nodes.map(nd=>({...nd,
+          inputs: nd.inputs.map(x=>{
+            if(x.indexOf('ing:')!==0) return x;
+            const c = corr[+x.slice(4)];
+            if(c===undefined){ perdu=true; return null; }
+            return 'ing:'+c;
+          }).filter(Boolean)}));
+        if(perdu || noeuds.some(nd=>!nd.inputs.length)){
+          data.schemaGraph = undefined;
+          toast('Schéma personnalisé retiré : il renvoyait à un ingrédient supprimé');
+        } else {
+          data.schemaGraph = {nodes:noeuds};
+        }
+      }
+      recipes[i] = {...ancien, ...data};
+      if(data.schemaGraph===undefined) delete recipes[i].schemaGraph;
+    }
   } else {
     recipes.push({ id: identifiant(data.title, Date.now()%100000), ...data });
   }
