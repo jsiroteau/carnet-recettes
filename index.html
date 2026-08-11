@@ -1327,9 +1327,9 @@ function deriveSchemaGraph(r){
         let lab = sgLabel(fr, motsEntrants, fi>0 || inputs.some(x=>!x.startsWith('ing:')), vf);
         // une action qui réunit plusieurs entrées les traite symétriquement :
         // « ajouter » suppose que l'une agit sur l'autre, « mélanger » non
+        if(!sgSain(lab)) lab = sgMinimal(fr, vf);
         if(fi===0 && inputs.length>1)
           lab = lab.replace(/^(Ajouter|Incorporer|Intégrer|Verser|Mettre)(?![a-zA-ZÀ-ÿ])/,'Mélanger');
-        if(!sgSain(lab)) lab = sgMinimal(fr, vf);
         if(fi>0 && (!lab || lab.length<3)) return;
         id = 'auto'+pi+'_'+si+(fi?'_'+fi:'');
         nodes.push({id, label:lab, inputs: fi===0 ? inputs : [prec2]});
