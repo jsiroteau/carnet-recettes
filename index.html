@@ -1073,6 +1073,10 @@ const SG_FAUXVERBES = new Set(['autre','autres','notre','votre','entre','contre'
 // assaisonnements : jamais une boîte à eux seuls, ils rejoignent l'action voisine
 const SG_ASSAISON = /^(sel|poivre|fleur de sel|gros sel|sel fin|poivre noir|sel,\s*poivre|piment|muscade)\b/i;
 
+// verbes qui exigent une cible existante : ils poursuivent toujours.
+// « mélanger », « amalgamer », « réunir » peuvent au contraire ouvrir une préparation neuve.
+const SG_EXIGE_CIBLE = new Set([...SG_SUITE].filter(v=>!['melanger','amalgamer','reunir'].includes(v)));
+
 // étapes annexes : aucune matière, on ne crée pas de boîte
 const SG_ANNEXE = new Set(['prechauffer','fariner','beurrer','tapisser','chemiser']);
 
@@ -1083,7 +1087,8 @@ const sgNorm = s => s.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae')
   .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 
 function sgMotsCles(str){
-  return sgNorm(str||'').replace(/\(.*?\)/g,' ').split(/[^a-z]+/)
+  // on garde le contenu des parenthèses : « (pour la levure) » est souvent le mot qui distingue
+  return sgNorm(str||'').replace(/[()]/g,' ').split(/[^a-z]+/)
     .filter(w=>w.length>2 && !SG_STOP.has(w));
 }
 
@@ -1118,13 +1123,13 @@ function sgMatchStep(ingredient, steps){
 }
 
 // Libellé court : on retire ce que les flèches montrent déjà (ingrédients câblés, renvois au mélange)
-const SG_L="a-zA-Zà-ÿœ";                       // \b de JS ignore les accents : on utilise des lookarounds
+const SG_L="a-zA-ZÀ-ÿœ";                       // \b de JS ignore les accents : on utilise des lookarounds
 const SG_CONN="les|le|la|des|du|de|d|l|au|aux|avec|et|ou|en|y|un|une|à";
 const SG_PREP="pour|sans|puis|jusqu|avant|après|entre|sur|dans|entre";
 const sgReC=(motif,extra)=>new RegExp("(?<!["+SG_L+"])(?:"+motif+")"+(extra||""),"gi");
 
 function sgMotsPhrase(str){            // tous les mots d'un ingrédient, sans filtre thématique
-  return (str||'').replace(/\(.*?\)/g,' ').split(/[^a-zA-Zà-ÿœ]+/)
+  return (str||'').replace(/\(.*?\)/g,' ').split(/[^a-zA-ZÀ-ÿœ]+/)
     .map(sgNorm).filter(w=>w.length>2);
 }
 
@@ -1154,7 +1159,7 @@ function sgLabel(step, motsARetirer, aEntreeNoeud, verbe){
    'battu','battue','battus','battues','grattee','grattees','fendue','fendues','refroidi','refroidie',
    'puree'].forEach(w=>retirer.add(w));
   if(verbe) retirer.delete(verbe);
-  const jetons=t.split(/([^a-zA-Zà-ÿœ\u0001]+)/);   // l'apostrophe sépare les mots
+  const jetons=t.split(/([^a-zA-ZÀ-ÿœ\u0001]+)/);   // l'apostrophe sépare les mots
   const oté=[]; let vuVerbe=false;
   for(let k=0;k<jetons.length;k+=2){
     oté[k]=retirer.has(sgNorm(jetons[k]));
@@ -1186,33 +1191,56 @@ function sgLabel(step, motsARetirer, aEntreeNoeud, verbe){
   c=c.replace(/\u0001([a-z])\u0001/g,(m,x)=>gardes[x.charCodeAt(0)-97]);
   c=c.replace(/\s{2,}/g,' ').replace(/^[\s,'’]+|[\s,'’]+$/g,'');
   // pas de points de suspension : on retire les subordonnées, qui n'apportent rien au schéma
-  c=c.replace(/,?\s+(jusqu'?[aà]|afin|en veillant|de manière|de façon)(?![a-zà-ÿ]).*$/i,'');
-  if(c.length>26) c=c.replace(/,?\s+(pour|sans cesser|en remuant|en tournant|comme)(?![a-zà-ÿ]).*$/i,'');
+  c=c.replace(/,?\s+(jusqu'?[aà]|afin|en veillant|de manière|de façon)(?![a-zA-ZÀ-ÿ]).*$/i,'');
+  if(c.length>26) c=c.replace(/,?\s+(pour|sans cesser|en remuant|en tournant|comme)(?![a-zA-ZÀ-ÿ]).*$/i,'');
   if(c.length>26) c=c.replace(/\s*\([^)]*\)/g,'');
   // complément de contenant : le schéma dit l'action, pas la vaisselle
   if(c.length>26) c=c.replace(/\s+(dans|sur|avec|sous|entre|à l'aide de|au dos de)\s+(un|une|le|la|les|des|du|deux|papier|film|tapis)\b.*$/i,'');
   c=c.replace(/\s{2,}/g,' ').replace(/[\s,;:]+$/,'').trim();
-  if(!c) c=(verbe||step.split(/\s+/)[0]).replace(/[^a-zA-Zà-ÿœ]/g,'');
+  if(!c) c=(verbe||step.split(/\s+/)[0]).replace(/[^a-zA-ZÀ-ÿœ]/g,'');
   return c.charAt(0).toUpperCase()+c.slice(1);
 }
 
 // Une étape peut enchaîner plusieurs actions distinctes : chacune mérite sa boîte.
 function sgFragments(s){
-  const bouts = s.split(/(?:\.\s+)|(?:\s+puis\s+)|(?:\s*,\s+(?=[a-zà-ÿ]+(?:er|ir|re|oir)\b))|(?:\s+et\s+(?=[a-zà-ÿ]+(?:er|ir|re|oir)\b))/i)
+  const bouts = s.split(/(?:\.\s+)|(?:\s+puis\s+)|(?:\s*,\s+(?=[a-zA-ZÀ-ÿ]+(?:er|ir|re|oir)\b))|(?:\s+et\s+(?=[a-zA-ZÀ-ÿ]+(?:er|ir|re|oir)\b))/i)
                  .map(x=>x.trim()).filter(Boolean);
   if(bouts.length<2) return [s];
-  const aVerbe = x => { const v=sgNorm((x.split(/[^A-Za-zà-ÿ']+/).filter(Boolean)[0])||'');
+  const aVerbe = x => { const v=sgNorm((x.split(/[^A-Za-zÀ-ÿ']+/).filter(Boolean)[0])||'');
     return SG_SUITE.has(v)||SG_DEPART.has(v)||(/(er|ir|re|oir)$/.test(v)&&!SG_FAUXVERBES.has(v)); };
   while(bouts.length>1 && !aVerbe(bouts[0])) bouts[1]=bouts[0]+', '+bouts[1], bouts.shift();
   const out=[bouts[0]];
   for(let i=1;i<bouts.length;i++){
     let frag = bouts[i].replace(/^(puis|ensuite|enfin|alors|et)\s+/i,'');
-    const v = sgNorm((frag.split(/[^A-Za-zà-ÿ']+/).filter(Boolean)[0])||'');
+    const v = sgNorm((frag.split(/[^A-Za-zÀ-ÿ']+/).filter(Boolean)[0])||'');
     const estVerbe = SG_SUITE.has(v)||SG_DEPART.has(v)||(/(er|ir|re|oir)$/.test(v)&&!SG_FAUXVERBES.has(v));
     if(estVerbe){ bouts[i]=frag; out.push(frag); }
     else out[out.length-1] += ', ' + bouts[i];
   }
   return out;
+}
+
+// Un libellé obtenu par soustraction n'est pas garanti d'être une phrase.
+// On le contrôle ; s'il est bancal, on retombe sur le verbe seul, éventuellement daté.
+function sgSain(c){
+  if(!c) return false;
+  if(c.trim().split(/\s+/).length>5) return false;
+  if(new RegExp("(?:^|\\s)(?:"+SG_CONN+"|y|puis|et)\\s*'?\\s*$","i").test(c)) return false;
+  if(/,\s*(?:et|puis|,|-)/.test(c) || /\s-\s*$/.test(c) || /\s-\s/.test(c)) return false;
+  if(/\b(sur|dans|avec|sous|entre)\s*$/i.test(c)) return false;
+  return true;
+}
+function sgMinimal(s, verbe){
+  const mots = s.split(/[^A-Za-zÀ-ÿ'’]+/).filter(Boolean);
+  let i = mots.findIndex(w=>sgNorm(w)===verbe);
+  if(i<0) i = 0;
+  let out = mots[i].toLowerCase();
+  if(sgNorm(out)==='faire' && mots[i+1]) out += ' ' + mots[i+1].toLowerCase();
+  const d = s.match(/\d+\s?(?:[àeto]{1,2}u?\s?\d+\s?)?(?:minutes?|heures?|secondes?)/i);
+  const t = s.match(/\d+\s?°C/i);
+  if(d) out += ' ' + d[0];
+  if(t) out += ' à ' + t[0];
+  return out.charAt(0).toUpperCase()+out.slice(1);
 }
 
 function deriveSchemaGraph(r){
@@ -1237,7 +1265,7 @@ function deriveSchemaGraph(r){
       const ks = parEtape[si];
       const ingIds = ks.map(k=>'ing:'+(base[pi]+k));
       const ingTxt = ks.map(k=>p.ingredients[k]);
-      const jets = s.split(/[^A-Za-zà-ÿ']+/).filter(Boolean).slice(0,12).map(sgNorm);
+      const jets = s.split(/[^A-Za-zÀ-ÿ']+/).filter(Boolean).slice(0,12).map(sgNorm);
       let verbe = jets.find(j=>SG_SUITE.has(j)||SG_DEPART.has(j));
       if(!verbe) verbe = jets.find(j=>/(er|ir|re|oir)$/.test(j) && !SG_FAUXVERBES.has(j));
       if(!verbe) verbe = jets[0];
@@ -1254,9 +1282,17 @@ function deriveSchemaGraph(r){
       }
 
       // une étape qui nomme une branche ouverte la poursuit, elle n'en ouvre pas une autre
-      const nommees = ouvertes.filter(id=>(motsDe[id]||[]).some(w=>nsl.includes(w)));
-      const nouvelle = !SG_SUITE.has(verbe) && ingIds.length && !SG_ANAPHORE.test(s)
-                       && dernier && !nommees.length;
+      // un mot que l'étape apporte elle-même ne renvoie pas à une branche :
+      // « mélanger la levure et le sucre » ne parle pas du sucre déjà employé ailleurs
+      const motsPropres = new Set([].concat(...ingTxt.map(sgMotsCles)));
+      const nommees = ouvertes.filter(id=>(motsDe[id]||[])
+        .some(w=>nsl.includes(w) && !motsPropres.has(w)));
+      // « Mélanger avec … » sous-entend « avec ce qui précède » : c'est une suite
+      const apresVerbe = sgNorm((s.split(/[^A-Za-zÀ-ÿ']+/).filter(Boolean)[
+                          s.split(/[^A-Za-zÀ-ÿ']+/).filter(Boolean).findIndex(j=>sgNorm(j)===verbe)+1] )||'');
+      const poursuit = SG_EXIGE_CIBLE.has(verbe) || apresVerbe==='avec';
+      const nouvelle = ingIds.length && !SG_ANAPHORE.test(s) && dernier
+                       && !nommees.length && !poursuit;
       const inputs=[]; const consommees=[];
       if(!nouvelle){
         if(dernier){ inputs.push(dernier); consommees.push(dernier); }
@@ -1281,18 +1317,19 @@ function deriveSchemaGraph(r){
 
       // « Casser en pépites » produit des pépites : le mot ne doit pas revenir dans la boîte suivante
       const formes = [];
-      consommees.forEach(c=>{ const l=etiq[c]||''; const mm=l.match(/\ben\s+([a-zà-ÿ]+)/i); if(mm) formes.push(sgNorm(mm[1])); });
+      consommees.forEach(c=>{ const l=etiq[c]||''; const mm=l.match(/\ben\s+([a-zA-ZÀ-ÿ]+)/i); if(mm) formes.push(sgNorm(mm[1])); });
       const motsEntrants = [].concat(...ingTxt.map(sgMotsPhrase), ...consommees.map(c=>motsDe[c]||[]), formes);
       const herite = [].concat(...ingTxt.map(sgMotsCles), ...consommees.map(c=>motsDe[c]||[]));
       let prec2=null, id=null;
       sgFragments(s).forEach((fr,fi)=>{
-        const vf = (fr.split(/[^A-Za-zà-ÿ']+/).filter(Boolean).slice(0,12).map(sgNorm)
+        const vf = (fr.split(/[^A-Za-zÀ-ÿ']+/).filter(Boolean).slice(0,12).map(sgNorm)
                       .find(j=>SG_SUITE.has(j)||SG_DEPART.has(j))) || verbe;
         let lab = sgLabel(fr, motsEntrants, fi>0 || inputs.some(x=>!x.startsWith('ing:')), vf);
         // une action qui réunit plusieurs entrées les traite symétriquement :
         // « ajouter » suppose que l'une agit sur l'autre, « mélanger » non
         if(fi===0 && inputs.length>1)
-          lab = lab.replace(/^(Ajouter|Incorporer|Intégrer|Verser|Mettre)(?![a-zà-ÿ])/,'Mélanger');
+          lab = lab.replace(/^(Ajouter|Incorporer|Intégrer|Verser|Mettre)(?![a-zA-ZÀ-ÿ])/,'Mélanger');
+        if(!sgSain(lab)) lab = sgMinimal(fr, vf);
         if(fi>0 && (!lab || lab.length<3)) return;
         id = 'auto'+pi+'_'+si+(fi?'_'+fi:'');
         nodes.push({id, label:lab, inputs: fi===0 ? inputs : [prec2]});
