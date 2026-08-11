@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="theme-color" content="#FFF8EE">
+<meta name="theme-color" content="#F4F7EC">
 <title>Carnet de recettes</title>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,10 +17,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
 :root{
-  --bg:#FFF8EE; --surface:#FFFFFF; --card:#FFFFFF; --card-hi:#FFEFDD;
-  --accent:#E8536B; --accent-ink:#FFFFFF;
-  --rose:#C23B4B;
-  --text:#3B2A20; --muted:#9C8672; --border:rgba(59,42,32,0.12);
+  --bg:#F4F7EC; --surface:#FFFFFF; --card:#FFFFFF; --card-hi:#E7EFD8;
+  --accent:#D8446E; --accent-ink:#FFFFFF;
+  --rose:#B32E58;
+  --text:#33362C; --muted:#8A9179; --border:rgba(51,54,44,0.14);
   --r:16px; --success:#4C9A6A;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -28,14 +28,14 @@ body{font-family:'Work Sans',sans-serif;background:var(--bg);color:var(--text);m
 h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .mono{font-family:'IBM Plex Mono',monospace}
 
-#app-header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,248,238,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
+#app-header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(244,247,236,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
 .logo{font-family:'Fraunces',serif;font-weight:700;font-size:1.3rem;color:var(--accent);display:flex;align-items:baseline;gap:6px}
 .logo span{color:var(--text);font-weight:500;font-size:0.95rem}
 
 .screen{display:none;padding:78px 16px 96px;min-height:100vh;max-width:720px;margin:0 auto}
 .screen.active{display:block}
 
-.hero{padding:6px 2px 18px}
+.hero{padding:6px 2px 22px}
 .hero .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
 .hero h1{font-size:1.7rem;font-weight:600;line-height:1.15}
 .hero p{color:var(--muted);font-size:0.88rem;margin-top:6px}
@@ -66,7 +66,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 
 .overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;background:var(--bg);overflow-y:auto;display:none;flex-direction:column}
 .overlay.open{display:flex}
-.overlay-header{position:sticky;top:0;z-index:10;background:rgba(255,248,238,0.95);backdrop-filter:blur(12px);padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
+.overlay-header{position:sticky;top:0;z-index:10;background:rgba(244,247,236,0.95);backdrop-filter:blur(12px);padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
 .overlay-header h2{font-family:'Fraunces',serif;font-size:1.1rem;flex:1;font-weight:600}
 .back-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:none;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
 .overlay-body{padding:18px 16px 60px;flex:1;max-width:720px;margin:0 auto;width:100%}
@@ -203,8 +203,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 <div id="home" class="screen active">
   <div class="hero">
     <div class="eyebrow" id="hero-count">— recettes</div>
-    <h1>À table.</h1>
-    <p>Vos recettes, rassemblées, prêtes à être partagées.</p>
+    <h1>Le carnet de recettes</h1>
   </div>
   <div class="search-bar">
     <input type="search" id="search-input" placeholder="Chercher une recette, un ingrédient…" oninput="renderList()" autocomplete="off">
@@ -1453,9 +1452,9 @@ function drawGraphConnectors(wrap, svg, toLocal){
       const a = toLocal(fromEl.getBoundingClientRect());
       const sx = a.x + a.w, sy = a.y + a.h/2;
       const midX = (sx+tx)/2;
-      const weight = inp.startsWith('ing:') ? '1.5' : '2.2';
-      const op = inp.startsWith('ing:') ? '0.4' : '0.8';
-      content += `<path d="M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}" style="fill:none;stroke:var(--accent);stroke-width:${weight};opacity:${op}" marker-end="url(#schema-arrowhead)"/>`;
+      // toutes les flèches ont le même poids : rien ne justifie qu'un ingrédient
+      // compte moins qu'un mélange intermédiaire
+      content += `<path d="M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}" style="fill:none;stroke:var(--accent);stroke-width:2;opacity:0.7" marker-end="url(#schema-arrowhead)"/>`;
     });
   });
   return content;
@@ -1513,7 +1512,7 @@ function drawLegacyConnectors(wrap, toLocal){
     const sx = a.x + a.w, sy = a.y + a.h/2;
     const tx = b.x, ty = b.y + b.h/2;
     const midX = (sx+tx)/2;
-    content += `<path d="M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}" style="fill:none;stroke:var(--accent);stroke-width:1.5;opacity:0.4" marker-end="url(#schema-arrowhead)"/>`;
+    content += `<path d="M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}" style="fill:none;stroke:var(--accent);stroke-width:2;opacity:0.7" marker-end="url(#schema-arrowhead)"/>`;
   });
   const rows = [...wrap.querySelectorAll('.schema-row')];
   const finalRow = wrap.querySelector('.schema-row[data-final]');
@@ -1529,7 +1528,7 @@ function drawLegacyConnectors(wrap, toLocal){
         const last = toLocal(boxes[boxes.length-1].getBoundingClientRect());
         const sx = last.x + last.w/2, sy = last.y + last.h;
         const midY = (sy+ty)/2;
-        content += `<path d="M ${sx} ${sy} C ${sx} ${midY}, ${tx} ${midY}, ${tx} ${ty}" style="fill:none;stroke:var(--accent);stroke-width:2.5;opacity:0.85" marker-end="url(#schema-arrowhead)"/>`;
+        content += `<path d="M ${sx} ${sy} C ${sx} ${midY}, ${tx} ${midY}, ${tx} ${ty}" style="fill:none;stroke:var(--accent);stroke-width:2;opacity:0.7" marker-end="url(#schema-arrowhead)"/>`;
       });
     }
   }
