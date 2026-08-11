@@ -1076,7 +1076,8 @@ const SG_ASSAISON = /^(sel|poivre|fleur de sel|gros sel|sel fin|poivre noir|sel,
 // étapes annexes : aucune matière, on ne crée pas de boîte
 const SG_ANNEXE = new Set(['prechauffer','fariner','beurrer','tapisser','chemiser']);
 
-const SG_ANAPHORE = /\b(m[ée]lange|pr[ée]paration|appareil|p[âa]te|le tout|ensemble|pr[ée]c[ée]dent|dessus|celui|celle)\b/i;
+// noms de préparations intermédiaires : les citer, c'est renvoyer à une branche en cours
+const SG_ANAPHORE = /\b(m[ée]lange|pr[ée]paration|appareil|p[âa]te|le tout|ensemble|pr[ée]c[ée]dent|dessus|celui|celle|pommade|chantilly|meringue|levain|ganache|dacquoise|prali[ée]?n[ée]?)\b/i;
 
 const sgNorm = s => s.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae')
   .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
