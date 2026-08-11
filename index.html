@@ -1287,7 +1287,11 @@ function deriveSchemaGraph(r){
       sgFragments(s).forEach((fr,fi)=>{
         const vf = (fr.split(/[^A-Za-zà-ÿ']+/).filter(Boolean).slice(0,12).map(sgNorm)
                       .find(j=>SG_SUITE.has(j)||SG_DEPART.has(j))) || verbe;
-        const lab = sgLabel(fr, motsEntrants, fi>0 || inputs.some(x=>!x.startsWith('ing:')), vf);
+        let lab = sgLabel(fr, motsEntrants, fi>0 || inputs.some(x=>!x.startsWith('ing:')), vf);
+        // une action qui réunit plusieurs entrées les traite symétriquement :
+        // « ajouter » suppose que l'une agit sur l'autre, « mélanger » non
+        if(fi===0 && inputs.length>1)
+          lab = lab.replace(/^(Ajouter|Incorporer|Intégrer|Verser|Mettre)(?![a-zà-ÿ])/,'Mélanger');
         if(fi>0 && (!lab || lab.length<3)) return;
         id = 'auto'+pi+'_'+si+(fi?'_'+fi:'');
         nodes.push({id, label:lab, inputs: fi===0 ? inputs : [prec2]});
@@ -1519,10 +1523,31 @@ function alignGraphNodes(){
     if(i0===i1) return ingY[i0];
     return ingY[i0] + (ingY[i1]-ingY[i0]) * (clamped-i0);
   }
+  // position idéale de chaque case, puis désempilement colonne par colonne :
+  // deux actions issues du même ingrédient tomberaient sinon exactement au même endroit
+  const ECART = 10;                      // espace minimal entre deux cases d'une colonne
+  const colonnes = new Map();
   colsWrap.querySelectorAll('.schema-box').forEach(box=>{
     const rank = parseFloat(box.dataset.rank);
-    const targetY = interpolateY(rank) - offsetY - box.offsetHeight/2;
-    box.style.top = Math.max(0, targetY) + 'px';
+    const y = interpolateY(rank) - offsetY - box.offsetHeight/2;
+    const cle = box.style.left;
+    if(!colonnes.has(cle)) colonnes.set(cle, []);
+    colonnes.get(cle).push({box, y, h: box.offsetHeight});
+  });
+  colonnes.forEach(cases=>{
+    cases.sort((a,b)=>a.y-b.y);
+    const avant = cases.length ? cases[cases.length-1].y : 0;
+    for(let k=1;k<cases.length;k++){
+      const mini = cases[k-1].y + cases[k-1].h + ECART;
+      if(cases[k].y < mini) cases[k].y = mini;
+    }
+    // on remonte le groupe de la moitié de l'étalement, pour rester centré sur la position d'origine
+    if(cases.length){
+      const gonflement = cases[cases.length-1].y - avant;
+      const recentrage = Math.min(gonflement/2, Math.max(0, cases[0].y));
+      cases.forEach(c=>{ c.y -= recentrage; });
+    }
+    cases.forEach(c=>{ c.box.style.top = Math.max(0, c.y) + 'px'; });
   });
   // hauteur totale nécessaire pour que le conteneur englobe toutes les cases positionnées
   let maxBottom = 0;
