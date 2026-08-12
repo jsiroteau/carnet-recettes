@@ -275,6 +275,12 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
       <span id="boite-col" class="mono">automatique</span>
       <button onclick="decalerColonne(1)">+</button>
     </div>
+    <label>Hauteur</label>
+    <div class="rang-col">
+      <button onclick="decalerHauteur(-0.5)">▲</button>
+      <span id="boite-dy" class="mono">automatique</span>
+      <button onclick="decalerHauteur(0.5)">▼</button>
+    </div>
     <div class="btn-row">
       <button class="btn btn-primary" style="flex:1" onclick="validerBoite()">Terminé</button>
       <button class="btn btn-secondary" onclick="insererApres()">＋ Boîte après</button>
@@ -1568,6 +1574,7 @@ window.ouvrirBoite=function(id){
   });
   document.getElementById('boite-entrees').innerHTML = h;
   document.getElementById('boite-col').textContent = n.col ? ('décalée à '+n.col) : 'automatique';
+  majHauteur(n);
 
   const conso = schemaEditNodes.filter(x=>x.inputs.indexOf(id)>=0);
   document.getElementById('boite-note').textContent = conso.length
@@ -1575,6 +1582,18 @@ window.ouvrirBoite=function(id){
     : "C'est la dernière boîte du schéma.";
   document.getElementById('boite-editeur').classList.add('ouvert');
   setTimeout(()=>document.getElementById('boite-libelle').focus(), 60);
+};
+
+function majHauteur(n){
+  const e = document.getElementById('boite-dy');
+  if(e) e.textContent = n.dy ? ((n.dy>0?'+':'')+String(n.dy).replace('.',',')) : 'automatique';
+}
+// décalage vertical, exprimé en lignes d'ingrédient : indépendant de la taille de l'écran
+window.decalerHauteur=function(d){
+  const n = schemaEditNodes.find(x=>x.id===boiteCourante); if(!n) return;
+  const v = Math.round(((n.dy||0) + d)*2)/2;
+  if(Math.abs(v) < 0.01) delete n.dy; else n.dy = v;
+  majHauteur(n);          // comme la colonne : appliqué à la fermeture de la feuille
 };
 
 window.decalerColonne=function(d){
@@ -1709,7 +1728,7 @@ function renderGraphSchema(r, ratio){
     const isLast = depthCache[n.id]===maxDepth;
     const left = (depthCache[n.id]-1)*(COL_W+COL_GAP);
     const enEdition = (schemaEditId===r.id);
-    return `<div class="schema-box${enEdition?' modifiable':''}" ${enEdition?`onclick="ouvrirBoite('${n.id}')"`:''} id="schema-node-${n.id}" data-rank="${rankCache[n.id]}" style="left:${left}px;width:${COL_W}px" ${isLast?'data-merge-target="1"':''}>${esc(scaleIngredient(n.label,ratio))}</div>`;
+    return `<div class="schema-box${enEdition?' modifiable':''}" ${enEdition?`onclick="ouvrirBoite('${n.id}')"`:''} id="schema-node-${n.id}" data-rank="${rankCache[n.id] + (n.dy||0)}" style="left:${left}px;width:${COL_W}px" ${isLast?'data-merge-target="1"':''}>${esc(scaleIngredient(n.label,ratio))}</div>`;
   }).join('');
   const totalWidth = maxDepth*(COL_W+COL_GAP);
 
