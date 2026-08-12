@@ -211,6 +211,16 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .bascule input{width:20px;height:20px;accent-color:var(--accent);flex:0 0 auto;margin:0}
 .regles{margin:0 0 18px;padding-left:20px;font-size:0.83rem;line-height:1.55;color:var(--text)}
 .regles li{margin-bottom:9px}
+.aide{margin:14px 0 18px;border:1px solid var(--border);border-radius:12px;background:var(--card-hi)}
+.aide summary{padding:12px 14px;font-size:0.85rem;font-weight:600;cursor:pointer;list-style:none}
+.aide summary::-webkit-details-marker{display:none}
+.aide summary::before{content:'▸ ';color:var(--accent)}
+.aide[open] summary::before{content:'▾ '}
+.aide-corps{padding:0 14px 14px;font-size:0.82rem;line-height:1.55;color:var(--text)}
+.aide-corps p{margin:0 0 10px}
+.aide-corps ol{margin:0 0 10px;padding-left:20px}
+.aide-corps li{margin-bottom:7px}
+.aide-corps a{color:var(--rose);word-break:break-all}
 .regles b{font-weight:600}
 
 #toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:var(--card-hi);border:1px solid var(--border);border-radius:50px;padding:11px 22px;font-size:0.85rem;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
@@ -246,7 +256,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
   <div class="overlay-header">
     <button class="back-btn" onclick="closeAllOverlays()">‹</button>
     <h2 id="detail-title"></h2>
-    <button class="btn btn-secondary" id="btn-modifier-recette" style="padding:8px 14px;font-size:0.78rem;display:none" onclick="startEdit()">Modifier</button>
+    <button class="btn btn-secondary" id="btn-modifier-recette" style="padding:8px 14px;font-size:0.78rem;display:none" onclick="modifierCourant()">Modifier</button>
   </div>
   <div class="overlay-body" id="detail-body"></div>
 </div>
@@ -322,6 +332,24 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
       <p style="color:var(--muted);font-size:0.85rem;line-height:1.5">
         Nécessaire pour publier et pour envoyer les photos. Ces informations restent sur cet appareil et ne sont transmises qu'à GitHub.
       </p>
+
+      <details class="aide">
+        <summary>Comment obtenir un jeton d'accès ?</summary>
+        <div class="aide-corps">
+          <p>Le jeton est un mot de passe que GitHub vous délivre pour autoriser cette application à écrire dans le dépôt. Il faut être connecté à GitHub sur cet appareil.</p>
+          <ol>
+            <li>Ouvrir <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a></li>
+            <li><b>Token name</b> : ce que vous voulez, par exemple « carnet de recettes ».</li>
+            <li><b>Expiration</b> : au choix. Au-delà de la date, il faudra en refaire un.</li>
+            <li><b>Repository access</b> : cocher <i>Only select repositories</i>, puis choisir le dépôt du carnet.</li>
+            <li><b>Permissions</b> → <i>Repository permissions</i> → <b>Contents</b> → <b>Read and write</b>. C'est la seule permission nécessaire.</li>
+            <li><b>Generate token</b>, puis copier le jeton <b>immédiatement</b> : GitHub ne l'affiche qu'une fois.</li>
+            <li>Le coller dans le champ ci-dessous, puis Enregistrer.</li>
+          </ol>
+          <p>Vos jetons existants se retrouvent sur <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">github.com/settings/tokens</a>. Si une de ces adresses ne mène nulle part, partir de <i>Settings</i> (sous votre avatar, en haut à droite) puis <i>Developer settings</i>, tout en bas du menu de gauche.</p>
+          <p>Ces réglages n'existent que sur le site : depuis un téléphone, il faut passer par le navigateur, parfois en demandant la version pour ordinateur.</p>
+        </div>
+      </details>
     <label>Nom d'utilisateur GitHub</label>
     <input id="set-owner" placeholder="ex. jsiroteau" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
     <label>Nom du dépôt</label>
@@ -915,6 +943,12 @@ function getGhConfig(){
 }
 let modeModif = false;   // volontairement non mémorisé : éteint à chaque ouverture
 
+// un seul bouton « Modifier » : il porte sur ce qui est affiché
+window.modifierCourant=function(){
+  if(detailView === 'schema'){ ouvrirEditeurSchema(); return; }
+  startEdit();
+};
+
 window.basculerModeModif=function(actif){
   modeModif = !!actif;
   document.getElementById('bloc-modif').style.display = modeModif ? '' : 'none';
@@ -1020,6 +1054,9 @@ window.openDetail=function(id){
 };
 let detailView = 'text';
 function renderDetail(r){
+  // pendant la correction d'un schéma, le bouton de l'en-tête n'a plus lieu d'être
+  const bm = document.getElementById('btn-modifier-recette');
+  if(bm) bm.style.display = (modeModif && schemaEditId !== r.id) ? '' : 'none';
   const sv = currentServings[r.id];
   const ratio = (r.servingsBase && r.servingsBase>0) ? sv/r.servingsBase : 1;
   let html = `<div class="detail-photo" style="${r.photoUrl?`background-image:url('${r.photoUrl}')`:''}">
@@ -1441,13 +1478,7 @@ let schemaEditNodes = null;   // copie de travail du graphe
 let boiteCourante = null;     // boîte ouverte dans la feuille
 
 function barreEdition(r){
-  if(schemaEditId !== r.id){
-    if(!modeModif) return '';
-    return `<div class="barre-edition">
-      <span class="info">${r.schemaGraph ? 'Schéma personnalisé.' : 'Schéma calculé automatiquement.'}</span>
-      <button class="btn btn-secondary" style="padding:6px 10px;font-size:0.75rem" onclick="ouvrirEditeurSchema()">✏️ Modifier</button>
-    </div>`;
-  }
+  if(schemaEditId !== r.id) return '';   // l'entrée se fait par le bouton « Modifier » de l'en-tête
   return `<div class="barre-edition">
     <span class="info">Touchez une boîte pour la renommer ou la supprimer.</span>
     <button class="btn btn-primary" style="padding:6px 10px;font-size:0.75rem" onclick="enregistrerSchema()">✓ Enregistrer</button>
