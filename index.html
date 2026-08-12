@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Carnet">
+<meta name="apple-mobile-web-app-title" content="Recettes">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -206,6 +206,12 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .export-etat{font-size:0.82rem;line-height:1.5;margin-top:10px;padding:11px 14px;border-radius:11px}
 .export-etat.ok{background:rgba(76,154,106,0.12);color:#3B7A53}
 .export-etat.att{background:var(--card-hi);color:var(--text)}
+.bascule{display:flex;align-items:center;gap:11px;padding:12px 14px;background:var(--card-hi);
+  border-radius:12px;font-size:0.87rem;cursor:pointer;margin:12px 0 4px}
+.bascule input{width:20px;height:20px;accent-color:var(--accent);flex:0 0 auto;margin:0}
+.regles{margin:0 0 18px;padding-left:20px;font-size:0.83rem;line-height:1.55;color:var(--text)}
+.regles li{margin-bottom:9px}
+.regles b{font-weight:600}
 
 #toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:var(--card-hi);border:1px solid var(--border);border-radius:50px;padding:11px 22px;font-size:0.85rem;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
 #toast.show{opacity:1}
@@ -224,8 +230,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 <!-- HOME -->
 <div id="home" class="screen active">
   <div class="hero">
-    <div class="eyebrow" id="hero-count">— recettes</div>
-    <h1>Le carnet de recettes</h1>
+    <h1 id="hero-count">— recettes</h1>
   </div>
   <div class="search-bar">
     <input type="search" id="search-input" placeholder="Chercher une recette, un ingrédient…" oninput="renderList()" autocomplete="off">
@@ -241,7 +246,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
   <div class="overlay-header">
     <button class="back-btn" onclick="closeAllOverlays()">‹</button>
     <h2 id="detail-title"></h2>
-    <button class="btn btn-secondary" style="padding:8px 14px;font-size:0.78rem" onclick="startEdit()">Modifier</button>
+    <button class="btn btn-secondary" id="btn-modifier-recette" style="padding:8px 14px;font-size:0.78rem;display:none" onclick="startEdit()">Modifier</button>
   </div>
   <div class="overlay-body" id="detail-body"></div>
 </div>
@@ -284,32 +289,39 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
     <h2>Réglages</h2>
   </div>
   <div class="overlay-body edit-form">
-    <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-bottom:8px">Sauvegarde</h3>
+    <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-bottom:8px">Modifier le carnet</h3>
     <p style="color:var(--muted);font-size:0.85rem;line-height:1.5">
-      Vos recettes sont enregistrées dans cet appareil. Exporter les écrit dans le fichier <span class="mono">recipes-seed.js</span> de votre dépôt GitHub : c'est votre sauvegarde, et c'est ce que liront vos autres appareils.
+      Le carnet s'ouvre en lecture. Chacun peut le consulter et ajouter une recette avec le bouton ＋, mais corriger une recette existante demande d'activer le réglage ci-dessous. Il s'éteint à chaque fermeture de l'application.
     </p>
-    <div class="export-etat ok" id="export-etat">—</div>
-    <div class="btn-row">
-      <button class="btn btn-primary btn-full" id="export-btn" onclick="exporterRecettes()">☁️ Exporter mes recettes vers GitHub</button>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-secondary btn-full" onclick="telechargerSeed()">⬇️ Télécharger le fichier recipes-seed.js</button>
-    </div>
-    <div style="font-size:0.72rem;color:var(--muted);margin-top:6px;line-height:1.4">
-      Sans jeton d'accès, sur un appareil de passage : téléchargez le fichier, puis déposez-le sur la page du dépôt GitHub (bouton « Add file › Upload files »). Le résultat est identique à l'export.
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-secondary btn-full" onclick="rechargerDepuisGitHub()">⬇️ Recharger depuis GitHub</button>
-    </div>
-    <div style="font-size:0.72rem;color:var(--muted);margin-top:8px;line-height:1.5">
-      Recharger remplace les recettes de cet appareil par celles du dépôt. À utiliser sur un deuxième téléphone, ou pour revenir à la dernière sauvegarde.
-    </div>
+    <label class="bascule"><input type="checkbox" id="set-modif" onchange="basculerModeModif(this.checked)">
+      <span>Autoriser la modification des recettes</span></label>
 
-    <div style="height:1px;background:var(--border);margin:28px 0 4px"></div>
-    <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-top:20px;margin-bottom:8px">Dépôt GitHub</h3>
-    <p style="color:var(--muted);font-size:0.85rem;line-height:1.5">
-      Nécessaire pour la sauvegarde et pour l'envoi des photos. Ces informations restent uniquement sur cet appareil, et ne sont envoyées qu'à GitHub.
-    </p>
+    <div id="bloc-modif" style="display:none">
+      <div style="height:1px;background:var(--border);margin:24px 0 4px"></div>
+      <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-top:20px;margin-bottom:8px">Règles de bonne conduite</h3>
+      <ol class="regles">
+        <li><b>Mettre à jour avant de modifier.</b> Si l'accueil annonce de nouvelles recettes, chargez-les d'abord : sinon vous risquez d'effacer le travail de quelqu'un d'autre.</li>
+        <li><b>Publier après avoir modifié.</b> Tant que vous n'avez pas publié, votre ajout reste sur votre seul appareil.</li>
+        <li><b>Compléter plutôt que remplacer.</b> Préciser une quantité ou une étape, oui. Effacer la recette d'un autre, non.</li>
+        <li><b>Écrire les étapes à l'infinitif, en répétant les quantités</b> — « Ajouter les 250g de farine » et non « Ajouter la farine ». C'est ce qui permet au schéma de se construire.</li>
+        <li><b>Lister les ingrédients dans l'ordre où ils servent.</b></li>
+        <li><b>Relire le schéma</b> après avoir changé le déroulé : les deux doivent raconter la même chose.</li>
+        <li><b>Rien n'est perdu.</b> L'historique est conservé, une maladresse se rattrape toujours.</li>
+      </ol>
+
+      <div class="export-etat ok" id="export-etat">—</div>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-full" id="export-btn" onclick="exporterRecettes()">☁️ Publier mes modifications</button>
+      </div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-top:6px;line-height:1.4">
+        Publier envoie vos recettes à tous les autres appareils. Si le dépôt n'est pas configuré ci-dessous, le carnet est enregistré dans un fichier que vous pourrez transmettre.
+      </div>
+
+      <div style="height:1px;background:var(--border);margin:28px 0 4px"></div>
+      <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-top:20px;margin-bottom:8px">Dépôt GitHub</h3>
+      <p style="color:var(--muted);font-size:0.85rem;line-height:1.5">
+        Nécessaire pour publier et pour envoyer les photos. Ces informations restent sur cet appareil et ne sont transmises qu'à GitHub.
+      </p>
     <label>Nom d'utilisateur GitHub</label>
     <input id="set-owner" placeholder="ex. jsiroteau" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
     <label>Nom du dépôt</label>
@@ -326,6 +338,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
     <div class="btn-row">
       <button class="btn btn-danger btn-full" onclick="wipeAllRecipes()">🗑 Effacer le carnet de cet appareil</button>
     </div>
+    </div><!-- fin du bloc modification -->
   </div>
 </div>
 
@@ -506,9 +519,8 @@ async function loadRecipes(){
 function proposerVersionDistante(seed, sig){
   const bandeau = document.createElement('div');
   bandeau.className = 'maj-banner';
-  bandeau.innerHTML = `<span>Une version plus récente de votre carnet est disponible sur GitHub
-    (${seed.length} recette${seed.length>1?'s':''}).</span>
-    <button class="btn btn-primary" style="padding:8px 16px;font-size:0.78rem" id="maj-oui">Charger</button>
+  bandeau.innerHTML = `<span>De nouvelles recettes sont disponibles (${seed.length} en tout).</span>
+    <button class="btn btn-primary" style="padding:8px 16px;font-size:0.78rem" id="maj-oui">Mettre à jour</button>
     <button class="btn btn-secondary" style="padding:8px 14px;font-size:0.78rem" id="maj-non">Plus tard</button>`;
   const home = document.getElementById('home');
   home.insertBefore(bandeau, home.firstChild.nextSibling);
@@ -901,8 +913,21 @@ window.shareShoppingList=async function(){
 function getGhConfig(){
   try{ return JSON.parse(localStorage.getItem('gh-config')||'null'); }catch(e){ return null; }
 }
+let modeModif = false;   // volontairement non mémorisé : éteint à chaque ouverture
+
+window.basculerModeModif=function(actif){
+  modeModif = !!actif;
+  document.getElementById('bloc-modif').style.display = modeModif ? '' : 'none';
+  if(!modeModif && schemaEditId){ schemaEditId=null; schemaEditNodes=null; }
+  const b = document.getElementById('btn-modifier-recette');
+  if(b) b.style.display = modeModif ? '' : 'none';
+  if(currentId){ const r=recipes.find(x=>x.id===currentId); if(r) renderDetail(r); }
+};
+
 window.openSettings=function(){
   const cfg = getGhConfig()||{};
+  const sm = document.getElementById('set-modif');
+  if(sm){ sm.checked = modeModif; document.getElementById('bloc-modif').style.display = modeModif ? '' : 'none'; }
   document.getElementById('set-owner').value = cfg.owner||'';
   document.getElementById('set-repo').value = cfg.repo||'';
   document.getElementById('set-token').value = cfg.token||'';
@@ -988,6 +1013,8 @@ window.openDetail=function(id){
   if(!r) return;
   currentServings[id] = currentServings[id] || r.servingsBase || 1;
   document.getElementById('detail-title').textContent = r.title;
+  const bm = document.getElementById('btn-modifier-recette');
+  if(bm) bm.style.display = modeModif ? '' : 'none';
   renderDetail(r);
   openOverlay('detail-overlay');
 };
@@ -1414,11 +1441,13 @@ let schemaEditNodes = null;   // copie de travail du graphe
 let boiteCourante = null;     // boîte ouverte dans la feuille
 
 function barreEdition(r){
-  if(schemaEditId !== r.id)
+  if(schemaEditId !== r.id){
+    if(!modeModif) return '';
     return `<div class="barre-edition">
       <span class="info">${r.schemaGraph ? 'Schéma personnalisé.' : 'Schéma calculé automatiquement.'}</span>
       <button class="btn btn-secondary" style="padding:6px 10px;font-size:0.75rem" onclick="ouvrirEditeurSchema()">✏️ Modifier</button>
     </div>`;
+  }
   return `<div class="barre-edition">
     <span class="info">Touchez une boîte pour la renommer ou la supprimer.</span>
     <button class="btn btn-primary" style="padding:6px 10px;font-size:0.75rem" onclick="enregistrerSchema()">✓ Enregistrer</button>
@@ -2125,7 +2154,8 @@ function majIndicateurExport(){
 
 window.exporterRecettes=async function(){
   const cfg = getGhConfig();
-  if(!cfg){ toast('⚠ Renseignez d’abord votre dépôt GitHub'); return; }
+  // sans dépôt configuré, on retombe sur le fichier : le carnet sort quand même
+  if(!cfg){ telechargerSeed(); return; }
   if(!recipes.length && !confirm('Votre carnet est vide : exporter écrasera le fichier du dépôt. Continuer ?')) return;
   const btn = document.getElementById('export-btn');
   btn.disabled = true; btn.textContent = 'Sauvegarde en cours…';
@@ -2171,22 +2201,6 @@ window.exporterRecettes=async function(){
   }
 };
 
-window.rechargerDepuisGitHub=async function(){
-  if(enAttente && !confirm(
-      (enAttente>1 ? `${enAttente} modifications de cet appareil n'ont pas été exportées.`
-                   : `1 modification de cet appareil n'a pas été exportée.`)
-      + ` Recharger depuis GitHub la${enAttente>1?'s':''} remplacera définitivement. Continuer ?`)) return;
-  toast('Lecture du dépôt…');
-  const seed = await lireSeedDistant();
-  if(!seed){ toast('⚠ Fichier introuvable ou illisible'); return; }
-  recipes = seed.map((r,i)=>({id:identifiant(r.title,i), ...r}));
-  signatureSeed = empreinte(recipes);
-  enAttente = 0;
-  sauver(false);
-  closeAllOverlays();
-  renderCategories(); renderList();
-  toast(`✓ ${recipes.length} recettes chargées depuis GitHub`);
-};
 
 // ══════════════════════════════════
 // SAISIE MANUELLE / MODIFICATION
