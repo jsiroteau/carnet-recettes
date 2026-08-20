@@ -189,6 +189,23 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .shop-item select{flex-shrink:0;max-width:104px;border:1px solid var(--border);background:var(--card);border-radius:9px;color:var(--muted);font-family:'Work Sans',sans-serif;font-size:0.72rem;padding:5px 4px;outline:none}
 .shop-count{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted);margin-top:22px;text-align:center}
 
+/* ── HABILLAGE DE NOËL ── */
+/* Toute la fiche passe en nuit d'hiver : les composants suivent les variables,
+   il suffit de les redéfinir ici. */
+#detail-overlay.noel{
+  --bg:#101E19; --surface:#17261F; --card:#17261F; --card-hi:#1E3129;
+  --accent:#DFAF57; --accent-ink:#14221C; --rose:#D9556F;
+  --text:#F3E7D2; --muted:#9A9079; --border:rgba(243,231,210,0.17);
+  background:radial-gradient(120% 70% at 50% 0%, #1A2E26 0%, #101E19 58%, #0A1512 100%);
+}
+#detail-overlay.noel .overlay-header{background:rgba(16,30,25,0.94)}
+#detail-overlay.noel .photo-upload-btn{background:rgba(10,21,18,0.8)}
+#detail-overlay.noel .btn-danger{background:rgba(217,85,111,0.16);border-color:rgba(217,85,111,0.4)}
+#detail-overlay.noel .tag{border-color:rgba(223,175,87,0.45);color:#DFAF57}
+.noel-banniere{display:block;width:100%;height:auto;margin:-4px 0 14px;border-radius:var(--r)}
+/* dans la liste, l'étiquette du label suffit à annoncer la couleur */
+.tag-noel{color:#1F6B45!important;border-color:#1F6B45!important;background:rgba(31,107,69,0.09)}
+
 /* ── PLANIFICATION DES MENUS ── */
 .menu-intro{color:var(--muted);font-size:0.82rem;line-height:1.5;margin-bottom:14px}
 .menu-form{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 15px 18px;box-shadow:0 2px 10px rgba(59,42,32,0.06)}
@@ -198,7 +215,21 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .menu-form textarea{resize:vertical;min-height:74px;line-height:1.5}
 .menu-form input:focus,.menu-form select:focus,.menu-form textarea:focus{border-color:var(--accent)}
 .menu-form .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.menu-form .champ-filtre{margin-bottom:8px;background:var(--card-hi);font-size:0.85rem}
+.seg-plat{display:flex;gap:6px;background:var(--card-hi);border-radius:50px;padding:4px;margin:4px 0 14px}
+.seg-plat .seg{flex:1;border:none;background:none;padding:9px 10px;border-radius:50px;font-family:'Work Sans',sans-serif;font-size:0.79rem;font-weight:600;color:var(--muted);cursor:pointer}
+.seg-plat .seg.on{background:var(--accent);color:var(--accent-ink)}
+.combo{position:relative}
+.combo input{padding-right:42px}
+.combo-fleche{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;border:none;background:none;color:var(--muted);font-size:0.9rem;cursor:pointer;border-radius:50%}
+.combo-liste{display:none;margin-top:6px;max-height:238px;overflow-y:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 6px 18px rgba(59,42,32,0.10)}
+.combo-liste.on{display:block}
+.combo-item{display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--border);padding:10px 13px;cursor:pointer;font-family:'Work Sans',sans-serif}
+.combo-item:last-child{border-bottom:none}
+.combo-item.on{background:var(--card-hi)}
+.combo-item .t{display:block;font-size:0.88rem;color:var(--text);line-height:1.3}
+.combo-item .c{display:block;font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
+.combo-item.combo-neuf{color:var(--accent);font-weight:600;font-size:0.85rem}
+.combo-vide{padding:11px 13px;font-size:0.82rem;color:var(--muted);border-bottom:1px solid var(--border)}
 .menu-libre{display:none}
 .menu-indice{font-size:0.75rem;color:var(--muted);line-height:1.4;margin-top:7px;min-height:1.1em}
 .menu-indice.ok{color:var(--success);font-weight:600}
@@ -643,13 +674,31 @@ function proposerVersionDistante(seed, sig){
   home.insertBefore(bandeau, home.firstChild.nextSibling);
   document.getElementById('maj-non').onclick = ()=>bandeau.remove();
   document.getElementById('maj-oui').onclick = ()=>{
-    if(enAttente && !confirm(`Vous avez ${enAttente} modification${enAttente>1?'s':''} non exportée${enAttente>1?'s':''} sur cet appareil. Charger la version de GitHub les remplacera. Continuer ?`)) return;
-    recipes = seed.map((r,i)=>({id:identifiant(r.title,i), ...r}));
-    signatureSeed = sig; enAttente = 0;
+    const neuves = seed.map((r,i)=>({id:identifiant(r.title,i), ...r}));
+    const idsSeed = new Set(neuves.map(r=>r.id));
+    const titresSeed = new Set(neuves.map(r=>normTitre(r.title)));
+    // ce qui existe ici sans exister là-bas : soit créé sur cet appareil,
+    // soit supprimé du dépôt depuis. On ne peut pas confondre les deux.
+    const absentes = recipes.filter(r=>!idsSeed.has(r.id) && !titresSeed.has(normTitre(r.title)));
+    const locales = absentes.filter(r=>r.local);
+    const ambigues = absentes.filter(r=>!r.local);
+    let gardees = locales;
+    if(ambigues.length){
+      const liste = ambigues.slice(0,5).map(r=>'• '+r.title).join('\n') + (ambigues.length>5?`\n• …et ${ambigues.length-5} autre${ambigues.length-5>1?'s':''}`:'');
+      if(confirm(`${ambigues.length} recette${ambigues.length>1?'s de ce carnet ne figurent':' de ce carnet ne figure'} pas dans la version GitHub :\n\n${liste}\n\nLes conserver ? (Annuler = les remplacer par la version GitHub)`)){
+        gardees = gardees.concat(ambigues);
+      }
+    }
+    if(enAttente && !gardees.length && !confirm(`Vous avez ${enAttente} modification${enAttente>1?'s':''} non exportée${enAttente>1?'s':''} sur cet appareil. Charger la version de GitHub les remplacera. Continuer ?`)) return;
+    recipes = neuves.concat(gardees.map(r=>({...r, local:true})));
+    signatureSeed = sig;
+    enAttente = gardees.length;   // ces recettes-là restent à exporter
     sauver(false);
     bandeau.remove();
     renderCategories(); renderList();
-    toast('✓ Carnet mis à jour depuis GitHub');
+    toast(gardees.length
+      ? `✓ Carnet mis à jour — ${gardees.length} recette${gardees.length>1?'s':''} de cet appareil conservée${gardees.length>1?'s':''}`
+      : '✓ Carnet mis à jour depuis GitHub');
   };
 }
 
@@ -697,11 +746,16 @@ window.renderList=function(){
           <span class="tag">${esc(r.category||'')}</span>
           ${r.difficulty?`<span class="tag diff-${r.difficulty}">${esc(r.difficulty)}</span>`:''}
           ${estListeSeule(r)?`<span class="tag tag-liste">📋 Liste d’ingrédients</span>`:''}
-          ${(r.labels||[]).map(l=>`<span class="tag" style="color:var(--accent);border-color:var(--accent)">🏷 ${esc(l)}</span>`).join('')}
+          ${(r.labels||[]).map(l=>normTitre(l)==='noel'
+            ? `<span class="tag tag-noel">🎄 ${esc(l)}</span>`
+            : `<span class="tag" style="color:var(--accent);border-color:var(--accent)">🏷 ${esc(l)}</span>`).join('')}
         </div>
       </div>
     </div>`).join('');
 };
+
+const normTitre = s => noAccent(s).replace(/[^a-z0-9]+/g,' ').trim();
+const estNoel = r => (r.labels||[]).some(l=>normTitre(l)==='noel');
 
 // Une recette sans aucune étape n'est qu'une liste d'ingrédients : on le signale
 // partout où elle apparaît, pour qu'on sache à quoi s'attendre en l'ouvrant.
@@ -711,6 +765,9 @@ function estListeSeule(r){
 function nbIngredients(r){
   return (r.parts||[]).reduce((n,p)=>n+(p.ingredients||[]).filter(i=>String(i).trim()).length, 0);
 }
+
+// Guirlande de houx et bougies, affichée en tête des recettes de Noël.
+const BANNIERE_NOEL = `<svg viewBox="0 0 700 150" xmlns="http://www.w3.org/2000/svg" class="noel-banniere" aria-hidden="true"> <defs> <path id="nx-houx" d="M0 0 C1 -3 4 -6 8 -6 C10 -8 12 -10 14 -14 C16 -10 19 -9 21 -7 C23 -9 26 -11.5 28 -15.5 C30 -11.5 34 -9 36 -7 C38 -9 42 -9 44 -13 C46 -9 53 -3 56 0 C53.0 3.0 46.0 9.0 44.0 13.0 C42.0 9.0 38.0 9.0 36.0 7.0 C34.0 9.0 30.0 11.5 28.0 15.5 C26.0 11.5 23.0 9.0 21.0 7.0 C19.0 9.0 16.0 10.0 14.0 14.0 C12.0 10.0 10.0 8.0 8.0 6.0 C4.0 6.0 1.0 3.0 0 0 Z"/> <radialGradient id="nx-halo"><stop offset="0%" stop-color="#FFC978" stop-opacity="0.5"/><stop offset="45%" stop-color="#E8913C" stop-opacity="0.14"/><stop offset="100%" stop-color="#E8913C" stop-opacity="0"/></radialGradient> <linearGradient id="nx-cire" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#B6A78B"/><stop offset="38%" stop-color="#F3E7D2"/><stop offset="100%" stop-color="#9C8C70"/></linearGradient> <linearGradient id="nx-flamme" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFF6D4"/><stop offset="55%" stop-color="#FFC24D"/><stop offset="100%" stop-color="#E8752B"/></linearGradient> </defs> <ellipse cx="350" cy="84" rx="250" ry="82" fill="url(#nx-halo)"/> <g> <rect x="333" y="58" width="34" height="80" rx="5" fill="url(#nx-cire)"/><ellipse cx="350" cy="58" rx="17" ry="5" fill="#FFF6E2"/> <path d="M350 58 L350 62" stroke="#4A3B28" stroke-width="2" stroke-linecap="round"/> <path d="M350 36 C358 46 357 55 350 57 C343 55 342 46 350 36 Z" fill="url(#nx-flamme)"/><circle cx="350" cy="50" r="2.6" fill="#FFF8D8" opacity="0.85"/> </g> <g> <rect x="287" y="84" width="27" height="54" rx="4" fill="url(#nx-cire)"/><ellipse cx="300" cy="84" rx="13.5" ry="4" fill="#FFF6E2"/> <path d="M300 84 L300 88" stroke="#4A3B28" stroke-width="1.8" stroke-linecap="round"/> <path d="M300 67 C307 75 306 81 300 83 C294 81 293 75 300 67 Z" fill="url(#nx-flamme)"/> </g> <g> <rect x="387" y="93" width="25" height="45" rx="4" fill="url(#nx-cire)"/><ellipse cx="399" cy="93" rx="12.5" ry="4" fill="#FFF6E2"/> <path d="M399 93 L399 97" stroke="#4A3B28" stroke-width="1.8" stroke-linecap="round"/> <path d="M399 77 C406 85 405 90 399 92 C393 90 392 85 399 77 Z" fill="url(#nx-flamme)"/> </g> <path d="M-6 130 C70 116 152 122 238 136" stroke="#1D4531" stroke-width="3.5" fill="none" stroke-linecap="round"/> <path d="M706 130 C630 116 548 122 462 136" stroke="#1D4531" stroke-width="3.5" fill="none" stroke-linecap="round"/> <g fill="#2F7A4F"> <use href="#nx-houx" transform="translate(6,124) rotate(-14)"/> <use href="#nx-houx" transform="translate(92,116) rotate(6) scale(0.88)"/> <use href="#nx-houx" transform="translate(170,124) rotate(13) scale(0.95)"/> <use href="#nx-houx" transform="translate(694,124) rotate(194)"/> <use href="#nx-houx" transform="translate(608,116) rotate(174) scale(0.88)"/> <use href="#nx-houx" transform="translate(530,124) rotate(167) scale(0.95)"/> </g> <g fill="#22603C"> <use href="#nx-houx" transform="translate(52,138) rotate(17) scale(0.78)"/> <use href="#nx-houx" transform="translate(134,136) rotate(-9) scale(0.72)"/> <use href="#nx-houx" transform="translate(648,138) rotate(163) scale(0.78)"/> <use href="#nx-houx" transform="translate(566,136) rotate(189) scale(0.72)"/> </g> <g fill="#C4304A"> <circle cx="76" cy="122" r="5"/><circle cx="87" cy="129" r="4.3"/><circle cx="68" cy="131" r="3.8"/> <circle cx="212" cy="130" r="4.6"/><circle cx="222" cy="136" r="3.8"/> <circle cx="624" cy="122" r="5"/><circle cx="613" cy="129" r="4.3"/><circle cx="632" cy="131" r="3.8"/> <circle cx="488" cy="130" r="4.6"/><circle cx="478" cy="136" r="3.8"/> </g> </svg>`;
 
 // ── SCALING ──
 function scaleIngredient(str, ratio){
@@ -1176,43 +1233,53 @@ function optionsJours(){
   return h;
 }
 
-function optionsPlats(filtre){
+// ── Choix du plat : une seule boîte ──
+// Deux façons de garnir un menu, présentées côte à côte pour qu'aucune ne se
+// cache : une recette du carnet, ou un plat quelconque dont on ne donne que les
+// ingrédients. La liste des recettes se filtre à mesure qu'on tape.
+let modePlat = 'carnet';        // 'carnet' | 'libre'
+let platChoisi = null;          // id de la recette retenue
+let comboOuvert = false;
+
+function recettesFiltrees(filtre){
   // chaque mot tapé doit se retrouver dans le titre, pas forcément à la suite :
   // « tarte pommes » trouve « Tarte aux pommes »
   const mots = normTitre(filtre||'').split(' ').filter(Boolean);
   const liste = mots.length
-    ? recipes.filter(r=>{ const titre = normTitre(r.title); return mots.every(m=>titre.includes(m)); })
+    ? recipes.filter(r=>{ const t = normTitre(r.title); return mots.every(m=>t.includes(m)); })
     : recipes.slice();
-  const parCat = {};
-  liste.forEach(r=>{ const c = r.category||'Autres'; (parCat[c]=parCat[c]||[]).push(r); });
-  const cats = [...CATEGORIES.filter(c=>parCat[c]), ...Object.keys(parCat).filter(c=>!CATEGORIES.includes(c)).sort()];
-  let opts = `<option value="">${liste.length?'— Choisir un plat —':'— Aucune recette ne correspond —'}</option>`;
-  cats.forEach(c=>{
-    opts += `<optgroup label="${esc(c)}">` + parCat[c]
-      .slice().sort((a,b)=>(a.title||'').localeCompare(b.title||'','fr',{sensitivity:'base'}))
-      .map(r=>`<option value="${esc(r.id)}">${esc(r.title)}</option>`).join('')
-      + `</optgroup>`;
-  });
-  opts += `<optgroup label="Hors carnet"><option value="__libre">✎ Autre plat — liste d’ingrédients seule</option></optgroup>`;
-  return opts;
+  return liste.sort((a,b)=>(a.title||'').localeCompare(b.title||'','fr',{sensitivity:'base'}));
 }
 
 function formulaireMenu(){
   return `<div class="menu-form">
     <h3>Programmer un plat</h3>
-    <label>Plat</label>
-    <input id="plan-filtre" class="champ-filtre" placeholder="🔍 Quelques lettres pour raccourcir la liste…"
-      autocomplete="off" autocorrect="off" spellcheck="false" oninput="filtrerPlats()">
-    <select id="plan-recette" onchange="majFormMenu()"></select>
-    <div class="menu-indice" id="plan-indice"></div>
 
-    <div class="menu-libre" id="plan-bloc-libre">
+    <div class="seg-plat">
+      <button class="seg" id="seg-carnet" onclick="setModePlat('carnet')">📖 Recette du carnet</button>
+      <button class="seg" id="seg-libre" onclick="setModePlat('libre')">✎ Autre plat</button>
+    </div>
+
+    <div id="bloc-carnet">
+      <div class="combo">
+        <input id="plan-combo" autocomplete="off" autocorrect="off" spellcheck="false"
+          placeholder="Nom de la recette — tapez ou parcourez la liste"
+          oninput="comboSaisie()" onfocus="ouvrirCombo()" onblur="fermerComboPlusTard()"
+          onkeydown="if(event.key==='Escape'){this.blur();}">
+        <button class="combo-fleche" onmousedown="event.preventDefault()" onclick="basculerCombo()" title="Voir toutes les recettes">▾</button>
+      </div>
+      <div class="combo-liste" id="plan-combo-liste"></div>
+      <div class="menu-indice" id="plan-indice"></div>
+    </div>
+
+    <div id="bloc-libre" style="display:none">
       <label>Nom du plat</label>
       <input id="plan-titre" placeholder="ex. Salade de tomates" autocomplete="off">
       <label>Ingrédients, un par ligne</label>
       <textarea id="plan-ingredients" placeholder="4 tomates
 1 oignon rouge
 Huile d’olive"></textarea>
+      <div class="menu-indice">Ce plat ne figure pas au carnet : ses ingrédients suffisent à remplir la liste de courses.</div>
     </div>
 
     <div class="row2">
@@ -1232,68 +1299,115 @@ Huile d’olive"></textarea>
   </div>`;
 }
 
-const normTitre = s => noAccent(s).replace(/[^a-z0-9]+/g,' ').trim();
-
-// Le déroulant reste la commande ; le champ au-dessus ne fait que le raccourcir.
-window.filtrerPlats=function(){
-  const f = document.getElementById('plan-filtre');
-  const sel = document.getElementById('plan-recette');
-  if(!f || !sel) return;
-  const avant = sel.value;
-  sel.innerHTML = optionsPlats(f.value);
-  const dispo = [...sel.options].map(o=>o.value);
-  if(dispo.includes(avant) && avant && avant !== '__libre') sel.value = avant;
-  else {
-    // une seule recette survit au filtre : autant la choisir d'office
-    const restantes = dispo.filter(v=>v && v!=='__libre');
-    sel.value = restantes.length===1 ? restantes[0] : '';
+window.setModePlat=function(m){
+  modePlat = m;
+  const bc = document.getElementById('bloc-carnet');
+  const bl = document.getElementById('bloc-libre');
+  if(!bc || !bl) return;
+  bc.style.display = m==='carnet' ? '' : 'none';
+  bl.style.display = m==='libre' ? '' : 'none';
+  document.getElementById('seg-carnet').classList.toggle('on', m==='carnet');
+  document.getElementById('seg-libre').classList.toggle('on', m==='libre');
+  if(m==='libre'){
+    // ce qui a été tapé côté recettes fait un nom de départ tout trouvé
+    const c = document.getElementById('plan-combo'), t = document.getElementById('plan-titre');
+    if(c && t && !t.value && c.value.trim() && !platChoisi) t.value = c.value.trim();
+    fermerCombo();
   }
-  majFormMenu();
+  majIndiceMenu();
 };
 
-function nbRecettesFiltrees(){
-  const sel = document.getElementById('plan-recette');
-  return sel ? [...sel.options].filter(o=>o.value && o.value!=='__libre').length : 0;
+window.ouvrirCombo=function(){ comboOuvert = true; renderCombo(); };
+window.fermerCombo=function(){ comboOuvert = false; renderCombo(); };
+window.basculerCombo=function(){
+  comboOuvert = !comboOuvert;
+  renderCombo();
+  if(comboOuvert) document.getElementById('plan-combo').focus();
+};
+// le clic sur une proposition doit passer avant la fermeture
+window.fermerComboPlusTard=function(){ setTimeout(fermerCombo, 150); };
+
+window.comboSaisie=function(){
+  const c = document.getElementById('plan-combo');
+  // ce qui est tapé ne correspond plus à la recette retenue : on la relâche
+  if(platChoisi){
+    const r = recipes.find(x=>x.id===platChoisi);
+    if(!r || normTitre(r.title) !== normTitre(c.value)) platChoisi = null;
+  }
+  comboOuvert = true;
+  renderCombo();
+  majIndiceMenu();
+};
+
+window.choisirPlat=function(id){
+  const r = recipes.find(x=>x.id===id);
+  if(!r) return;
+  if(modePlat !== 'carnet') setModePlat('carnet');
+  platChoisi = id;
+  document.getElementById('plan-combo').value = r.title;
+  fermerCombo();
+  majIndiceMenu();
+};
+
+// depuis la liste vide : bascule vers « Autre plat » en gardant ce qui est tapé
+window.versPlatLibre=function(){
+  setModePlat('libre');
+  const t = document.getElementById('plan-titre');
+  if(t) t.focus();
+};
+
+function renderCombo(){
+  const c = document.getElementById('plan-combo');
+  const box = document.getElementById('plan-combo-liste');
+  if(!c || !box) return;
+  if(!comboOuvert){ box.classList.remove('on'); box.innerHTML = ''; return; }
+  const filtre = c.value.trim();
+  const liste = platChoisi ? recettesFiltrees('') : recettesFiltrees(filtre);
+  box.classList.add('on');
+  if(!liste.length){
+    box.innerHTML = `<div class="combo-vide">Aucune recette ne porte ce nom.</div>
+      <button class="combo-item combo-neuf" onmousedown="event.preventDefault()" onclick="versPlatLibre()">
+        ✎ Programmer « ${esc(filtre)} » comme autre plat
+      </button>`;
+    return;
+  }
+  box.innerHTML = liste.map(r=>`<button class="combo-item${r.id===platChoisi?' on':''}"
+      onmousedown="event.preventDefault()" onclick="choisirPlat('${r.id}')">
+      <span class="t">${esc(r.title)}</span>
+      <span class="c">${esc(r.category||'')}${estListeSeule(r)?' · liste d’ingrédients':''}</span>
+    </button>`).join('');
 }
 
-// Affiche le bloc « plat hors carnet » et renseigne la ligne d'indice.
-window.majFormMenu=function(){
-  const sel = document.getElementById('plan-recette');
+function majIndiceMenu(){
   const indice = document.getElementById('plan-indice');
-  const bloc = document.getElementById('plan-bloc-libre');
-  if(!sel || !indice || !bloc) return;
-  const libre = sel.value === '__libre';
-  bloc.classList.toggle('on', libre);
-  const r = (!libre && sel.value) ? recipes.find(x=>x.id===sel.value) : null;
+  if(!indice) return;
+  const c = document.getElementById('plan-combo');
+  const filtre = c ? c.value.trim() : '';
+  let r = platChoisi ? recipes.find(x=>x.id===platChoisi) : null;
+  // une seule recette survit au filtre : autant l'annoncer, puisque « Ajouter »
+  // l'acceptera sans qu'on ait eu à la désigner
+  const candidates = (!r && filtre) ? recettesFiltrees(filtre) : [];
+  if(!r && candidates.length === 1) r = candidates[0];
   indice.className = 'menu-indice' + (r ? ' ok' : '');
-  if(libre){
-    // ce qui a été tapé dans le filtre fait un nom de départ tout trouvé
-    const titre = document.getElementById('plan-titre');
-    const f = document.getElementById('plan-filtre');
-    if(titre && !titre.value && f && f.value.trim()) titre.value = f.value.trim();
-    indice.textContent = 'Plat hors carnet : donnez-lui un nom et ses ingrédients.';
-  } else if(r){
+  if(r){
     const n = nbIngredients(r);
     indice.textContent = `✓ ${r.title} — ${n} ingrédient${n>1?'s':''}, `
       + (estListeSeule(r) ? 'liste d’ingrédients' : 'recette complète');
+  } else if(filtre){
+    indice.textContent = candidates.length
+      ? `${candidates.length} recettes correspondent — choisissez-en une dans la liste.`
+      : 'Aucune recette ne porte ce nom — passez par « Autre plat ».';
   } else {
-    const n = nbRecettesFiltrees();
-    const filtre = (document.getElementById('plan-filtre')||{}).value || '';
-    indice.textContent = n
-      ? (filtre.trim() ? `${n} recette${n>1?'s':''} correspondent — choisissez dans la liste.`
-                       : `${n} recettes au carnet — tapez quelques lettres pour raccourcir la liste.`)
-      : 'Aucune recette ne correspond : choisissez « Autre plat » pour un plat hors carnet.';
+    indice.textContent = `${recipes.length} recettes au carnet — tapez quelques lettres pour la retrouver.`;
   }
-};
+}
 
 window.ajouterAuMenu=function(){
-  const sel = document.getElementById('plan-recette').value;
   const date = document.getElementById('plan-jour').value;
   const moment = document.getElementById('plan-moment').value;
-  if(!sel){ toast('Choisissez d’abord un plat'); return; }
   const uid = 'p' + Date.now().toString(36) + Math.floor(Math.random()*4096).toString(36);
   let e;
-  if(sel === '__libre'){
+  if(modePlat === 'libre'){
     const titre = document.getElementById('plan-titre').value.trim();
     if(!titre){ toast('Donnez un nom à ce plat'); return; }
     const items = document.getElementById('plan-ingredients').value.split('\n').map(s=>s.trim()).filter(Boolean);
@@ -1302,7 +1416,14 @@ window.ajouterAuMenu=function(){
     document.getElementById('plan-ingredients').value = '';
     planDeplies.add(uid);            // un plat libre n'a que ses ingrédients : autant les montrer
   } else {
-    const r = recipes.find(x=>x.id===sel);
+    if(!platChoisi){
+      // la frappe désigne peut-être une seule recette sans qu'on l'ait cliquée
+      const c = document.getElementById('plan-combo');
+      const liste = recettesFiltrees(c.value.trim());
+      if(c.value.trim() && liste.length === 1) platChoisi = liste[0].id;
+      else { toast(liste.length ? 'Choisissez une recette dans la liste' : 'Aucune recette ne porte ce nom'); return; }
+    }
+    const r = recipes.find(x=>x.id===platChoisi);
     if(!r){ toast('Recette introuvable'); return; }
     // Le même plat, le même jour, au même moment : on ne l'empile pas deux fois.
     const deja = plan.find(x=>x.recipeId===r.id && x.date===date && x.moment===moment);
@@ -1322,12 +1443,12 @@ window.ajouterAuMenu=function(){
 // L'ajout est visiblement pris en compte, et un second appui ne peut plus
 // reprogrammer le même plat par inadvertance.
 function reposerFormMenu(){
-  const f = document.getElementById('plan-filtre');
-  const sel = document.getElementById('plan-recette');
-  if(f) f.value = '';
-  filtrerPlats();
-  // filtrerPlats conserve volontairement le choix en cours : ici on veut le contraire
-  if(sel){ sel.value = ''; majFormMenu(); }
+  platChoisi = null;
+  const c = document.getElementById('plan-combo');
+  if(c) c.value = '';
+  fermerCombo();
+  setModePlat('carnet');   // on repart du cas courant : une recette du carnet
+  majIndiceMenu();
 }
 
 window.retirerDuMenu=function(uid){
@@ -1428,11 +1549,9 @@ function renderMenus(){
   }
   body.innerHTML = html;
   if(planVue==='plan'){
-    filtrerPlats();
-    if(planPreselection){
-      const sel = document.getElementById('plan-recette');
-      if(sel && [...sel.options].some(o=>o.value===planPreselection)){ sel.value = planPreselection; majFormMenu(); }
-    }
+    modePlat = 'carnet'; platChoisi = null; comboOuvert = false;
+    setModePlat('carnet');
+    if(planPreselection && recipes.find(r=>r.id===planPreselection)) choisirPlat(planPreselection);
   }
   renderPlanListe();
 }
@@ -1577,7 +1696,8 @@ let modeModif = false;   // volontairement non mémorisé : éteint à chaque ou
 
 // un seul bouton « Modifier » : il porte sur ce qui est affiché
 window.modifierCourant=function(){
-  if(detailView === 'schema'){ ouvrirEditeurSchema(); return; }
+  const r = recipes.find(x=>x.id===currentId);
+  if(detailView === 'schema' && r && !estListeSeule(r)){ ouvrirEditeurSchema(); return; }
   startEdit();
 };
 
@@ -1692,7 +1812,9 @@ function renderDetail(r){
   if(bm) bm.style.display = (modeModif && schemaEditId !== r.id) ? '' : 'none';
   const sv = currentServings[r.id];
   const ratio = (r.servingsBase && r.servingsBase>0) ? sv/r.servingsBase : 1;
-  let html = `<div class="detail-photo" style="${r.photoUrl?`background-image:url('${r.photoUrl}')`:''}">
+  const noel = estNoel(r);
+  document.getElementById('detail-overlay').classList.toggle('noel', noel);
+  let html = (noel ? BANNIERE_NOEL : '') + `<div class="detail-photo" style="${r.photoUrl?`background-image:url('${r.photoUrl}')`:''}">
       ${r.photoUrl?'':'📷 Pas encore de photo'}
       <label class="photo-upload-btn">📸 ${r.photoUrl?'Changer':'Ajouter'} une photo
         <input type="file" accept="image/*" style="display:none" onchange="uploadPhoto(this,'${r.id}')">
@@ -1710,11 +1832,15 @@ function renderDetail(r){
       <button onclick="changeServings(1)">+</button>
     </div>`;
   }
-  html += `<div class="view-toggle">
+  // sans étapes, il n'y a rien à schématiser : on n'offre pas la bascule
+  if(estListeSeule(r)) detailView = 'text';
+  if(!estListeSeule(r)){
+    html += `<div class="view-toggle">
       <button class="vt-btn ${detailView==='text'?'active':''}" onclick="setDetailView('text')">📋 Texte</button>
       <button class="vt-btn ${detailView==='schema'?'active':''}" onclick="setDetailView('schema')">🗺 Schéma</button>
-    </div>
-    <div id="recipe-content">${detailView==='text'?renderTextView(r,ratio):renderSchemaView(r,ratio)}</div>`;
+    </div>`;
+  }
+  html += `<div id="recipe-content">${detailView==='text'?renderTextView(r,ratio):renderSchemaView(r,ratio)}</div>`;
   if(r.notes) html += `<div class="notes-box"><b>Notes :</b><br>${esc(r.notes)}</div>`;
   if(r.source) html += `<div class="source-line">Source : ${esc(r.source)}</div>`;
   html += `<div class="btn-row">
@@ -2128,6 +2254,8 @@ function barreEdition(r){
 
 window.ouvrirEditeurSchema=function(){
   if(!modeModif){ toast('Activez « Autoriser la modification » dans les réglages'); return; }
+  const rc = recipes.find(x=>x.id===currentId);
+  if(rc && estListeSeule(rc)){ toast('Cette recette n’a pas d’étapes à schématiser'); return; }
   const r = recipes.find(x=>x.id===currentId); if(!r) return;
   let g = r.schemaGraph ? r.schemaGraph.nodes : null;
   if(!g){ try{ const d=deriveSchemaGraph(r); g = d ? d.nodes : null; }catch(e){ g=null; } }
@@ -3078,6 +3206,7 @@ window.saveRecipe=async function(){
     toast('Activez « Autoriser la modification » dans les réglages');
     return;
   }
+  if(!currentId) data.local = true;   // créée ici : à préserver lors d'un import
   if(currentId){
     const i = recipes.findIndex(r=>r.id===currentId);
     if(i>=0){
