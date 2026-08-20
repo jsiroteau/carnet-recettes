@@ -24,23 +24,7 @@
   --r:16px; --success:#4C9A6A;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:'Work Sans',sans-serif;background-color:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;
-  background-image:
-    /* graines de vanille : petites et très noires */
-    radial-gradient(circle at 12% 18%, rgba(12,10,6,0.73) 0 0.8px, transparent 0.9px),
-    radial-gradient(circle at 78% 8%, rgba(12,10,6,0.62) 0 0.65px, transparent 0.75px),
-    radial-gradient(circle at 45% 32%, rgba(12,10,6,0.70) 0 0.75px, transparent 0.85px),
-    radial-gradient(circle at 88% 55%, rgba(12,10,6,0.56) 0 0.65px, transparent 0.75px),
-    radial-gradient(circle at 25% 68%, rgba(12,10,6,0.66) 0 0.7px, transparent 0.8px),
-    radial-gradient(circle at 62% 82%, rgba(12,10,6,0.62) 0 0.65px, transparent 0.75px),
-    radial-gradient(circle at 8% 90%, rgba(12,10,6,0.70) 0 0.75px, transparent 0.85px),
-    radial-gradient(circle at 95% 92%, rgba(12,10,6,0.52) 0 0.65px, transparent 0.75px),
-    radial-gradient(circle at 55% 5%, rgba(12,10,6,0.46) 0 0.55px, transparent 0.65px),
-    radial-gradient(circle at 33% 48%, rgba(12,10,6,0.52) 0 0.55px, transparent 0.65px);
-  background-size:220px 220px;
-  background-repeat:repeat;
-  background-attachment:fixed;
-}
+body{font-family:'Work Sans',sans-serif;background-color:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .mono{font-family:'IBM Plex Mono',monospace}
 
@@ -456,7 +440,6 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
   <div class="overlay-header">
     <button class="back-btn" onclick="closeAllOverlays()">‹</button>
     <h2>Menus</h2>
-    <button class="btn btn-secondary" style="padding:8px 12px;font-size:0.78rem" onclick="partagerMenus()" title="Partager les menus">📤</button>
   </div>
   <div class="overlay-body" id="menu-body"></div>
 </div>
@@ -941,6 +924,13 @@ window.addToShoppingList=function(id){
   (r.parts||[]).forEach(p=>(p.ingredients||[]).forEach(i=>items.push(scaleIngredient(i,ratio))));
   if(!items.length){ toast('Cette recette n’a pas d’ingrédients'); return; }
   const entry = {id, title:r.title, servings:sv, unit:r.servingsUnit||'', items};
+  // Déjà présente parce qu'elle est au menu : on ne l'ajoute pas une deuxième fois.
+  const viaMenu = cart.recipes.find(x=>{
+    if(String(x.id).indexOf('menu:')!==0) return false;
+    const e = plan.find(p=>'menu:'+p.uid===x.id);
+    return e && e.recipeId===id;
+  });
+  if(viaMenu){ toast('Déjà dans la liste : ce plat est au menu'); return; }
   const i = cart.recipes.findIndex(x=>x.id===id);
   if(i>=0){ cart.recipes[i] = entry; toast('✓ Liste mise à jour'); }
   else { cart.recipes.push(entry); toast(`✓ Ajouté — ${cart.recipes.length} recette${cart.recipes.length>1?'s':''} dans la liste`); }
@@ -1189,7 +1179,7 @@ Huile d’olive"></textarea>
     </div>
 
     <div id="plan-bloc-portions">
-      <label>Portions</label>
+      <label id="plan-lbl-portions">Portions</label>
       <input id="plan-portions" type="number" min="1" step="1" value="${preR&&preR.servingsBase?preR.servingsBase:''}" placeholder="comme la recette">
     </div>
 
@@ -1208,10 +1198,14 @@ window.majFormMenu=function(){
   if(bl) bl.classList.toggle('on', !!libre);
   if(bp) bp.style.display = libre ? 'none' : '';
   const p = document.getElementById('plan-portions');
+  const lbl = document.getElementById('plan-lbl-portions');
   if(p && !libre){
     const r = recipes.find(x=>x.id===sel.value);
     p.value = (r && r.servingsBase) ? r.servingsBase : '';
-    p.placeholder = (r && r.servingsUnit) ? r.servingsUnit : 'comme la recette';
+    p.placeholder = 'comme la recette';
+    // « 2 » ne veut pas dire la même chose pour 2 parts et pour 2 caponatas :
+    // on affiche l'unité de la recette pour lever le doute.
+    if(lbl) lbl.textContent = (r && r.servingsUnit) ? `Quantité — en ${r.servingsUnit}` : 'Portions';
   }
 };
 
@@ -1234,11 +1228,26 @@ window.ajouterAuMenu=function(){
     const r = recipes.find(x=>x.id===sel);
     if(!r){ toast('Recette introuvable'); return; }
     const sv = parseFloat(document.getElementById('plan-portions').value) || r.servingsBase || 0;
+    // Le même plat, le même jour, au même moment : on met à jour au lieu
+    // d'empiler une deuxième carte — sinon un appui de trop double tout.
+    const deja = plan.find(x=>x.recipeId===r.id && x.date===date && x.moment===moment);
+    if(deja){
+      deja.servings = sv;
+      savePlan(); renderPlanListe();
+      document.getElementById('plan-recette').value = '';
+      majFormMenu();
+      toast(`Déjà au menu ${nomJour(date)} ${momentInfo(moment).label} — quantité mise à jour`);
+      return;
+    }
     e = {uid, recipeId:r.id, title:r.title, servings:sv, unit:r.servingsUnit||'', items:null, date, moment, courses:true};
   }
   plan.push(e); savePlan(); updatePlanBadge(); renderPlanListe();
   planPreselection = null;
-  toast(`✓ ${quandLabel(e)}`);
+  // on repose le formulaire : l'ajout est visiblement pris en compte, et un
+  // second appui ne peut plus reprogrammer le même plat par inadvertance
+  document.getElementById('plan-recette').value = '';
+  majFormMenu();
+  toast(`✓ ${e.title} — ${quandLabel(e)}`);
 };
 
 window.retirerDuMenu=function(uid){
@@ -1250,10 +1259,6 @@ window.retirerDuMenu=function(uid){
 };
 window.basculerIngredients=function(uid){
   if(planDeplies.has(uid)) planDeplies.delete(uid); else planDeplies.add(uid);
-  renderPlanListe();
-};
-window.toutDeplier=function(on){
-  planDeplies = on ? new Set(planVisible().map(e=>e.uid)) : new Set();
   renderPlanListe();
 };
 window.basculerCourses=function(uid){
@@ -1297,12 +1302,18 @@ window.menusVersCourses=function(uid){
   const cibles = uid
     ? plan.filter(e=>e.uid===uid)
     : planVisible().filter(e=>e.courses!==false && (planPasses || e.date>=auj));
-  let ajoutes = 0, vides = 0;
+  let ajoutes = 0, vides = 0, remplaces = 0;
   cibles.forEach(e=>{
     const items = platIngredients(e);
     if(!items.length){ vides++; return; }
     const cid = 'menu:'+e.uid;
     const entree = {id:cid, title:`${e.title} — ${quandLabel(e)}`, servings:e.servings||0, unit:e.unit||'', items};
+    // Si la recette avait déjà été envoyée depuis sa fiche, on retire cette
+    // ligne-là : sinon les quantités s'additionnent et on achète le double.
+    if(e.recipeId){
+      const j = cart.recipes.findIndex(x=>x.id===e.recipeId);
+      if(j>=0){ cart.recipes.splice(j,1); remplaces++; }
+    }
     const i = cart.recipes.findIndex(x=>x.id===cid);
     if(i>=0) cart.recipes[i] = entree; else cart.recipes.push(entree);
     ajoutes++;
@@ -1311,14 +1322,6 @@ window.menusVersCourses=function(uid){
   if(!ajoutes){ toast(vides ? 'Aucun ingrédient à ajouter' : 'Rien à ajouter'); return; }
   toast(`✓ ${ajoutes} plat${ajoutes>1?'s':''} dans la liste de courses${vides?` (${vides} sans ingrédients)`:''}`);
   renderPlanListe();
-};
-
-window.partagerMenus=async function(){
-  const entrees = planVisible();
-  if(!entrees.length){ toast('Aucun menu à partager'); return; }
-  let texte = 'Menus\n\n';
-  entrees.forEach(e=>{ texte += `${quandLabel(e)} : ${e.title}\n`; });
-  await shareOrCopy('Menus', texte.trim());
 };
 
 // ── Affichage ──
@@ -1462,13 +1465,6 @@ function piedMenus(entrees){
   let html = `<div class="btn-row">
       <button class="btn btn-primary btn-full" onclick="menusVersCourses()">🛒 Remplir la liste de courses${pourCourses?` (${pourCourses} plat${pourCourses>1?'s':''})`:''}</button>
     </div>`;
-  if(planVue==='plan' && entrees.length){
-    const tout = entrees.every(e=>planDeplies.has(e.uid));
-    html += `<div class="btn-row" style="margin-top:10px">
-      <button class="btn btn-secondary" style="flex:1" onclick="toutDeplier(${tout?'false':'true'})">${tout?'Masquer':'Voir'} tous les ingrédients</button>
-      <button class="btn btn-secondary" style="flex:1" onclick="openShoppingList()">Voir ma liste${cart.recipes.length?` (${cart.recipes.length})`:''}</button>
-    </div>`;
-  }
   const passes = plan.filter(e=>e.date<auj).length;
   html += `<div class="btn-row" style="margin-top:10px">
       ${passes?`<button class="btn btn-secondary" style="flex:1" onclick="viderMenus('passes')">Effacer les jours passés</button>`:''}
