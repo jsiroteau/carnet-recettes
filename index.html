@@ -198,6 +198,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .menu-form textarea{resize:vertical;min-height:74px;line-height:1.5}
 .menu-form input:focus,.menu-form select:focus,.menu-form textarea:focus{border-color:var(--accent)}
 .menu-form .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.menu-form .champ-filtre{margin-bottom:8px;background:var(--card-hi);font-size:0.85rem}
 .menu-libre{display:none}
 .menu-indice{font-size:0.75rem;color:var(--muted);line-height:1.4;margin-top:7px;min-height:1.1em}
 .menu-indice.ok{color:var(--success);font-weight:600}
@@ -1175,21 +1176,39 @@ function optionsJours(){
   return h;
 }
 
+function optionsPlats(filtre){
+  // chaque mot tapé doit se retrouver dans le titre, pas forcément à la suite :
+  // « tarte pommes » trouve « Tarte aux pommes »
+  const mots = normTitre(filtre||'').split(' ').filter(Boolean);
+  const liste = mots.length
+    ? recipes.filter(r=>{ const titre = normTitre(r.title); return mots.every(m=>titre.includes(m)); })
+    : recipes.slice();
+  const parCat = {};
+  liste.forEach(r=>{ const c = r.category||'Autres'; (parCat[c]=parCat[c]||[]).push(r); });
+  const cats = [...CATEGORIES.filter(c=>parCat[c]), ...Object.keys(parCat).filter(c=>!CATEGORIES.includes(c)).sort()];
+  let opts = `<option value="">${liste.length?'— Choisir un plat —':'— Aucune recette ne correspond —'}</option>`;
+  cats.forEach(c=>{
+    opts += `<optgroup label="${esc(c)}">` + parCat[c]
+      .slice().sort((a,b)=>(a.title||'').localeCompare(b.title||'','fr',{sensitivity:'base'}))
+      .map(r=>`<option value="${esc(r.id)}">${esc(r.title)}</option>`).join('')
+      + `</optgroup>`;
+  });
+  opts += `<optgroup label="Hors carnet"><option value="__libre">✎ Autre plat — liste d’ingrédients seule</option></optgroup>`;
+  return opts;
+}
+
 function formulaireMenu(){
-  const titres = recipes.slice()
-    .sort((a,b)=>(a.title||'').localeCompare(b.title||'','fr',{sensitivity:'base'}))
-    .map(r=>`<option value="${esc(r.title)}" label="${esc(r.category||'')}">`).join('');
-  const preR = planPreselection ? recipes.find(r=>r.id===planPreselection) : null;
   return `<div class="menu-form">
     <h3>Programmer un plat</h3>
     <label>Plat</label>
-    <input id="plan-plat" list="plan-plats" autocomplete="off" autocorrect="off" spellcheck="false"
-      placeholder="Tapez les premières lettres…" value="${preR?esc(preR.title):''}"
-      oninput="majFormMenu()" onchange="majFormMenu()">
-    <datalist id="plan-plats">${titres}</datalist>
+    <input id="plan-filtre" class="champ-filtre" placeholder="🔍 Quelques lettres pour raccourcir la liste…"
+      autocomplete="off" autocorrect="off" spellcheck="false" oninput="filtrerPlats()">
+    <select id="plan-recette" onchange="majFormMenu()"></select>
     <div class="menu-indice" id="plan-indice"></div>
 
     <div class="menu-libre" id="plan-bloc-libre">
+      <label>Nom du plat</label>
+      <input id="plan-titre" placeholder="ex. Salade de tomates" autocomplete="off">
       <label>Ingrédients, un par ligne</label>
       <textarea id="plan-ingredients" placeholder="4 tomates
 1 oignon rouge
@@ -1213,60 +1232,78 @@ Huile d’olive"></textarea>
   </div>`;
 }
 
-// ── Reconnaissance de ce qui est tapé dans le champ « Plat » ──
 const normTitre = s => noAccent(s).replace(/[^a-z0-9]+/g,' ').trim();
-function candidatsMenu(txt){
-  const n = normTitre(txt);
-  if(!n) return [];
-  return recipes.filter(r=>normTitre(r.title).includes(n));
+
+// Le déroulant reste la commande ; le champ au-dessus ne fait que le raccourcir.
+window.filtrerPlats=function(){
+  const f = document.getElementById('plan-filtre');
+  const sel = document.getElementById('plan-recette');
+  if(!f || !sel) return;
+  const avant = sel.value;
+  sel.innerHTML = optionsPlats(f.value);
+  const dispo = [...sel.options].map(o=>o.value);
+  if(dispo.includes(avant) && avant && avant !== '__libre') sel.value = avant;
+  else {
+    // une seule recette survit au filtre : autant la choisir d'office
+    const restantes = dispo.filter(v=>v && v!=='__libre');
+    sel.value = restantes.length===1 ? restantes[0] : '';
+  }
+  majFormMenu();
+};
+
+function nbRecettesFiltrees(){
+  const sel = document.getElementById('plan-recette');
+  return sel ? [...sel.options].filter(o=>o.value && o.value!=='__libre').length : 0;
 }
-// Titre exact, ou une seule recette compatible : sinon c'est un plat hors carnet.
-function trouverRecette(txt){
-  const n = normTitre(txt);
-  if(!n) return null;
-  const exact = recipes.find(r=>normTitre(r.title)===n);
-  if(exact) return exact;
-  const c = candidatsMenu(txt);
-  return c.length===1 ? c[0] : null;
-}
-// Affiche l'indice sous le champ et ne montre le bloc « ingrédients » que
-// lorsque le texte ne peut plus désigner une recette du carnet : sinon il
-// clignoterait à chaque lettre tapée.
+
+// Affiche le bloc « plat hors carnet » et renseigne la ligne d'indice.
 window.majFormMenu=function(){
-  const champ = document.getElementById('plan-plat');
+  const sel = document.getElementById('plan-recette');
   const indice = document.getElementById('plan-indice');
   const bloc = document.getElementById('plan-bloc-libre');
-  if(!champ || !indice || !bloc) return;
-  const txt = champ.value.trim();
-  const r = trouverRecette(txt);
-  const cands = candidatsMenu(txt);
-  const libre = !!txt && !r && !cands.length;
+  if(!sel || !indice || !bloc) return;
+  const libre = sel.value === '__libre';
   bloc.classList.toggle('on', libre);
+  const r = (!libre && sel.value) ? recipes.find(x=>x.id===sel.value) : null;
   indice.className = 'menu-indice' + (r ? ' ok' : '');
-  if(!txt) indice.textContent = 'Une recette du carnet, ou n’importe quel autre plat.';
-  else if(r) indice.textContent = `✓ ${r.title} — ${nbIngredients(r)} ingrédient${nbIngredients(r)>1?'s':''}, `
-    + (estListeSeule(r) ? 'liste d’ingrédients' : 'recette complète');
-  else if(cands.length) indice.textContent = `${cands.length} recettes correspondent — précisez : ${cands.slice(0,3).map(x=>x.title).join(', ')}${cands.length>3?'…':''}`;
-  else indice.textContent = 'Plat hors carnet : indiquez ses ingrédients ci-dessous.';
+  if(libre){
+    // ce qui a été tapé dans le filtre fait un nom de départ tout trouvé
+    const titre = document.getElementById('plan-titre');
+    const f = document.getElementById('plan-filtre');
+    if(titre && !titre.value && f && f.value.trim()) titre.value = f.value.trim();
+    indice.textContent = 'Plat hors carnet : donnez-lui un nom et ses ingrédients.';
+  } else if(r){
+    const n = nbIngredients(r);
+    indice.textContent = `✓ ${r.title} — ${n} ingrédient${n>1?'s':''}, `
+      + (estListeSeule(r) ? 'liste d’ingrédients' : 'recette complète');
+  } else {
+    const n = nbRecettesFiltrees();
+    const filtre = (document.getElementById('plan-filtre')||{}).value || '';
+    indice.textContent = n
+      ? (filtre.trim() ? `${n} recette${n>1?'s':''} correspondent — choisissez dans la liste.`
+                       : `${n} recettes au carnet — tapez quelques lettres pour raccourcir la liste.`)
+      : 'Aucune recette ne correspond : choisissez « Autre plat » pour un plat hors carnet.';
+  }
 };
 
 window.ajouterAuMenu=function(){
-  const champ = document.getElementById('plan-plat');
-  const txt = champ.value.trim();
+  const sel = document.getElementById('plan-recette').value;
   const date = document.getElementById('plan-jour').value;
   const moment = document.getElementById('plan-moment').value;
-  if(!txt){ toast('Indiquez d’abord un plat'); return; }
-  const cands = candidatsMenu(txt);
-  const r = trouverRecette(txt);
-  if(!r && cands.length>1){ toast(`${cands.length} recettes correspondent — précisez laquelle`); return; }
+  if(!sel){ toast('Choisissez d’abord un plat'); return; }
   const uid = 'p' + Date.now().toString(36) + Math.floor(Math.random()*4096).toString(36);
   let e;
-  if(!r){
+  if(sel === '__libre'){
+    const titre = document.getElementById('plan-titre').value.trim();
+    if(!titre){ toast('Donnez un nom à ce plat'); return; }
     const items = document.getElementById('plan-ingredients').value.split('\n').map(s=>s.trim()).filter(Boolean);
-    e = {uid, recipeId:null, title:txt, servings:0, unit:'', items, date, moment, courses:true};
+    e = {uid, recipeId:null, title:titre, servings:0, unit:'', items, date, moment, courses:true};
+    document.getElementById('plan-titre').value = '';
     document.getElementById('plan-ingredients').value = '';
     planDeplies.add(uid);            // un plat libre n'a que ses ingrédients : autant les montrer
   } else {
+    const r = recipes.find(x=>x.id===sel);
+    if(!r){ toast('Recette introuvable'); return; }
     // Le même plat, le même jour, au même moment : on ne l'empile pas deux fois.
     const deja = plan.find(x=>x.recipeId===r.id && x.date===date && x.moment===moment);
     if(deja){
@@ -1285,9 +1322,12 @@ window.ajouterAuMenu=function(){
 // L'ajout est visiblement pris en compte, et un second appui ne peut plus
 // reprogrammer le même plat par inadvertance.
 function reposerFormMenu(){
-  const champ = document.getElementById('plan-plat');
-  if(champ) champ.value = '';
-  majFormMenu();
+  const f = document.getElementById('plan-filtre');
+  const sel = document.getElementById('plan-recette');
+  if(f) f.value = '';
+  filtrerPlats();
+  // filtrerPlats conserve volontairement le choix en cours : ici on veut le contraire
+  if(sel){ sel.value = ''; majFormMenu(); }
 }
 
 window.retirerDuMenu=function(uid){
@@ -1387,7 +1427,13 @@ function renderMenus(){
     html += `<div id="plan-liste"></div>`;
   }
   body.innerHTML = html;
-  if(planVue==='plan') majFormMenu();
+  if(planVue==='plan'){
+    filtrerPlats();
+    if(planPreselection){
+      const sel = document.getElementById('plan-recette');
+      if(sel && [...sel.options].some(o=>o.value===planPreselection)){ sel.value = planPreselection; majFormMenu(); }
+    }
+  }
   renderPlanListe();
 }
 
@@ -1570,6 +1616,7 @@ window.clearSettings=function(){
   closeAllOverlays();
 };
 window.wipeAllRecipes=function(){
+  if(!modeModif){ toast('Activez « Autoriser la modification » dans les réglages'); return; }
   if(!confirm(`Effacer les ${recipes.length} recettes de cet appareil ? Le fichier recipes-seed.js de votre dépôt GitHub n'est pas touché : vous pourrez le recharger ensuite.`)) return;
   recipes = [];
   signatureSeed = ''; enAttente = 0;
@@ -1679,10 +1726,13 @@ function renderDetail(r){
     </div>
     <div class="btn-row">
       <button class="btn btn-secondary btn-full" onclick="openShoppingList()">Voir ma liste de courses${cart.recipes.length?` (${cart.recipes.length} recette${cart.recipes.length>1?'s':''})`:''}</button>
-    </div>
-    <div class="btn-row">
+    </div>`;
+  // supprimer une recette engage tout le monde : même verrou que la modification
+  if(modeModif){
+    html += `<div class="btn-row">
       <button class="btn btn-danger btn-full" onclick="deleteRecipe('${r.id}')">🗑 Supprimer</button>
     </div>`;
+  }
   document.getElementById('detail-body').innerHTML = html;
   if(detailView==='schema') requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(window.__schemaGraphNodes) alignGraphNodes(); drawSchemaConnectors(); }));
 }
@@ -2077,6 +2127,7 @@ function barreEdition(r){
 }
 
 window.ouvrirEditeurSchema=function(){
+  if(!modeModif){ toast('Activez « Autoriser la modification » dans les réglages'); return; }
   const r = recipes.find(x=>x.id===currentId); if(!r) return;
   let g = r.schemaGraph ? r.schemaGraph.nodes : null;
   if(!g){ try{ const d=deriveSchemaGraph(r); g = d ? d.nodes : null; }catch(e){ g=null; } }
@@ -2504,6 +2555,7 @@ window.changeServings=function(delta){
   renderDetail(r);
 };
 window.deleteRecipe=function(id){
+  if(!modeModif){ toast('Activez « Autoriser la modification » dans les réglages'); return; }
   if(!confirm('Supprimer cette recette définitivement ?')) return;
   recipes = recipes.filter(r=>r.id!==id);
   sauver(true);
@@ -2849,6 +2901,7 @@ window.openAdd=function(){
   openOverlay('edit-overlay');
 };
 window.startEdit=function(){
+  if(!modeModif){ toast('Activez « Autoriser la modification » dans les réglages'); return; }
   const r = recipes.find(x=>x.id===currentId);
   if(!r) return;
   editingParts = JSON.parse(JSON.stringify(r.parts && r.parts.length ? r.parts : [{name:'',ingredients:[''],steps:['']}]));
@@ -3021,6 +3074,10 @@ window.saveRecipe=async function(){
     source: document.getElementById('ed-source').value.trim(),
     parts: cleanParts
   };
+  if(currentId && !modeModif){
+    toast('Activez « Autoriser la modification » dans les réglages');
+    return;
+  }
   if(currentId){
     const i = recipes.findIndex(r=>r.id===currentId);
     if(i>=0){
