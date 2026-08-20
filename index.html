@@ -55,6 +55,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .recipe-body h3{font-size:1rem;font-weight:600;font-family:'Fraunces',serif;margin-bottom:4px}
 .recipe-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .tag{font-size:0.66rem;padding:2px 9px;border-radius:50px;border:1px solid var(--border);color:var(--muted);font-family:'IBM Plex Mono',monospace}
+.tag-liste{color:var(--muted);border-style:dashed}
 .tag.diff-Facile{color:var(--success);border-color:rgba(127,184,138,0.4)}
 .tag.diff-Moyen{color:var(--accent);border-color:rgba(227,167,46,0.4)}
 .tag.diff-Difficile{color:var(--rose);border-color:rgba(201,112,100,0.4)}
@@ -170,6 +171,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .shop-intro{color:var(--muted);font-size:0.82rem;line-height:1.5;margin-bottom:14px}
 .shop-recipes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 .shop-recipe-chip{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:50px;padding:6px 8px 6px 14px;font-size:0.78rem;box-shadow:0 2px 8px rgba(59,42,32,0.05)}
+.shop-recipe-chip.du-menu{border-color:var(--accent);padding-right:14px}
 .shop-recipe-chip .sv{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--muted)}
 .shop-recipe-chip button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;line-height:1;padding:2px 4px}
 .shop-tools{display:flex;gap:8px;margin-bottom:4px}
@@ -197,6 +199,8 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .menu-form input:focus,.menu-form select:focus,.menu-form textarea:focus{border-color:var(--accent)}
 .menu-form .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .menu-libre{display:none}
+.menu-indice{font-size:0.75rem;color:var(--muted);line-height:1.4;margin-top:7px;min-height:1.1em}
+.menu-indice.ok{color:var(--success);font-weight:600}
 .menu-libre.on{display:block}
 
 .menu-jour{margin-top:22px}
@@ -624,6 +628,7 @@ async function loadRecipes(){
   }
   await reclasserAnciennesCategories();
   majIndicateurExport();
+  syncCourses();                 // les ingrédients des plats au menu en dépendent
   renderCategories(); renderList();
 }
 
@@ -690,11 +695,21 @@ window.renderList=function(){
         <div class="recipe-meta">
           <span class="tag">${esc(r.category||'')}</span>
           ${r.difficulty?`<span class="tag diff-${r.difficulty}">${esc(r.difficulty)}</span>`:''}
+          ${estListeSeule(r)?`<span class="tag tag-liste">📋 Liste d’ingrédients</span>`:''}
           ${(r.labels||[]).map(l=>`<span class="tag" style="color:var(--accent);border-color:var(--accent)">🏷 ${esc(l)}</span>`).join('')}
         </div>
       </div>
     </div>`).join('');
 };
+
+// Une recette sans aucune étape n'est qu'une liste d'ingrédients : on le signale
+// partout où elle apparaît, pour qu'on sache à quoi s'attendre en l'ouvrant.
+function estListeSeule(r){
+  return !(r.parts||[]).some(p=>(p.steps||[]).some(s=>String(s).trim()));
+}
+function nbIngredients(r){
+  return (r.parts||[]).reduce((n,p)=>n+(p.ingredients||[]).filter(i=>String(i).trim()).length, 0);
+}
 
 // ── SCALING ──
 function scaleIngredient(str, ratio){
@@ -857,7 +872,10 @@ function fusionner(parts){
   if(cumulable){
     const total = util.reduce((s,p)=>s+p.qty, 0);
     const modele = util.reduce((a,b)=>(b.qty>a.qty?b:a));  // « 3 œufs » plutôt que « 1 œuf »
-    return `${fmtQty(total)}${unit?unit:''} ${modele.rest}`.trim();
+    // La parenthèse compte pour une seule ligne (« 1kg d'aubergines (3 aubergines
+    // moyennes) ») : une fois les quantités additionnées elle devient fausse.
+    const reste = modele.rest.replace(/\s*\([^)]*\)/g,'').trim();
+    return `${fmtQty(total)}${unit?unit:''} ${reste}`.trim();
   }
   return util.map(p=>p.raw).join(' + ');
 }
@@ -945,18 +963,22 @@ function renderShoppingList(){
   if(!cart.recipes.length){
     body.innerHTML = `<div class="empty-state">
       <div style="font-size:2rem;margin-bottom:8px">🛒</div>
-      Votre liste est vide.<br>Ouvrez une recette et appuyez sur « Ajouter aux courses ».<br>
-      Vous pouvez en ajouter plusieurs : les ingrédients seront regroupés.
+      Votre liste est vide.<br>Ouvrez une recette et appuyez sur « Ajouter aux courses »,<br>
+      ou programmez des plats dans les menus : ils arrivent ici tout seuls.
     </div>`;
     updateCartBadge();
     return;
   }
-  let html = `<div class="shop-intro">Décochez ce que vous avez déjà dans vos placards : seuls les produits cochés seront partagés.</div>`;
-  html += `<div class="shop-recipes">` + cart.recipes.map((rc,i)=>`
-    <span class="shop-recipe-chip">${esc(rc.title)}
+  const nbMenu = cart.recipes.filter(rc=>String(rc.id).indexOf('menu:')===0).length;
+  let html = `<div class="shop-intro">Décochez ce que vous avez déjà dans vos placards : seuls les produits cochés seront partagés.
+    Décocher un produit ne change rien à vos menus.${nbMenu?`<br>Les plats marqués 📅 viennent des menus ; pour en retirer un, décochez « courses » dans l’écran Menus.`:''}</div>`;
+  html += `<div class="shop-recipes">` + cart.recipes.map((rc,i)=>{
+    const duMenu = String(rc.id).indexOf('menu:')===0;
+    return `<span class="shop-recipe-chip${duMenu?' du-menu':''}">${duMenu?'📅 ':''}${esc(rc.title)}
       <span class="sv">${rc.servings?rc.servings+' '+esc(rc.unit||''):''}</span>
-      <button onclick="removeFromShoppingList(${i})" title="Retirer">✕</button>
-    </span>`).join('') + `</div>`;
+      ${duMenu ? '' : `<button onclick="removeFromShoppingList(${i})" title="Retirer">✕</button>`}
+    </span>`;
+  }).join('') + `</div>`;
   html += `<div class="shop-tools">
     <span class="chip" onclick="checkAllShop(true)">Tout cocher</span>
     <span class="chip" onclick="checkAllShop(false)">Tout décocher</span>
@@ -1012,15 +1034,29 @@ window.setShopRayon=function(idx, val){
   saveRayons(); renderShoppingList();
 };
 window.removeFromShoppingList=function(i){
+  const rc = cart.recipes[i];
+  if(!rc || String(rc.id).indexOf('menu:')===0) return;   // un plat au menu se retire depuis les menus
   cart.recipes.splice(i,1);
-  saveCart(); renderShoppingList();
+  saveCart(); updateCartBadge(); renderShoppingList();
 };
 window.clearShoppingList=function(){
   if(!cart.recipes.length) return;
-  if(!confirm('Vider toute la liste de courses ?')) return;
-  cart = {recipes:[], off:{}};
-  saveCart(); renderShoppingList();
-  toast('Liste vidée');
+  // Vider la liste ne doit pas déprogrammer des repas : les plats venant des
+  // menus restent, seuls les ajouts faits depuis une fiche s'en vont.
+  const duMenu = cart.recipes.filter(rc=>String(rc.id).indexOf('menu:')===0);
+  const directs = cart.recipes.length - duMenu.length;
+  if(!directs){
+    toast('Ces plats viennent des menus : décochez « courses » là-bas');
+    return;
+  }
+  const suite = duMenu.length
+    ? `Retirer les ${directs} recette${directs>1?'s ajoutées':' ajoutée'} depuis une fiche ? Les ${duMenu.length} plat${duMenu.length>1?'s':''} venant des menus rest${duMenu.length>1?'ent':'e'}.`
+    : 'Vider toute la liste de courses ?';
+  if(!confirm(suite)) return;
+  cart.recipes = duMenu;
+  cart.off = {};
+  saveCart(); updateCartBadge(); renderShoppingList();
+  toast(duMenu.length ? 'Ajouts manuels retirés' : 'Liste vidée');
 };
 window.shareShoppingList=async function(){
   const aPrendre = shopList.filter(i=>!cart.off[i.key]);
@@ -1140,27 +1176,20 @@ function optionsJours(){
 }
 
 function formulaireMenu(){
-  const parCat = {};
-  recipes.forEach(r=>{ const c = r.category||'Autres'; (parCat[c]=parCat[c]||[]).push(r); });
-  const cats = [...CATEGORIES.filter(c=>parCat[c]), ...Object.keys(parCat).filter(c=>!CATEGORIES.includes(c)).sort()];
-  let opts = `<option value="">— Choisir un plat —</option>`;
-  cats.forEach(c=>{
-    opts += `<optgroup label="${esc(c)}">` + parCat[c]
-      .slice().sort((a,b)=>(a.title||'').localeCompare(b.title||'','fr',{sensitivity:'base'}))
-      .map(r=>`<option value="${esc(r.id)}"${planPreselection===r.id?' selected':''}>${esc(r.title)}</option>`).join('')
-      + `</optgroup>`;
-  });
-  opts += `<optgroup label="Hors carnet"><option value="__libre">✎ Autre plat — liste d’ingrédients seule</option></optgroup>`;
-
+  const titres = recipes.slice()
+    .sort((a,b)=>(a.title||'').localeCompare(b.title||'','fr',{sensitivity:'base'}))
+    .map(r=>`<option value="${esc(r.title)}" label="${esc(r.category||'')}">`).join('');
   const preR = planPreselection ? recipes.find(r=>r.id===planPreselection) : null;
   return `<div class="menu-form">
     <h3>Programmer un plat</h3>
     <label>Plat</label>
-    <select id="plan-recette" onchange="majFormMenu()">${opts}</select>
+    <input id="plan-plat" list="plan-plats" autocomplete="off" autocorrect="off" spellcheck="false"
+      placeholder="Tapez les premières lettres…" value="${preR?esc(preR.title):''}"
+      oninput="majFormMenu()" onchange="majFormMenu()">
+    <datalist id="plan-plats">${titres}</datalist>
+    <div class="menu-indice" id="plan-indice"></div>
 
     <div class="menu-libre" id="plan-bloc-libre">
-      <label>Nom du plat</label>
-      <input id="plan-titre" placeholder="ex. Salade de tomates" autocomplete="off">
       <label>Ingrédients, un par ligne</label>
       <textarea id="plan-ingredients" placeholder="4 tomates
 1 oignon rouge
@@ -1178,83 +1207,94 @@ Huile d’olive"></textarea>
       </div>
     </div>
 
-    <div id="plan-bloc-portions">
-      <label id="plan-lbl-portions">Portions</label>
-      <input id="plan-portions" type="number" min="1" step="1" value="${preR&&preR.servingsBase?preR.servingsBase:''}" placeholder="comme la recette">
-    </div>
-
     <div class="btn-row" style="margin-top:18px">
       <button class="btn btn-primary btn-full" onclick="ajouterAuMenu()">＋ Ajouter au menu</button>
     </div>
   </div>`;
 }
 
-// affiche les champs du plat libre / masque les portions quand elles n'ont pas de sens
+// ── Reconnaissance de ce qui est tapé dans le champ « Plat » ──
+const normTitre = s => noAccent(s).replace(/[^a-z0-9]+/g,' ').trim();
+function candidatsMenu(txt){
+  const n = normTitre(txt);
+  if(!n) return [];
+  return recipes.filter(r=>normTitre(r.title).includes(n));
+}
+// Titre exact, ou une seule recette compatible : sinon c'est un plat hors carnet.
+function trouverRecette(txt){
+  const n = normTitre(txt);
+  if(!n) return null;
+  const exact = recipes.find(r=>normTitre(r.title)===n);
+  if(exact) return exact;
+  const c = candidatsMenu(txt);
+  return c.length===1 ? c[0] : null;
+}
+// Affiche l'indice sous le champ et ne montre le bloc « ingrédients » que
+// lorsque le texte ne peut plus désigner une recette du carnet : sinon il
+// clignoterait à chaque lettre tapée.
 window.majFormMenu=function(){
-  const sel = document.getElementById('plan-recette');
-  const libre = sel && sel.value === '__libre';
-  const bl = document.getElementById('plan-bloc-libre');
-  const bp = document.getElementById('plan-bloc-portions');
-  if(bl) bl.classList.toggle('on', !!libre);
-  if(bp) bp.style.display = libre ? 'none' : '';
-  const p = document.getElementById('plan-portions');
-  const lbl = document.getElementById('plan-lbl-portions');
-  if(p && !libre){
-    const r = recipes.find(x=>x.id===sel.value);
-    p.value = (r && r.servingsBase) ? r.servingsBase : '';
-    p.placeholder = 'comme la recette';
-    // « 2 » ne veut pas dire la même chose pour 2 parts et pour 2 caponatas :
-    // on affiche l'unité de la recette pour lever le doute.
-    if(lbl) lbl.textContent = (r && r.servingsUnit) ? `Quantité — en ${r.servingsUnit}` : 'Portions';
-  }
+  const champ = document.getElementById('plan-plat');
+  const indice = document.getElementById('plan-indice');
+  const bloc = document.getElementById('plan-bloc-libre');
+  if(!champ || !indice || !bloc) return;
+  const txt = champ.value.trim();
+  const r = trouverRecette(txt);
+  const cands = candidatsMenu(txt);
+  const libre = !!txt && !r && !cands.length;
+  bloc.classList.toggle('on', libre);
+  indice.className = 'menu-indice' + (r ? ' ok' : '');
+  if(!txt) indice.textContent = 'Une recette du carnet, ou n’importe quel autre plat.';
+  else if(r) indice.textContent = `✓ ${r.title} — ${nbIngredients(r)} ingrédient${nbIngredients(r)>1?'s':''}, `
+    + (estListeSeule(r) ? 'liste d’ingrédients' : 'recette complète');
+  else if(cands.length) indice.textContent = `${cands.length} recettes correspondent — précisez : ${cands.slice(0,3).map(x=>x.title).join(', ')}${cands.length>3?'…':''}`;
+  else indice.textContent = 'Plat hors carnet : indiquez ses ingrédients ci-dessous.';
 };
 
 window.ajouterAuMenu=function(){
-  const sel = document.getElementById('plan-recette').value;
+  const champ = document.getElementById('plan-plat');
+  const txt = champ.value.trim();
   const date = document.getElementById('plan-jour').value;
   const moment = document.getElementById('plan-moment').value;
-  if(!sel){ toast('Choisissez d’abord un plat'); return; }
+  if(!txt){ toast('Indiquez d’abord un plat'); return; }
+  const cands = candidatsMenu(txt);
+  const r = trouverRecette(txt);
+  if(!r && cands.length>1){ toast(`${cands.length} recettes correspondent — précisez laquelle`); return; }
   const uid = 'p' + Date.now().toString(36) + Math.floor(Math.random()*4096).toString(36);
   let e;
-  if(sel === '__libre'){
-    const titre = document.getElementById('plan-titre').value.trim();
-    if(!titre){ toast('Donnez un nom à ce plat'); return; }
+  if(!r){
     const items = document.getElementById('plan-ingredients').value.split('\n').map(s=>s.trim()).filter(Boolean);
-    e = {uid, recipeId:null, title:titre, servings:0, unit:'', items, date, moment, courses:true};
-    document.getElementById('plan-titre').value = '';
+    e = {uid, recipeId:null, title:txt, servings:0, unit:'', items, date, moment, courses:true};
     document.getElementById('plan-ingredients').value = '';
     planDeplies.add(uid);            // un plat libre n'a que ses ingrédients : autant les montrer
   } else {
-    const r = recipes.find(x=>x.id===sel);
-    if(!r){ toast('Recette introuvable'); return; }
-    const sv = parseFloat(document.getElementById('plan-portions').value) || r.servingsBase || 0;
-    // Le même plat, le même jour, au même moment : on met à jour au lieu
-    // d'empiler une deuxième carte — sinon un appui de trop double tout.
+    // Le même plat, le même jour, au même moment : on ne l'empile pas deux fois.
     const deja = plan.find(x=>x.recipeId===r.id && x.date===date && x.moment===moment);
     if(deja){
-      deja.servings = sv;
-      savePlan(); renderPlanListe();
-      document.getElementById('plan-recette').value = '';
-      majFormMenu();
-      toast(`Déjà au menu ${nomJour(date)} ${momentInfo(moment).label} — quantité mise à jour`);
+      reposerFormMenu();
+      toast(`${r.title} est déjà au menu ${nomJour(date)} ${momentInfo(moment).label}`);
       return;
     }
-    e = {uid, recipeId:r.id, title:r.title, servings:sv, unit:r.servingsUnit||'', items:null, date, moment, courses:true};
+    e = {uid, recipeId:r.id, title:r.title, servings:r.servingsBase||0, unit:r.servingsUnit||'', items:null, date, moment, courses:true};
   }
-  plan.push(e); savePlan(); updatePlanBadge(); renderPlanListe();
+  plan.push(e); savePlan(); updatePlanBadge(); syncCourses(); renderPlanListe();
   planPreselection = null;
-  // on repose le formulaire : l'ajout est visiblement pris en compte, et un
-  // second appui ne peut plus reprogrammer le même plat par inadvertance
-  document.getElementById('plan-recette').value = '';
-  majFormMenu();
+  reposerFormMenu();
   toast(`✓ ${e.title} — ${quandLabel(e)}`);
 };
+
+// L'ajout est visiblement pris en compte, et un second appui ne peut plus
+// reprogrammer le même plat par inadvertance.
+function reposerFormMenu(){
+  const champ = document.getElementById('plan-plat');
+  if(champ) champ.value = '';
+  majFormMenu();
+}
 
 window.retirerDuMenu=function(uid){
   const i = plan.findIndex(e=>e.uid===uid);
   if(i<0) return;
   plan.splice(i,1); planDeplies.delete(uid);
-  savePlan(); updatePlanBadge();
+  savePlan(); updatePlanBadge(); syncCourses();
   if(planVue==='recap') renderMenus(); else renderPlanListe();
 };
 window.basculerIngredients=function(uid){
@@ -1264,12 +1304,13 @@ window.basculerIngredients=function(uid){
 window.basculerCourses=function(uid){
   const e = plan.find(x=>x.uid===uid); if(!e) return;
   e.courses = !e.courses;
-  savePlan(); renderPlanListe();
+  savePlan(); syncCourses(); renderPlanListe();
+  toast(e.courses ? '✓ Ajouté à la liste de courses' : 'Retiré de la liste de courses');
 };
 window.changerPortionsMenu=function(uid, d){
   const e = plan.find(x=>x.uid===uid); if(!e || !e.recipeId) return;
   e.servings = Math.max(1, (e.servings||1) + d);
-  savePlan(); renderPlanListe();
+  savePlan(); syncCourses(); renderPlanListe();
 };
 window.ouvrirDepuisMenu=function(uid){
   const e = plan.find(x=>x.uid===uid); if(!e || !e.recipeId) return;
@@ -1289,7 +1330,7 @@ window.viderMenus=function(quoi){
     if(!confirm('Effacer tous les menus programmés ?')) return;
     plan = [];
   }
-  savePlan(); updatePlanBadge(); renderMenus();
+  savePlan(); updatePlanBadge(); syncCourses(); renderMenus();
   toast('Menus effacés');
 };
 
@@ -1297,32 +1338,37 @@ window.viderMenus=function(quoi){
 // Chaque plat programmé entre dans le panier sous sa propre clé : le même plat
 // prévu deux fois compte deux fois, et réappuyer sur le bouton met à jour au
 // lieu de dupliquer.
-window.menusVersCourses=function(uid){
+// La liste de courses est le reflet du planning : tout plat à venir dont la
+// case « courses » est cochée y figure, et en sort dès qu'on la décoche ou que
+// le plat quitte le menu. Aucun bouton à presser.
+function syncCourses(){
   const auj = isoDecale(0);
-  const cibles = uid
-    ? plan.filter(e=>e.uid===uid)
-    : planVisible().filter(e=>e.courses!==false && (planPasses || e.date>=auj));
-  let ajoutes = 0, vides = 0, remplaces = 0;
-  cibles.forEach(e=>{
+  const voulu = new Map();
+  const recettesAuMenu = new Set();
+  plan.forEach(e=>{
+    if(e.courses===false || e.date < auj) return;
     const items = platIngredients(e);
-    if(!items.length){ vides++; return; }
-    const cid = 'menu:'+e.uid;
-    const entree = {id:cid, title:`${e.title} — ${quandLabel(e)}`, servings:e.servings||0, unit:e.unit||'', items};
-    // Si la recette avait déjà été envoyée depuis sa fiche, on retire cette
-    // ligne-là : sinon les quantités s'additionnent et on achète le double.
-    if(e.recipeId){
-      const j = cart.recipes.findIndex(x=>x.id===e.recipeId);
-      if(j>=0){ cart.recipes.splice(j,1); remplaces++; }
-    }
+    if(!items.length) return;
+    voulu.set('menu:'+e.uid, {
+      id:'menu:'+e.uid, title:`${e.title} — ${quandLabel(e)}`,
+      servings:e.servings||0, unit:e.unit||'', items
+    });
+    if(e.recipeId) recettesAuMenu.add(e.recipeId);
+  });
+  // on retire les lignes de menu périmées, et la ligne d'une recette qui avait
+  // été envoyée depuis sa fiche alors qu'elle est aussi au menu : sinon on
+  // achèterait deux fois les mêmes ingrédients
+  cart.recipes = cart.recipes.filter(x=>{
+    const id = String(x.id);
+    if(id.indexOf('menu:')===0) return voulu.has(id);
+    return !recettesAuMenu.has(id);
+  });
+  voulu.forEach((entree,cid)=>{
     const i = cart.recipes.findIndex(x=>x.id===cid);
     if(i>=0) cart.recipes[i] = entree; else cart.recipes.push(entree);
-    ajoutes++;
   });
   saveCart(); updateCartBadge();
-  if(!ajoutes){ toast(vides ? 'Aucun ingrédient à ajouter' : 'Rien à ajouter'); return; }
-  toast(`✓ ${ajoutes} plat${ajoutes>1?'s':''} dans la liste de courses${vides?` (${vides} sans ingrédients)`:''}`);
-  renderPlanListe();
-};
+}
 
 // ── Affichage ──
 function renderMenus(){
@@ -1407,7 +1453,9 @@ function carteplat(e){
   let html = `<div class="menu-plat">
     <div class="mp-top">
       <div class="mp-nom" ${e.recipeId&&existe?`onclick="ouvrirDepuisMenu('${e.uid}')"`:''}>${esc(e.title)}
-        ${!e.recipeId?`<span class="libre">Hors carnet</span>`:''}
+        ${!e.recipeId?`<span class="libre">Hors carnet · liste d’ingrédients</span>`:''}
+        ${(()=>{ const r = e.recipeId && recipes.find(x=>x.id===e.recipeId);
+                 return (r && estListeSeule(r)) ? `<span class="libre">Liste d’ingrédients</span>` : ''; })()}
         ${e.recipeId&&!existe?`<span class="libre">Recette supprimée</span>`:''}
       </div>
       <button class="mp-x" onclick="retirerDuMenu('${e.uid}')" title="Retirer du menu">✕</button>
@@ -1421,8 +1469,7 @@ function carteplat(e){
     </div>`;
   }
   html += `<button class="mp-btn ${deplie?'on':''}" onclick="basculerIngredients('${e.uid}')">🥕 Ingrédients</button>
-      <button class="mp-btn" onclick="menusVersCourses('${e.uid}')" title="Envoyer ce plat dans la liste de courses">🛒</button>
-      <label class="mp-courses"><input type="checkbox" ${e.courses!==false?'checked':''} onchange="basculerCourses('${e.uid}')">courses</label>
+      <label class="mp-courses" title="Faire figurer ce plat dans la liste de courses"><input type="checkbox" ${e.courses!==false?'checked':''} onchange="basculerCourses('${e.uid}')">🛒 courses</label>
     </div>`;
   if(deplie){
     html += `<div class="mp-ing">` + (ings.length
@@ -1461,18 +1508,17 @@ function vueRecap(entrees){
 
 function piedMenus(entrees){
   const auj = isoDecale(0);
-  const pourCourses = entrees.filter(e=>e.courses!==false && (planPasses || e.date>=auj)).length;
-  let html = `<div class="btn-row">
-      <button class="btn btn-primary btn-full" onclick="menusVersCourses()">🛒 Remplir la liste de courses${pourCourses?` (${pourCourses} plat${pourCourses>1?'s':''})`:''}</button>
-    </div>`;
+  let html = '';
   const passes = plan.filter(e=>e.date<auj).length;
   html += `<div class="btn-row" style="margin-top:10px">
       ${passes?`<button class="btn btn-secondary" style="flex:1" onclick="viderMenus('passes')">Effacer les jours passés</button>`:''}
       <button class="btn btn-danger" style="flex:1" onclick="viderMenus('tout')">🗑 Tout effacer</button>
     </div>
     <div style="font-size:0.72rem;color:var(--muted);margin-top:14px;line-height:1.5">
+      Les plats cochés « courses » alimentent la liste de courses au fur et à mesure,
+      et en sortent d’eux-mêmes une fois le jour passé.
       Les menus restent sur cet appareil : ils ne sont pas publiés avec les recettes.
-      Les plats programmés depuis plus d’un mois s’effacent d’eux-mêmes.
+      Les plats programmés depuis plus d’un mois s’effacent seuls.
     </div>`;
   return html;
 }
@@ -1608,6 +1654,7 @@ function renderDetail(r){
     <div class="meta-row">
       <div class="meta-pill"><div class="v">${esc(r.category||'—')}</div><div class="l">Catégorie</div></div>
       ${r.difficulty?`<div class="meta-pill"><div class="v">${esc(r.difficulty)}</div><div class="l">Difficulté</div></div>`:''}
+      <div class="meta-pill"><div class="v">${estListeSeule(r)?'Ingrédients':'Complète'}</div><div class="l">${estListeSeule(r)?'Sans étapes':'Recette'}</div></div>
     </div>`;
   if(r.servingsBase){
     html += `<div class="servings-ctrl">
