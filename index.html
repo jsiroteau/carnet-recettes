@@ -191,31 +191,46 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 
 /* ── HABILLAGE DE NOËL ── */
 /* Nuit d'hiver bleue : toute la fiche suit les variables, il suffit de les
-   redéfinir. L'accent doré était illisible en petits caractères — on prend le
-   rose des baies de houx, qui reste dans la famille de couleurs de l'appli. */
+   redéfinir. Le doré était illisible en petits caractères — on prend le rouge
+   des baies de houx, assez soutenu pour la fête et assez clair pour se lire. */
 #detail-overlay.noel{
   --bg:#101B36; --surface:#1A2748; --card:#1A2748; --card-hi:#22315A;
-  --accent:#E8677E; --accent-ink:#16203C; --rose:#F0899C;
+  --accent:#F26074; --accent-ink:#16203C; --rose:#F0899C;
   --text:#EAEFFA; --muted:#93A0C2; --border:rgba(234,239,250,0.16);
   /* `color` est calculé une fois sur body : sans cette ligne, le texte hérité
      reste celui du mode clair et devient illisible sur fond sombre. */
   color:var(--text);
   background:
-    radial-gradient(130% 55% at 50% -12%, rgba(255,206,138,0.20) 0%, rgba(232,145,60,0.05) 45%, transparent 70%),
+    radial-gradient(130% 55% at 50% -12%, rgba(255,206,138,0.18) 0%, rgba(232,145,60,0.05) 45%, transparent 70%),
     linear-gradient(#132140 0%, #101B36 45%, #0B1428 100%);
 }
-/* houx et bougies disséminés derrière le contenu, fixés à la fenêtre */
-#detail-overlay.noel::before{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.72;
-  background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20800%201400%22%20preserveAspectRatio=%22xMidYMax%20slice%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3CradialGradient%20id=%22g%22%3E%3Cstop%20offset=%220%25%22%20stop-color=%22%23FFCE8A%22%20stop-opacity=%220.34%22/%3E%3Cstop%20offset=%2260%25%22%20stop-color=%22%23E8913C%22%20stop-opacity=%220.08%22/%3E%3Cstop%20offset=%22100%25%22%20stop-color=%22%23E8913C%22%20stop-opacity=%220%22/%3E%3C/radialGradient%3E%3ClinearGradient%20id=%22c%22%20x1=%220%22%20y1=%220%22%20x2=%221%22%20y2=%220%22%3E%3Cstop%20offset=%220%25%22%20stop-color=%22%23A99979%22/%3E%3Cstop%20offset=%2238%25%22%20stop-color=%22%23EFE3CC%22/%3E%3Cstop%20offset=%22100%25%22%20stop-color=%22%238E7F63%22/%3E%3C/linearGradient%3E%3ClinearGradient%20id=%22fl%22%20x1=%220%22%20y1=%220%22%20x2=%220%22%20y2=%221%22%3E%3Cstop%20offset=%220%25%22%20stop-color=%22%23FFF6D4%22/%3E%3Cstop%20offset=%2255%25%22%20stop-color=%22%23FFC24D%22/%3E%3Cstop%20offset=%22100%25%22%20stop-color=%22%23E8752B%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20transform=%22translate(40,90)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(-9,7)%20rotate(156)%20scale(0.75)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(-1,-9)%20rotate(179)%20scale(0.52)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(3,-2)%20rotate(218)%20scale(0.67)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(752,170)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(-13,9)%20rotate(280)%20scale(0.47)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(88,320)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(-0,4)%20rotate(120)%20scale(0.67)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(14,8)%20rotate(86)%20scale(0.80)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(716,410)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(-3,11)%20rotate(11)%20scale(0.75)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(26,550)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(-8,4)%20rotate(158)%20scale(0.65)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(-3,10)%20rotate(143)%20scale(0.46)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(-1,-0)%20rotate(198)%20scale(0.45)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(778,630)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(-2,-7)%20rotate(297)%20scale(0.49)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(-5,9)%20rotate(343)%20scale(0.73)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(4,-10)%20rotate(262)%20scale(0.75)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(122,790)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(-8,3)%20rotate(102)%20scale(0.48)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(-10,2)%20rotate(100)%20scale(0.67)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(708,890)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(-9,6)%20rotate(156)%20scale(0.54)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(11,2)%20rotate(69)%20scale(0.78)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(52,1010)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(3,-5)%20rotate(52)%20scale(0.74)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(-8,1)%20rotate(117)%20scale(0.47)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(12,-7)%20rotate(102)%20scale(0.55)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(758,1090)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(-11,-9)%20rotate(68)%20scale(0.79)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(1,11)%20rotate(40)%20scale(0.71)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(142,1210)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(-13,3)%20rotate(199)%20scale(0.79)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(14,-10)%20rotate(203)%20scale(0.56)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(694,1278)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(-4,4)%20rotate(365)%20scale(0.77)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(8,9)%20rotate(376)%20scale(0.60)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(32,1350)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(4,12)%20rotate(153)%20scale(0.48)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(768,1378)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(-12,6)%20rotate(132)%20scale(0.74)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(-8,5)%20rotate(154)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(-7,-12)%20rotate(156)%20scale(0.77)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(108,470)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(12,-0)%20rotate(108)%20scale(0.57)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(4,7)%20rotate(60)%20scale(0.54)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(700,560)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(9,8)%20rotate(281)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(-9,-1)%20rotate(394)%20scale(0.55)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(66,940)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(3,-4)%20rotate(208)%20scale(0.74)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(5,-5)%20rotate(147)%20scale(0.66)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(736,1150)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(8,-6)%20rotate(190)%20scale(0.52)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(-11,-9)%20rotate(245)%20scale(0.79)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(300,150)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(9,-6)%20rotate(74)%20scale(0.32)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(520,270)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(-8,7)%20rotate(277)%20scale(0.30)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(250,680)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(-10,8)%20rotate(341)%20scale(0.42)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(560,930)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(-3,-1)%20rotate(68)%20scale(0.41)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(340,1150)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(4,0)%20rotate(250)%20scale(0.37)%22/%3E%3C/g%3E%3Cg%20transform=%22translate(600,1330)%22%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(-11,9)%20rotate(99)%20scale(0.42)%22/%3E%3C/g%3E%3Cg%20fill=%22%23C0344E%22%3E%3Ccircle%20cx=%2280%22%20cy=%22316%22%20r=%224.6%22/%3E%3Ccircle%20cx=%2288%22%20cy=%22322%22%20r=%223.9%22/%3E%3Ccircle%20cx=%2274%22%20cy=%22324%22%20r=%223.4%22/%3E%3C/g%3E%3Cg%20fill=%22%23C0344E%22%3E%3Ccircle%20cx=%22708%22%20cy=%22418%22%20r=%224.6%22/%3E%3Ccircle%20cx=%22716%22%20cy=%22424%22%20r=%223.9%22/%3E%3Ccircle%20cx=%22702%22%20cy=%22426%22%20r=%223.4%22/%3E%3C/g%3E%3Cg%20fill=%22%23C0344E%22%3E%3Ccircle%20cx=%2226%22%20cy=%22560%22%20r=%224.6%22/%3E%3Ccircle%20cx=%2234%22%20cy=%22566%22%20r=%223.9%22/%3E%3Ccircle%20cx=%2220%22%20cy=%22568%22%20r=%223.4%22/%3E%3C/g%3E%3Cg%20fill=%22%23C0344E%22%3E%3Ccircle%20cx=%22771%22%20cy=%22635%22%20r=%224.6%22/%3E%3Ccircle%20cx=%22779%22%20cy=%22641%22%20r=%223.9%22/%3E%3Ccircle%20cx=%22765%22%20cy=%22643%22%20r=%223.4%22/%3E%3C/g%3E%3Cg%20fill=%22%23C0344E%22%3E%3Ccircle%20cx=%22119%22%20cy=%22793%22%20r=%224.6%22/%3E%3Ccircle%20cx=%22127%22%20cy=%22799%22%20r=%223.9%22/%3E%3Ccircle%20cx=%22113%22%20cy=%22801%22%20r=%223.4%22/%3E%3C/g%3E%3Cg%20fill=%22%23C0344E%22%3E%3Ccircle%20cx=%22695%22%20cy=%22899%22%20r=%224.6%22/%3E%3Ccircle%20cx=%22703%22%20cy=%22905%22%20r=%223.9%22/%3E%3Ccircle%20cx=%22689%22%20cy=%22907%22%20r=%223.4%22/%3E%3C/g%3E%3Cg%20fill=%22%23C0344E%22%3E%3Ccircle%20cx=%2250%22%20cy=%221001%22%20r=%224.6%22/%3E%3Ccircle%20cx=%2258%22%20cy=%221007%22%20r=%223.9%22/%3E%3Ccircle%20cx=%2244%22%20cy=%221009%22%20r=%223.4%22/%3E%3C/g%3E%3Cg%20fill=%22%23C0344E%22%3E%3Ccircle%20cx=%22100%22%20cy=%22464%22%20r=%224.6%22/%3E%3Ccircle%20cx=%22108%22%20cy=%22470%22%20r=%223.9%22/%3E%3Ccircle%20cx=%2294%22%20cy=%22472%22%20r=%223.4%22/%3E%3C/g%3E%3Cg%20fill=%22%23C0344E%22%3E%3Ccircle%20cx=%22698%22%20cy=%22563%22%20r=%224.6%22/%3E%3Ccircle%20cx=%22706%22%20cy=%22569%22%20r=%223.9%22/%3E%3Ccircle%20cx=%22692%22%20cy=%22571%22%20r=%223.4%22/%3E%3C/g%3E%3Cg%20transform=%22translate(596,1288)%22%3E%3Cellipse%20cx=%2246%22%20cy=%22104%22%20rx=%22125%22%20ry=%2256%22%20fill=%22url(%23g)%22/%3E%3Crect%20x=%2230%22%20y=%2242%22%20width=%2230%22%20height=%2266%22%20rx=%224%22%20fill=%22url(%23c)%22/%3E%3Cellipse%20cx=%2245%22%20cy=%2242%22%20rx=%2215%22%20ry=%224.5%22%20fill=%22%23F6EDDC%22/%3E%3Cpath%20d=%22M45%2042%20L45%2046%22%20stroke=%22%233A2E1E%22%20stroke-width=%221.8%22%20stroke-linecap=%22round%22/%3E%3Cpath%20d=%22M45%2022%20C52%2031%2051%2039%2045%2041%20C39%2039%2038%2031%2045%2022%20Z%22%20fill=%22url(%23fl)%22/%3E%3Crect%20x=%220%22%20y=%2266%22%20width=%2224%22%20height=%2242%22%20rx=%224%22%20fill=%22url(%23c)%22/%3E%3Cellipse%20cx=%2212%22%20cy=%2266%22%20rx=%2212%22%20ry=%224%22%20fill=%22%23F6EDDC%22/%3E%3Cpath%20d=%22M12%2066%20L12%2070%22%20stroke=%22%233A2E1E%22%20stroke-width=%221.6%22%20stroke-linecap=%22round%22/%3E%3Cpath%20d=%22M12%2050%20C18%2057%2017%2063%2012%2065%20C7%2063%206%2057%2012%2050%20Z%22%20fill=%22url(%23fl)%22/%3E%3Crect%20x=%2268%22%20y=%2274%22%20width=%2222%22%20height=%2234%22%20rx=%224%22%20fill=%22url(%23c)%22/%3E%3Cellipse%20cx=%2279%22%20cy=%2274%22%20rx=%2211%22%20ry=%223.8%22%20fill=%22%23F6EDDC%22/%3E%3Cpath%20d=%22M79%2074%20L79%2078%22%20stroke=%22%233A2E1E%22%20stroke-width=%221.6%22%20stroke-linecap=%22round%22/%3E%3Cpath%20d=%22M79%2059%20C85%2066%2084%2071%2079%2073%20C74%2071%2073%2066%2079%2059%20Z%22%20fill=%22url(%23fl)%22/%3E%3C/g%3E%3C/svg%3E") center bottom/cover no-repeat;
-}
-#detail-overlay.noel .overlay-body{position:relative;z-index:1}
 #detail-overlay.noel .overlay-header{background:rgba(16,27,54,0.94)}
 #detail-overlay.noel .photo-upload-btn{background:rgba(11,20,40,0.82)}
 #detail-overlay.noel .btn-secondary{background:rgba(34,49,90,0.78)}
 #detail-overlay.noel .btn-danger{background:rgba(240,137,156,0.16);border-color:rgba(240,137,156,0.42)}
-#detail-overlay.noel .tag{border-color:rgba(232,103,126,0.45);color:#F0899C}
+#detail-overlay.noel .tag{border-color:rgba(242,96,116,0.45);color:#F0899C}
 #detail-overlay.noel .detail-photo{background-color:rgba(26,39,72,0.72)}
+
+/* Trois motifs de houx — feuilles en pétales autour de trois boules de rayon
+   identique — posés dans les seuls creux de la mise en page : sous le titre,
+   sous la pastille de droite, et à côté des portions. Le titre reçoit une marge
+   pour que le texte s'arrête avant le motif au lieu de passer dessous. */
+#detail-overlay.noel #detail-title{position:relative;padding-right:46px;padding-bottom:4px}
+#detail-overlay.noel #detail-title::after{
+  content:'';position:absolute;right:-6px;bottom:-10px;width:42px;height:42px;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2096%2096%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3CradialGradient%20id=%22b%22%20cx=%2235%25%22%20cy=%2230%25%22%3E%3Cstop%20offset=%220%25%22%20stop-color=%22%23FF4A5C%22/%3E%3Cstop%20offset=%2255%25%22%20stop-color=%22%23E01B32%22/%3E%3Cstop%20offset=%22100%25%22%20stop-color=%22%23B8122A%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(48.0,48.0)%20rotate(132)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(48.0,48.0)%20rotate(252)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232E7B4E%22%20transform=%22translate(48.0,48.0)%20rotate(372)%20scale(0.62)%22/%3E%3Ccircle%20cx=%2250.1%22%20cy=%2254.4%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2250.1%22%20cy=%2254.4%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2248.2%22%20cy=%2252.3%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2241.4%22%20cy=%2246.6%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2241.4%22%20cy=%2246.6%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2239.5%22%20cy=%2244.6%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2252.5%22%20cy=%2243.0%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2252.5%22%20cy=%2243.0%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2250.6%22%20cy=%2241.0%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3C/svg%3E") center/contain no-repeat;
+}
+#detail-overlay.noel .meta-row{position:relative}
+#detail-overlay.noel .meta-row::after{
+  content:'';position:absolute;right:4px;top:calc(100% - 4px);width:50px;height:50px;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2096%2096%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3CradialGradient%20id=%22b%22%20cx=%2235%25%22%20cy=%2230%25%22%3E%3Cstop%20offset=%220%25%22%20stop-color=%22%23FF4A5C%22/%3E%3Cstop%20offset=%2255%25%22%20stop-color=%22%23E01B32%22/%3E%3Cstop%20offset=%22100%25%22%20stop-color=%22%23B8122A%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(48.0,48.0)%20rotate(172)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(48.0,48.0)%20rotate(292)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232E7B4E%22%20transform=%22translate(48.0,48.0)%20rotate(412)%20scale(0.62)%22/%3E%3Ccircle%20cx=%2245.5%22%20cy=%2254.2%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2245.5%22%20cy=%2254.2%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2243.6%22%20cy=%2252.2%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2243.9%22%20cy=%2242.7%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2243.9%22%20cy=%2242.7%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2241.9%22%20cy=%2240.7%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2254.7%22%20cy=%2247.1%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2254.7%22%20cy=%2247.1%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2252.7%22%20cy=%2245.0%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3C/svg%3E") center/contain no-repeat;
+}
+#detail-overlay.noel .servings-ctrl{position:relative}
+#detail-overlay.noel .servings-ctrl::after{
+  content:'';position:absolute;left:calc(100% + 14px);top:50%;transform:translateY(-50%);
+  width:46px;height:46px;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2096%2096%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3CradialGradient%20id=%22b%22%20cx=%2235%25%22%20cy=%2230%25%22%3E%3Cstop%20offset=%220%25%22%20stop-color=%22%23FF4A5C%22/%3E%3Cstop%20offset=%2255%25%22%20stop-color=%22%23E01B32%22/%3E%3Cstop%20offset=%22100%25%22%20stop-color=%22%23B8122A%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(48.0,48.0)%20rotate(158)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(48.0,48.0)%20rotate(278)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232E7B4E%22%20transform=%22translate(48.0,48.0)%20rotate(398)%20scale(0.62)%22/%3E%3Ccircle%20cx=%2247.1%22%20cy=%2254.7%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2247.1%22%20cy=%2254.7%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2245.1%22%20cy=%2252.6%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2242.7%22%20cy=%2243.9%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2242.7%22%20cy=%2243.9%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2240.8%22%20cy=%2241.8%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2254.2%22%20cy=%2245.5%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2254.2%22%20cy=%2245.5%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2252.3%22%20cy=%2243.4%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3C/svg%3E") center/contain no-repeat;
+}
 /* dans la liste, l'étiquette du label suffit à annoncer la couleur */
 .tag-noel{color:#1F6B45!important;border-color:#1F6B45!important;background:rgba(31,107,69,0.09)}
 
@@ -1758,40 +1773,77 @@ window.wipeAllRecipes=function(){
 };
 
 // ── COMPRESSION + ENVOI PHOTO VERS GITHUB ──
-function compressImage(file, maxWidth=1400, quality=0.8){
+function messageFormat(file){
+  const nom = (file.name||'').toLowerCase();
+  if(/\.(heic|heif)$/.test(nom) || /heic|heif/.test(file.type||''))
+    return 'photo au format HEIC, que ce navigateur ne sait pas ouvrir — sur iPhone, '
+         + 'Réglages ▸ Appareil photo ▸ Formats ▸ « Le plus compatible », ou envoyez un JPEG';
+  return 'image illisible (' + (file.type || 'format inconnu') + ') — essayez un JPEG ou un PNG';
+}
+
+// Ancien chemin, pour les navigateurs sans createImageBitmap.
+function decoderParImage(file){
   return new Promise((resolve,reject)=>{
     const img = new Image();
     const reader = new FileReader();
     reader.onload = e=>{ img.src = e.target.result; };
-    reader.onerror = reject;
-    img.onload = ()=>{
-      const ratio = Math.min(1, maxWidth/img.width);
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width*ratio;
-      canvas.height = img.height*ratio;
-      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
-      resolve(canvas.toDataURL('image/jpeg', quality).split(',')[1]); // base64 sans préfixe
-    };
-    img.onerror = reject;
+    reader.onerror = ()=>reject(new Error('lecture du fichier impossible'));
+    img.onload = ()=>resolve(img);
+    img.onerror = ()=>reject(new Error(messageFormat(file)));   // sans quoi l'échec est muet
     reader.readAsDataURL(file);
   });
+}
+
+function decoderImage(file){
+  // createImageBitmap redresse la photo d'après son orientation EXIF et ouvre
+  // davantage de formats — dont le HEIC là où le système le gère.
+  if(window.createImageBitmap){
+    return createImageBitmap(file, {imageOrientation:'from-image'})
+      .catch(()=>createImageBitmap(file))
+      .catch(()=>decoderParImage(file));
+  }
+  return decoderParImage(file);
+}
+
+async function compressImage(file, maxWidth=1400, quality=0.8){
+  const src = await decoderImage(file);
+  const ratio = Math.min(1, maxWidth/src.width);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(src.width*ratio);
+  canvas.height = Math.round(src.height*ratio);
+  canvas.getContext('2d').drawImage(src, 0, 0, canvas.width, canvas.height);
+  if(src.close) src.close();
+  const url = canvas.toDataURL('image/jpeg', quality);
+  if(!url || url.indexOf('data:image/jpeg') !== 0 || url.length < 200)
+    throw new Error('conversion impossible sur cet appareil (photo trop grande ?)');
+  return url.split(',')[1];   // base64 sans préfixe
 }
 window.uploadPhoto=async function(input, id){
   const file = input.files[0];
   if(!file) return;
   const cfg = getGhConfig();
-  if(!cfg){ toast("⚠ Configurez d'abord GitHub dans ⚙️ Réglages"); openSettings(); return; }
+  if(!cfg){
+    input.value = '';
+    toast("⚠ Configurez d'abord GitHub dans ⚙️ Réglages"); openSettings(); return;
+  }
   toast('Compression et envoi de la photo…');
   try{
     const base64 = await compressImage(file);
-    const filename = `${id}-${Date.now()}.jpg`;
-    const path = `photos/${filename}`;
+    const path = `photos/${id}-${Date.now()}.jpg`;
     const res = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}`, {
       method:'PUT',
-      headers:{ 'Authorization':`token ${cfg.token}`, 'Content-Type':'application/json' },
-      body: JSON.stringify({ message:`Ajout photo recette ${id}`, content: base64 })
+      headers:{ 'Authorization':`token ${cfg.token}`, 'Accept':'application/vnd.github+json', 'Content-Type':'application/json' },
+      body: JSON.stringify({ message:`Photo de la recette ${id}`, content: base64, branch:'main' })
     });
-    if(!res.ok){ const err = await res.json(); throw new Error(err.message||'Erreur GitHub'); }
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      // les messages bruts de GitHub sont en anglais et ne disent pas quoi faire
+      if(res.status===401) throw new Error('jeton GitHub refusé — vérifiez-le dans les Réglages');
+      if(res.status===403) throw new Error("ce jeton n'a pas le droit d'écrire dans le dépôt");
+      if(res.status===404) throw new Error('dépôt introuvable — vérifiez le propriétaire et le nom dans les Réglages');
+      if(res.status===413 || res.status===422) throw new Error('photo refusée par GitHub (trop lourde ?)');
+      throw new Error(err.message || ('erreur ' + res.status));
+    }
     const photoUrl = `https://raw.githubusercontent.com/${cfg.owner}/${cfg.repo}/main/${path}`;
     const r = recipes.find(x=>x.id===id);
     if(r){ r.photoUrl = photoUrl; sauver(true); }
@@ -1799,7 +1851,11 @@ window.uploadPhoto=async function(input, id){
     renderList();
     if(r) renderDetail(r);
   }catch(e){
-    toast('⚠ Échec : '+e.message);
+    toast('⚠ Échec : ' + (e && e.message ? e.message : 'erreur inattendue'));
+  }finally{
+    // sans cette remise à zéro, reprendre la même photo après un échec ne
+    // déclenche aucun évènement : l'appli semble ne rien faire du tout
+    input.value = '';
   }
 };
 window.openDetail=function(id){
