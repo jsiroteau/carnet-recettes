@@ -17,7 +17,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
 :root{
-  --bg:#FFFBF3; --surface:#FFFFFF; --card:#FFFFFF; --card-hi:#FFF6E6;
+  --bg:#FFFBF3; --surface:#FFFFFF; --card:#FFFFFF; --card-hi:#FAF4EC;
   --accent:#D8446E; --accent-ink:#FFFFFF;
   --rose:#B32E58;
   --text:#3A362C; --muted:#A89A82; --border:rgba(58,54,44,0.13);
@@ -26,16 +26,17 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Work Sans',sans-serif;background-color:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;
   background-image:
-    radial-gradient(circle at 12% 18%, rgba(58,54,44,0.16) 0 1.3px, transparent 1.4px),
-    radial-gradient(circle at 78% 8%, rgba(58,54,44,0.13) 0 1px, transparent 1.1px),
-    radial-gradient(circle at 45% 32%, rgba(58,54,44,0.15) 0 1.2px, transparent 1.3px),
-    radial-gradient(circle at 88% 55%, rgba(58,54,44,0.12) 0 1px, transparent 1.1px),
-    radial-gradient(circle at 25% 68%, rgba(58,54,44,0.14) 0 1.1px, transparent 1.2px),
-    radial-gradient(circle at 62% 82%, rgba(58,54,44,0.13) 0 1px, transparent 1.1px),
-    radial-gradient(circle at 8% 90%, rgba(58,54,44,0.15) 0 1.2px, transparent 1.3px),
-    radial-gradient(circle at 95% 92%, rgba(58,54,44,0.11) 0 1px, transparent 1.1px),
-    radial-gradient(circle at 55% 5%, rgba(58,54,44,0.10) 0 0.9px, transparent 1px),
-    radial-gradient(circle at 33% 48%, rgba(58,54,44,0.11) 0 0.9px, transparent 1px);
+    /* graines de vanille : petites et très noires */
+    radial-gradient(circle at 12% 18%, rgba(12,10,6,0.73) 0 0.8px, transparent 0.9px),
+    radial-gradient(circle at 78% 8%, rgba(12,10,6,0.62) 0 0.65px, transparent 0.75px),
+    radial-gradient(circle at 45% 32%, rgba(12,10,6,0.70) 0 0.75px, transparent 0.85px),
+    radial-gradient(circle at 88% 55%, rgba(12,10,6,0.56) 0 0.65px, transparent 0.75px),
+    radial-gradient(circle at 25% 68%, rgba(12,10,6,0.66) 0 0.7px, transparent 0.8px),
+    radial-gradient(circle at 62% 82%, rgba(12,10,6,0.62) 0 0.65px, transparent 0.75px),
+    radial-gradient(circle at 8% 90%, rgba(12,10,6,0.70) 0 0.75px, transparent 0.85px),
+    radial-gradient(circle at 95% 92%, rgba(12,10,6,0.52) 0 0.65px, transparent 0.75px),
+    radial-gradient(circle at 55% 5%, rgba(12,10,6,0.46) 0 0.55px, transparent 0.65px),
+    radial-gradient(circle at 33% 48%, rgba(12,10,6,0.52) 0 0.55px, transparent 0.65px);
   background-size:220px 220px;
   background-repeat:repeat;
   background-attachment:fixed;
@@ -202,6 +203,54 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .shop-item select{flex-shrink:0;max-width:104px;border:1px solid var(--border);background:var(--card);border-radius:9px;color:var(--muted);font-family:'Work Sans',sans-serif;font-size:0.72rem;padding:5px 4px;outline:none}
 .shop-count{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted);margin-top:22px;text-align:center}
 
+/* ── PLANIFICATION DES MENUS ── */
+.menu-intro{color:var(--muted);font-size:0.82rem;line-height:1.5;margin-bottom:14px}
+.menu-form{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 15px 18px;box-shadow:0 2px 10px rgba(59,42,32,0.06)}
+.menu-form h3{font-family:'Fraunces',serif;font-size:0.95rem;font-weight:600;margin-bottom:2px}
+.menu-form label{font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;display:block;margin:14px 0 5px;font-weight:600}
+.menu-form input,.menu-form select,.menu-form textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 13px;color:var(--text);font-family:'Work Sans',sans-serif;font-size:0.88rem;outline:none}
+.menu-form textarea{resize:vertical;min-height:74px;line-height:1.5}
+.menu-form input:focus,.menu-form select:focus,.menu-form textarea:focus{border-color:var(--accent)}
+.menu-form .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.menu-libre{display:none}
+.menu-libre.on{display:block}
+
+.menu-jour{margin-top:22px}
+.menu-jour-head{display:flex;align-items:baseline;gap:8px;padding-bottom:6px;border-bottom:2px solid var(--card-hi)}
+.menu-jour-head h3{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;color:var(--accent)}
+.menu-jour-head .cnt{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--muted)}
+.menu-jour.passe,.recap-jour.passe{opacity:0.55}
+.menu-moment{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:14px 0 6px}
+
+.menu-plat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 12px;margin-bottom:8px;box-shadow:0 2px 8px rgba(59,42,32,0.05)}
+.menu-plat .mp-top{display:flex;align-items:flex-start;gap:10px}
+.menu-plat .mp-nom{flex:1;min-width:0;font-family:'Fraunces',serif;font-size:0.95rem;font-weight:600;line-height:1.3;cursor:pointer}
+.menu-plat .mp-nom .libre{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-top:3px}
+.menu-plat .mp-x{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1;padding:2px 4px;flex-shrink:0}
+.menu-plat .mp-bas{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:9px}
+.mp-portions{display:flex;align-items:center;gap:5px;background:var(--card-hi);border-radius:50px;padding:3px 5px}
+.mp-portions button{width:24px;height:24px;border-radius:50%;border:none;background:var(--card);color:var(--text);font-size:0.9rem;cursor:pointer;line-height:1}
+.mp-portions .v{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;padding:0 3px;min-width:52px;text-align:center}
+.mp-btn{background:var(--card-hi);border:1px solid transparent;border-radius:50px;padding:5px 11px;font-family:'Work Sans',sans-serif;font-size:0.72rem;font-weight:600;color:var(--text);cursor:pointer}
+.mp-btn.on{background:var(--accent);color:var(--accent-ink)}
+.mp-courses{display:flex;align-items:center;gap:6px;font-size:0.72rem;color:var(--muted);cursor:pointer;margin-left:auto;padding:4px 2px}
+.mp-courses input{width:17px;height:17px;accent-color:var(--accent);margin:0;flex:0 0 auto}
+.mp-ing{margin-top:10px;padding-top:9px;border-top:1px dashed var(--border)}
+.mp-ing ul{list-style:none}
+.mp-ing li{font-size:0.83rem;padding:5px 0 5px 14px;position:relative;line-height:1.35;border-bottom:1px dashed var(--border)}
+.mp-ing li:last-child{border-bottom:none}
+.mp-ing li::before{content:'·';position:absolute;left:2px;color:var(--accent);font-weight:700}
+.mp-ing .vide{font-size:0.79rem;color:var(--muted);font-style:italic}
+
+.recap-jour{margin-top:20px}
+.recap-date{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;color:var(--accent);padding-bottom:6px;border-bottom:2px solid var(--card-hi)}
+.recap-ligne{display:flex;gap:12px;align-items:baseline;padding:9px 0;border-bottom:1px dashed var(--border)}
+.recap-quand{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--muted);flex:0 0 108px;line-height:1.4}
+.recap-plats{flex:1;font-size:0.9rem;line-height:1.45;min-width:0}
+.recap-plats .p{cursor:pointer}
+.recap-plats .p+.p::before{content:' · ';color:var(--muted)}
+.recap-plats .p.libre{color:var(--muted)}
+
 /* ── IMPORT DE RECETTE ── */
 .choice-card{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px 16px;margin-bottom:12px;cursor:pointer;font-family:'Work Sans',sans-serif;box-shadow:0 2px 10px rgba(59,42,32,0.06)}
 .choice-card .ic{font-size:1.7rem;line-height:1}
@@ -247,6 +296,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 <div id="app-header">
   <div class="logo">Carnet <span>de recettes</span></div>
   <div class="header-actions">
+    <button class="btn btn-secondary cart-btn" style="padding:8px 12px;font-size:0.78rem" onclick="openMenus()" title="Planifier des menus">📅<span class="cart-badge hidden" id="plan-badge">0</span></button>
     <button class="btn btn-secondary cart-btn" style="padding:8px 12px;font-size:0.78rem" onclick="openShoppingList()" title="Liste de courses">🛒<span class="cart-badge hidden" id="cart-badge">0</span></button>
     <button class="btn btn-secondary" style="padding:8px 12px;font-size:0.78rem;position:relative" onclick="openSettings()">⚙️<span class="export-pastille hidden" id="export-pastille"></span></button>
   </div>
@@ -401,6 +451,16 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
   <div class="overlay-body" id="shop-body"></div>
 </div>
 
+<!-- MENUS OVERLAY -->
+<div id="menu-overlay" class="overlay">
+  <div class="overlay-header">
+    <button class="back-btn" onclick="closeAllOverlays()">‹</button>
+    <h2>Menus</h2>
+    <button class="btn btn-secondary" style="padding:8px 12px;font-size:0.78rem" onclick="partagerMenus()" title="Partager les menus">📤</button>
+  </div>
+  <div class="overlay-body" id="menu-body"></div>
+</div>
+
 <!-- ADD CHOICE OVERLAY -->
 <div id="add-overlay" class="overlay">
   <div class="overlay-header">
@@ -546,7 +606,7 @@ function openOverlay(id){
 }
 function closeOverlay(id){ document.getElementById(id).classList.remove('open'); }
 window.closeAllOverlays=function(){
-  closeOverlay('detail-overlay'); closeOverlay('edit-overlay'); closeOverlay('settings-overlay'); closeOverlay('shop-overlay'); closeOverlay('add-overlay'); closeOverlay('import-overlay');
+  closeOverlay('detail-overlay'); closeOverlay('edit-overlay'); closeOverlay('settings-overlay'); closeOverlay('shop-overlay'); closeOverlay('menu-overlay'); closeOverlay('add-overlay'); closeOverlay('import-overlay');
   if(historyPushed){
     historyPushed = false;
     if(!inPopState) history.back();
@@ -986,6 +1046,441 @@ window.shareShoppingList=async function(){
   await shareOrCopy('Liste de courses', text.trim());
 };
 
+// ══════════════════════════════════
+// PLANIFICATION DES MENUS
+// ══════════════════════════════════
+// On programme des plats sur un jour et un moment de la journée. Un plat est
+// soit une recette du carnet, soit un « plat libre » dont on ne saisit que la
+// liste d'ingrédients — de quoi remplir la liste de courses sans écrire de
+// recette. Les menus restent sur l'appareil, comme la liste de courses : ils
+// ne partent pas dans recipes-seed.js.
+
+const MOMENTS = [
+  {key:'matin',  label:'petit-déjeuner', icon:'☕'},
+  {key:'midi',   label:'midi',           icon:'🍽'},
+  {key:'gouter', label:'goûter',         icon:'🍰'},
+  {key:'soir',   label:'soir',           icon:'🌙'}
+];
+const ORDRE_MOMENT = {matin:0, midi:1, gouter:2, soir:3};
+function momentInfo(k){ return MOMENTS.find(m=>m.key===k) || MOMENTS[1]; }
+
+// ── Dates : on manipule des chaînes « AAAA-MM-JJ », qui se trient toutes seules ──
+function isoDeDate(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function isoDecale(n){ const d=new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate()+n); return isoDeDate(d); }
+function dateDIso(iso){ const [a,m,j]=String(iso).split('-').map(Number); return new Date(a,(m||1)-1,j||1,12,0,0); }
+function nomJour(iso){ return dateDIso(iso).toLocaleDateString('fr-FR',{weekday:'long'}); }
+function libelleJour(iso){
+  const s = dateDIso(iso).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  return s.charAt(0).toUpperCase()+s.slice(1);
+}
+// « dimanche goûter », « lundi midi » : l'intitulé demandé pour le récapitulatif
+function quandLabel(e){ return nomJour(e.date)+' '+momentInfo(e.moment).label; }
+
+// ── État, sauvegardé sur l'appareil ──
+let plan = [];
+let planDeplies = new Set();     // plats dont on affiche la liste d'ingrédients
+let planVue = 'plan';            // 'plan' (organiser) ou 'recap' (récapitulatif)
+let planPasses = false;          // afficher aussi les jours écoulés
+let planPreselection = null;     // recette pré-choisie en arrivant depuis une fiche
+
+function loadPlan(){
+  try{ const p = JSON.parse(localStorage.getItem('menus-v1')||'[]'); if(Array.isArray(p)) plan = p; }
+  catch(e){ plan = []; }
+  const limite = isoDecale(-31);            // les menus d'il y a plus d'un mois s'effacent seuls
+  const avant = plan.length;
+  plan = plan.filter(e=>e && e.date && e.date >= limite);
+  if(plan.length !== avant) savePlan();
+}
+function savePlan(){ try{ localStorage.setItem('menus-v1', JSON.stringify(plan)); }catch(e){} }
+
+function planTrie(){
+  return [...plan].sort((a,b)=> a.date===b.date
+    ? (ORDRE_MOMENT[a.moment]||0)-(ORDRE_MOMENT[b.moment]||0)
+    : a.date.localeCompare(b.date));
+}
+function planVisible(){
+  const auj = isoDecale(0);
+  return planTrie().filter(e=>planPasses || e.date>=auj);
+}
+function nbAVenir(){ const auj=isoDecale(0); return plan.filter(e=>e.date>=auj).length; }
+function updatePlanBadge(){
+  const b = document.getElementById('plan-badge');
+  if(!b) return;
+  const n = nbAVenir();
+  b.textContent = n;
+  b.classList.toggle('hidden', n===0);
+}
+
+// ── Les ingrédients d'un plat programmé, mis à l'échelle des portions ──
+function platIngredients(e){
+  if(e.recipeId){
+    const r = recipes.find(x=>x.id===e.recipeId);
+    if(!r) return [];
+    const ratio = (r.servingsBase && r.servingsBase>0 && e.servings) ? e.servings/r.servingsBase : 1;
+    const out = [];
+    (r.parts||[]).forEach(p=>(p.ingredients||[]).forEach(i=>{
+      if(String(i).trim()) out.push(scaleIngredient(i, ratio));
+    }));
+    return out;
+  }
+  return (e.items||[]).filter(x=>String(x).trim());
+}
+
+// ── Ouverture ──
+window.openMenus=function(recetteId){
+  planPreselection = (typeof recetteId==='string' && recetteId) ? recetteId : null;
+  if(planPreselection) planVue = 'plan';
+  renderMenus();
+  openOverlay('menu-overlay');
+};
+window.setMenuVue=function(v){ planVue=v; renderMenus(); };
+
+function optionsJours(){
+  let h = '';
+  for(let i=0;i<21;i++){
+    const iso = isoDecale(i);
+    let lab = libelleJour(iso);
+    if(i===0) lab = 'Aujourd’hui — ' + lab.toLowerCase();
+    if(i===1) lab = 'Demain — ' + lab.toLowerCase();
+    h += `<option value="${iso}">${esc(lab)}</option>`;
+  }
+  return h;
+}
+
+function formulaireMenu(){
+  const parCat = {};
+  recipes.forEach(r=>{ const c = r.category||'Autres'; (parCat[c]=parCat[c]||[]).push(r); });
+  const cats = [...CATEGORIES.filter(c=>parCat[c]), ...Object.keys(parCat).filter(c=>!CATEGORIES.includes(c)).sort()];
+  let opts = `<option value="">— Choisir un plat —</option>`;
+  cats.forEach(c=>{
+    opts += `<optgroup label="${esc(c)}">` + parCat[c]
+      .slice().sort((a,b)=>(a.title||'').localeCompare(b.title||'','fr',{sensitivity:'base'}))
+      .map(r=>`<option value="${esc(r.id)}"${planPreselection===r.id?' selected':''}>${esc(r.title)}</option>`).join('')
+      + `</optgroup>`;
+  });
+  opts += `<optgroup label="Hors carnet"><option value="__libre">✎ Autre plat — liste d’ingrédients seule</option></optgroup>`;
+
+  const preR = planPreselection ? recipes.find(r=>r.id===planPreselection) : null;
+  return `<div class="menu-form">
+    <h3>Programmer un plat</h3>
+    <label>Plat</label>
+    <select id="plan-recette" onchange="majFormMenu()">${opts}</select>
+
+    <div class="menu-libre" id="plan-bloc-libre">
+      <label>Nom du plat</label>
+      <input id="plan-titre" placeholder="ex. Salade de tomates" autocomplete="off">
+      <label>Ingrédients, un par ligne</label>
+      <textarea id="plan-ingredients" placeholder="4 tomates
+1 oignon rouge
+Huile d’olive"></textarea>
+    </div>
+
+    <div class="row2">
+      <div>
+        <label>Jour</label>
+        <select id="plan-jour">${optionsJours()}</select>
+      </div>
+      <div>
+        <label>Moment</label>
+        <select id="plan-moment">${MOMENTS.map(m=>`<option value="${m.key}"${m.key==='soir'?' selected':''}>${m.icon} ${m.label}</option>`).join('')}</select>
+      </div>
+    </div>
+
+    <div id="plan-bloc-portions">
+      <label>Portions</label>
+      <input id="plan-portions" type="number" min="1" step="1" value="${preR&&preR.servingsBase?preR.servingsBase:''}" placeholder="comme la recette">
+    </div>
+
+    <div class="btn-row" style="margin-top:18px">
+      <button class="btn btn-primary btn-full" onclick="ajouterAuMenu()">＋ Ajouter au menu</button>
+    </div>
+  </div>`;
+}
+
+// affiche les champs du plat libre / masque les portions quand elles n'ont pas de sens
+window.majFormMenu=function(){
+  const sel = document.getElementById('plan-recette');
+  const libre = sel && sel.value === '__libre';
+  const bl = document.getElementById('plan-bloc-libre');
+  const bp = document.getElementById('plan-bloc-portions');
+  if(bl) bl.classList.toggle('on', !!libre);
+  if(bp) bp.style.display = libre ? 'none' : '';
+  const p = document.getElementById('plan-portions');
+  if(p && !libre){
+    const r = recipes.find(x=>x.id===sel.value);
+    p.value = (r && r.servingsBase) ? r.servingsBase : '';
+    p.placeholder = (r && r.servingsUnit) ? r.servingsUnit : 'comme la recette';
+  }
+};
+
+window.ajouterAuMenu=function(){
+  const sel = document.getElementById('plan-recette').value;
+  const date = document.getElementById('plan-jour').value;
+  const moment = document.getElementById('plan-moment').value;
+  if(!sel){ toast('Choisissez d’abord un plat'); return; }
+  const uid = 'p' + Date.now().toString(36) + Math.floor(Math.random()*4096).toString(36);
+  let e;
+  if(sel === '__libre'){
+    const titre = document.getElementById('plan-titre').value.trim();
+    if(!titre){ toast('Donnez un nom à ce plat'); return; }
+    const items = document.getElementById('plan-ingredients').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    e = {uid, recipeId:null, title:titre, servings:0, unit:'', items, date, moment, courses:true};
+    document.getElementById('plan-titre').value = '';
+    document.getElementById('plan-ingredients').value = '';
+    planDeplies.add(uid);            // un plat libre n'a que ses ingrédients : autant les montrer
+  } else {
+    const r = recipes.find(x=>x.id===sel);
+    if(!r){ toast('Recette introuvable'); return; }
+    const sv = parseFloat(document.getElementById('plan-portions').value) || r.servingsBase || 0;
+    e = {uid, recipeId:r.id, title:r.title, servings:sv, unit:r.servingsUnit||'', items:null, date, moment, courses:true};
+  }
+  plan.push(e); savePlan(); updatePlanBadge(); renderPlanListe();
+  planPreselection = null;
+  toast(`✓ ${quandLabel(e)}`);
+};
+
+window.retirerDuMenu=function(uid){
+  const i = plan.findIndex(e=>e.uid===uid);
+  if(i<0) return;
+  plan.splice(i,1); planDeplies.delete(uid);
+  savePlan(); updatePlanBadge();
+  if(planVue==='recap') renderMenus(); else renderPlanListe();
+};
+window.basculerIngredients=function(uid){
+  if(planDeplies.has(uid)) planDeplies.delete(uid); else planDeplies.add(uid);
+  renderPlanListe();
+};
+window.toutDeplier=function(on){
+  planDeplies = on ? new Set(planVisible().map(e=>e.uid)) : new Set();
+  renderPlanListe();
+};
+window.basculerCourses=function(uid){
+  const e = plan.find(x=>x.uid===uid); if(!e) return;
+  e.courses = !e.courses;
+  savePlan(); renderPlanListe();
+};
+window.changerPortionsMenu=function(uid, d){
+  const e = plan.find(x=>x.uid===uid); if(!e || !e.recipeId) return;
+  e.servings = Math.max(1, (e.servings||1) + d);
+  savePlan(); renderPlanListe();
+};
+window.ouvrirDepuisMenu=function(uid){
+  const e = plan.find(x=>x.uid===uid); if(!e || !e.recipeId) return;
+  if(!recipes.find(r=>r.id===e.recipeId)){ toast('Cette recette n’est plus dans le carnet'); return; }
+  closeOverlay('menu-overlay');
+  openDetail(e.recipeId);
+};
+window.viderMenus=function(quoi){
+  if(quoi==='passes'){
+    const auj = isoDecale(0);
+    const n = plan.filter(e=>e.date<auj).length;
+    if(!n) return;
+    if(!confirm(`Effacer les ${n} plat${n>1?'s':''} des jours écoulés ?`)) return;
+    plan = plan.filter(e=>e.date>=auj);
+  } else {
+    if(!plan.length) return;
+    if(!confirm('Effacer tous les menus programmés ?')) return;
+    plan = [];
+  }
+  savePlan(); updatePlanBadge(); renderMenus();
+  toast('Menus effacés');
+};
+
+// ── Vers la liste de courses ──
+// Chaque plat programmé entre dans le panier sous sa propre clé : le même plat
+// prévu deux fois compte deux fois, et réappuyer sur le bouton met à jour au
+// lieu de dupliquer.
+window.menusVersCourses=function(uid){
+  const auj = isoDecale(0);
+  const cibles = uid
+    ? plan.filter(e=>e.uid===uid)
+    : planVisible().filter(e=>e.courses!==false && (planPasses || e.date>=auj));
+  let ajoutes = 0, vides = 0;
+  cibles.forEach(e=>{
+    const items = platIngredients(e);
+    if(!items.length){ vides++; return; }
+    const cid = 'menu:'+e.uid;
+    const entree = {id:cid, title:`${e.title} — ${quandLabel(e)}`, servings:e.servings||0, unit:e.unit||'', items};
+    const i = cart.recipes.findIndex(x=>x.id===cid);
+    if(i>=0) cart.recipes[i] = entree; else cart.recipes.push(entree);
+    ajoutes++;
+  });
+  saveCart(); updateCartBadge();
+  if(!ajoutes){ toast(vides ? 'Aucun ingrédient à ajouter' : 'Rien à ajouter'); return; }
+  toast(`✓ ${ajoutes} plat${ajoutes>1?'s':''} dans la liste de courses${vides?` (${vides} sans ingrédients)`:''}`);
+  renderPlanListe();
+};
+
+window.partagerMenus=async function(){
+  const entrees = planVisible();
+  if(!entrees.length){ toast('Aucun menu à partager'); return; }
+  let texte = 'Menus\n\n';
+  entrees.forEach(e=>{ texte += `${quandLabel(e)} : ${e.title}\n`; });
+  await shareOrCopy('Menus', texte.trim());
+};
+
+// ── Affichage ──
+function renderMenus(){
+  const body = document.getElementById('menu-body');
+  let html = `<div class="view-toggle" style="margin-top:0">
+      <button class="vt-btn ${planVue==='plan'?'active':''}" onclick="setMenuVue('plan')">📅 Organiser</button>
+      <button class="vt-btn ${planVue==='recap'?'active':''}" onclick="setMenuVue('recap')">📋 Récapitulatif</button>
+    </div>`;
+  if(planVue==='plan'){
+    html += `<div class="menu-intro" style="margin-top:14px">Programmez un plat sur un jour et un moment.
+      « Ingrédients » n’affiche que la liste des ingrédients du plat, sans les étapes :
+      de quoi remplir la liste de courses d’un coup d’œil.</div>`;
+    html += formulaireMenu();
+    html += `<div id="plan-liste"></div>`;
+  } else {
+    html += `<div id="plan-liste"></div>`;
+  }
+  body.innerHTML = html;
+  if(planVue==='plan') majFormMenu();
+  renderPlanListe();
+}
+
+function barreJoursPasses(){
+  const auj = isoDecale(0);
+  const n = plan.filter(e=>e.date<auj).length;
+  if(!n) return '';
+  return `<div class="shop-tools" style="margin-top:18px">
+    <span class="chip ${planPasses?'active':''}" onclick="basculerPasses()">${planPasses?'Masquer':'Afficher'} les jours passés (${n})</span>
+  </div>`;
+}
+window.basculerPasses=function(){ planPasses=!planPasses; renderPlanListe(); };
+
+function renderPlanListe(){
+  const c = document.getElementById('plan-liste');
+  if(!c) return;
+  const entrees = planVisible();
+
+  if(!plan.length){
+    c.innerHTML = `<div class="empty-state">
+      <div style="font-size:2rem;margin-bottom:8px">📅</div>
+      Aucun menu programmé.<br>
+      ${planVue==='plan' ? 'Choisissez un plat ci-dessus, ou ouvrez une recette et appuyez sur « Planifier ».'
+                         : 'Passez à l’onglet « Organiser » pour en ajouter.'}
+    </div>`;
+    return;
+  }
+
+  c.innerHTML = (planVue==='recap' ? vueRecap(entrees) : vueOrganiser(entrees)) + barreJoursPasses() + piedMenus(entrees);
+}
+
+function vueOrganiser(entrees){
+  if(!entrees.length){
+    return `<div class="empty-state">Aucun plat à venir.<br>Les jours passés sont masqués.</div>`;
+  }
+  const auj = isoDecale(0);
+  let html = '';
+  let jour = null;
+  let moment = null;
+  entrees.forEach(e=>{
+    if(e.date !== jour){
+      if(jour!==null) html += `</div>`;
+      jour = e.date; moment = null;
+      const n = entrees.filter(x=>x.date===e.date).length;
+      html += `<div class="menu-jour ${e.date<auj?'passe':''}">
+        <div class="menu-jour-head"><h3>${esc(libelleJour(e.date))}</h3><span class="cnt">${n} plat${n>1?'s':''}</span></div>`;
+    }
+    if(e.moment !== moment){
+      moment = e.moment;
+      const mi = momentInfo(e.moment);
+      html += `<div class="menu-moment">${mi.icon} ${esc(mi.label)}</div>`;
+    }
+    html += carteplat(e);
+  });
+  if(jour!==null) html += `</div>`;
+  return html;
+}
+
+function carteplat(e){
+  const deplie = planDeplies.has(e.uid);
+  const ings = deplie ? platIngredients(e) : null;
+  const existe = e.recipeId ? !!recipes.find(r=>r.id===e.recipeId) : true;
+  let html = `<div class="menu-plat">
+    <div class="mp-top">
+      <div class="mp-nom" ${e.recipeId&&existe?`onclick="ouvrirDepuisMenu('${e.uid}')"`:''}>${esc(e.title)}
+        ${!e.recipeId?`<span class="libre">Hors carnet</span>`:''}
+        ${e.recipeId&&!existe?`<span class="libre">Recette supprimée</span>`:''}
+      </div>
+      <button class="mp-x" onclick="retirerDuMenu('${e.uid}')" title="Retirer du menu">✕</button>
+    </div>
+    <div class="mp-bas">`;
+  if(e.recipeId && existe && e.servings){
+    html += `<div class="mp-portions">
+      <button onclick="changerPortionsMenu('${e.uid}',-1)">−</button>
+      <span class="v">${e.servings} ${esc(e.unit||'')}</span>
+      <button onclick="changerPortionsMenu('${e.uid}',1)">+</button>
+    </div>`;
+  }
+  html += `<button class="mp-btn ${deplie?'on':''}" onclick="basculerIngredients('${e.uid}')">🥕 Ingrédients</button>
+      <button class="mp-btn" onclick="menusVersCourses('${e.uid}')" title="Envoyer ce plat dans la liste de courses">🛒</button>
+      <label class="mp-courses"><input type="checkbox" ${e.courses!==false?'checked':''} onchange="basculerCourses('${e.uid}')">courses</label>
+    </div>`;
+  if(deplie){
+    html += `<div class="mp-ing">` + (ings.length
+      ? `<ul>${ings.map(i=>`<li>${esc(i)}</li>`).join('')}</ul>`
+      : `<div class="vide">Pas d’ingrédients renseignés pour ce plat.</div>`) + `</div>`;
+  }
+  return html + `</div>`;
+}
+
+function vueRecap(entrees){
+  if(!entrees.length){
+    return `<div class="empty-state">Aucun plat à venir.<br>Les jours passés sont masqués.</div>`;
+  }
+  const auj = isoDecale(0);
+  let html = `<div class="menu-intro" style="margin-top:14px">Les plats programmés, dans l’ordre. Appuyez sur un plat pour ouvrir sa recette.</div>`;
+  let jour = null;
+  entrees.forEach((e,i)=>{
+    if(e.date !== jour){
+      if(jour!==null) html += `</div>`;
+      jour = e.date;
+      html += `<div class="recap-jour ${e.date<auj?'passe':''}"><div class="recap-date">${esc(libelleJour(e.date))}</div>`;
+    }
+    // une ligne par moment : « dimanche goûter », « lundi midi »…
+    const memeCase = entrees.filter(x=>x.date===e.date && x.moment===e.moment);
+    if(memeCase[0] !== e) return;
+    html += `<div class="recap-ligne">
+      <div class="recap-quand">${esc(quandLabel(e))}</div>
+      <div class="recap-plats">` + memeCase.map(x=>
+        `<span class="p ${x.recipeId?'':'libre'}" ${x.recipeId?`onclick="ouvrirDepuisMenu('${x.uid}')"`:''}>${esc(x.title)}</span>`
+      ).join('') + `</div>
+    </div>`;
+  });
+  if(jour!==null) html += `</div>`;
+  return html;
+}
+
+function piedMenus(entrees){
+  const auj = isoDecale(0);
+  const pourCourses = entrees.filter(e=>e.courses!==false && (planPasses || e.date>=auj)).length;
+  let html = `<div class="btn-row">
+      <button class="btn btn-primary btn-full" onclick="menusVersCourses()">🛒 Remplir la liste de courses${pourCourses?` (${pourCourses} plat${pourCourses>1?'s':''})`:''}</button>
+    </div>`;
+  if(planVue==='plan' && entrees.length){
+    const tout = entrees.every(e=>planDeplies.has(e.uid));
+    html += `<div class="btn-row" style="margin-top:10px">
+      <button class="btn btn-secondary" style="flex:1" onclick="toutDeplier(${tout?'false':'true'})">${tout?'Masquer':'Voir'} tous les ingrédients</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="openShoppingList()">Voir ma liste${cart.recipes.length?` (${cart.recipes.length})`:''}</button>
+    </div>`;
+  }
+  const passes = plan.filter(e=>e.date<auj).length;
+  html += `<div class="btn-row" style="margin-top:10px">
+      ${passes?`<button class="btn btn-secondary" style="flex:1" onclick="viderMenus('passes')">Effacer les jours passés</button>`:''}
+      <button class="btn btn-danger" style="flex:1" onclick="viderMenus('tout')">🗑 Tout effacer</button>
+    </div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:14px;line-height:1.5">
+      Les menus restent sur cet appareil : ils ne sont pas publiés avec les recettes.
+      Les plats programmés depuis plus d’un mois s’effacent d’eux-mêmes.
+    </div>`;
+  return html;
+}
+
 // ── SETTINGS (stockés uniquement sur cet appareil) ──
 function getGhConfig(){
   try{ return JSON.parse(localStorage.getItem('gh-config')||'null'); }catch(e){ return null; }
@@ -1135,6 +1630,9 @@ function renderDetail(r){
   html += `<div class="btn-row">
       <button class="btn btn-secondary" style="flex:1" onclick="shareRecipe('${r.id}')">📤 Partager</button>
       <button class="btn btn-secondary" style="flex:1" onclick="addToShoppingList('${r.id}')">🛒 Ajouter aux courses</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary btn-full" onclick="planifierCourant('${r.id}')">📅 Planifier ce plat</button>
     </div>
     <div class="btn-row">
       <button class="btn btn-secondary btn-full" onclick="openShoppingList()">Voir ma liste de courses${cart.recipes.length?` (${cart.recipes.length} recette${cart.recipes.length>1?'s':''})`:''}</button>
@@ -2521,8 +3019,16 @@ window.saveRecipe=async function(){
   renderCategories(); renderList();
 };
 
+// depuis une fiche : on passe aux menus avec la recette déjà choisie
+window.planifierCourant=function(id){
+  closeOverlay('detail-overlay');
+  openMenus(id);
+};
+
 loadCart();
 updateCartBadge();
+loadPlan();
+updatePlanBadge();
 loadRecipes();
 </script>
 </body>
