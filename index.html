@@ -195,7 +195,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
    des baies de houx, assez soutenu pour la fête et assez clair pour se lire. */
 #detail-overlay.noel{
   --bg:#101B36; --surface:#1A2748; --card:#1A2748; --card-hi:#22315A;
-  --accent:#F26074; --accent-ink:#16203C; --rose:#F0899C;
+  --accent:#FF3B4E; --accent-ink:#16203C; --rose:#FF7A8C;
   --text:#EAEFFA; --muted:#93A0C2; --border:rgba(234,239,250,0.16);
   /* `color` est calculé une fois sur body : sans cette ligne, le texte hérité
      reste celui du mode clair et devient illisible sur fond sombre. */
@@ -208,7 +208,13 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 #detail-overlay.noel .photo-upload-btn{background:rgba(11,20,40,0.82)}
 #detail-overlay.noel .btn-secondary{background:rgba(34,49,90,0.78)}
 #detail-overlay.noel .btn-danger{background:rgba(240,137,156,0.16);border-color:rgba(240,137,156,0.42)}
-#detail-overlay.noel .tag{border-color:rgba(242,96,116,0.45);color:#F0899C}
+#detail-overlay.noel .tag{border-color:rgba(255,59,78,0.45);color:#FF7A8C}
+/* boutons et numéros d'étape : le rouge profond des boules, lettré en blanc —
+   plus franc que l'aplat rose, et lisible (4,8 de contraste) */
+#detail-overlay.noel .vt-btn.active,
+#detail-overlay.noel .btn-primary{background:#E01B32;color:#FFF6F4}
+#detail-overlay.noel .steps-list li::before{background:#E01B32;color:#FFF6F4}
+#detail-overlay.noel .btn-danger{color:#FF8A9B}
 #detail-overlay.noel .detail-photo{background-color:rgba(26,39,72,0.72)}
 
 /* Trois motifs de houx — feuilles en pétales autour de trois boules de rayon
@@ -230,6 +236,18 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
   content:'';position:absolute;left:calc(100% + 14px);top:50%;transform:translateY(-50%);
   width:46px;height:46px;pointer-events:none;
   background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2096%2096%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3CradialGradient%20id=%22b%22%20cx=%2235%25%22%20cy=%2230%25%22%3E%3Cstop%20offset=%220%25%22%20stop-color=%22%23FF4A5C%22/%3E%3Cstop%20offset=%2255%25%22%20stop-color=%22%23E01B32%22/%3E%3Cstop%20offset=%22100%25%22%20stop-color=%22%23B8122A%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(48.0,48.0)%20rotate(158)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(48.0,48.0)%20rotate(278)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232E7B4E%22%20transform=%22translate(48.0,48.0)%20rotate(398)%20scale(0.62)%22/%3E%3Ccircle%20cx=%2247.1%22%20cy=%2254.7%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2247.1%22%20cy=%2254.7%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2245.1%22%20cy=%2252.6%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2242.7%22%20cy=%2243.9%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2242.7%22%20cy=%2243.9%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2240.8%22%20cy=%2241.8%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2254.2%22%20cy=%2245.5%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2254.2%22%20cy=%2245.5%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2252.3%22%20cy=%2243.4%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3C/svg%3E") center/contain no-repeat;
+}
+#detail-overlay.noel .view-toggle{position:relative}
+#detail-overlay.noel .view-toggle::after{
+  content:'';position:absolute;left:calc(100% + 18px);top:50%;transform:translateY(-50%);
+  width:44px;height:44px;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2096%2096%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3CradialGradient%20id=%22b%22%20cx=%2235%25%22%20cy=%2230%25%22%3E%3Cstop%20offset=%220%25%22%20stop-color=%22%23FF4A5C%22/%3E%3Cstop%20offset=%2255%25%22%20stop-color=%22%23E01B32%22/%3E%3Cstop%20offset=%22100%25%22%20stop-color=%22%23B8122A%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(48.0,48.0)%20rotate(118)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(48.0,48.0)%20rotate(238)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232E7B4E%22%20transform=%22translate(48.0,48.0)%20rotate(358)%20scale(0.62)%22/%3E%3Ccircle%20cx=%2251.6%22%20cy=%2253.7%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2251.6%22%20cy=%2253.7%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2249.6%22%20cy=%2251.7%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2241.3%22%20cy=%2248.2%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2241.3%22%20cy=%2248.2%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2239.4%22%20cy=%2246.2%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2251.2%22%20cy=%2242.1%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2251.2%22%20cy=%2242.1%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2249.2%22%20cy=%2240.0%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3C/svg%3E") center/contain no-repeat;
+}
+#detail-overlay.noel .st-premier{position:relative}
+#detail-overlay.noel .st-premier::after{
+  content:'';position:absolute;right:2px;top:50%;transform:translateY(-50%);
+  width:40px;height:40px;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2096%2096%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3CradialGradient%20id=%22b%22%20cx=%2235%25%22%20cy=%2230%25%22%3E%3Cstop%20offset=%220%25%22%20stop-color=%22%23FF4A5C%22/%3E%3Cstop%20offset=%2255%25%22%20stop-color=%22%23E01B32%22/%3E%3Cstop%20offset=%22100%25%22%20stop-color=%22%23B8122A%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(48.0,48.0)%20rotate(190)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(48.0,48.0)%20rotate(310)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232E7B4E%22%20transform=%22translate(48.0,48.0)%20rotate(430)%20scale(0.62)%22/%3E%3Ccircle%20cx=%2243.7%22%20cy=%2253.1%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2243.7%22%20cy=%2253.1%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2241.8%22%20cy=%2251.1%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2245.7%22%20cy=%2241.7%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2245.7%22%20cy=%2241.7%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2243.8%22%20cy=%2239.6%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2254.6%22%20cy=%2249.2%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2254.6%22%20cy=%2249.2%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2252.7%22%20cy=%2247.1%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3C/svg%3E") center/contain no-repeat;
 }
 /* dans la liste, l'étiquette du label suffit à annoncer la couleur */
 .tag-noel{color:#1F6B45!important;border-color:#1F6B45!important;background:rgba(31,107,69,0.09)}
@@ -259,7 +277,8 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .combo-item.combo-neuf{color:var(--accent);font-weight:600;font-size:0.85rem}
 .combo-vide{padding:11px 13px;font-size:0.82rem;color:var(--muted);border-bottom:1px solid var(--border)}
 .menu-libre{display:none}
-.menu-indice{font-size:0.75rem;color:var(--muted);line-height:1.4;margin-top:7px;min-height:1.1em}
+.menu-indice{font-size:0.75rem;color:var(--muted);line-height:1.4;margin-top:7px}
+.menu-indice:empty{display:none}
 .menu-indice.ok{color:var(--success);font-weight:600}
 .menu-libre.on{display:block}
 
@@ -477,6 +496,9 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
     <input id="set-token" type="password" placeholder="ghp_…" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false">
     <div class="btn-row">
       <button class="btn btn-primary btn-full" onclick="saveSettings()">💾 Enregistrer</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary btn-full" id="btn-test-gh" onclick="testerGithub()">🔍 Tester la connexion</button>
     </div>
 
     <div class="btn-row">
@@ -1423,7 +1445,7 @@ function majIndiceMenu(){
       ? `${candidates.length} recettes correspondent — choisissez-en une dans la liste.`
       : 'Aucune recette ne porte ce nom — passez par « Autre plat ».';
   } else {
-    indice.textContent = `${recipes.length} recettes au carnet — tapez quelques lettres pour la retrouver.`;
+    indice.textContent = '';   // l'invite du champ dit déjà quoi faire
   }
 }
 
@@ -1564,9 +1586,6 @@ function renderMenus(){
       <button class="vt-btn ${planVue==='recap'?'active':''}" onclick="setMenuVue('recap')">📋 Récapitulatif</button>
     </div>`;
   if(planVue==='plan'){
-    html += `<div class="menu-intro" style="margin-top:14px">Programmez un plat sur un jour et un moment.
-      « Ingrédients » n’affiche que la liste des ingrédients du plat, sans les étapes :
-      de quoi remplir la liste de courses d’un coup d’œil.</div>`;
     html += formulaireMenu();
     html += `<div id="plan-liste"></div>`;
   } else {
@@ -1703,12 +1722,6 @@ function piedMenus(entrees){
   html += `<div class="btn-row" style="margin-top:10px">
       ${passes?`<button class="btn btn-secondary" style="flex:1" onclick="viderMenus('passes')">Effacer les jours passés</button>`:''}
       <button class="btn btn-danger" style="flex:1" onclick="viderMenus('tout')">🗑 Tout effacer</button>
-    </div>
-    <div style="font-size:0.72rem;color:var(--muted);margin-top:14px;line-height:1.5">
-      Les plats cochés « courses » alimentent la liste de courses au fur et à mesure,
-      et en sortent d’eux-mêmes une fois le jour passé.
-      Les menus restent sur cet appareil : ils ne sont pas publiés avec les recettes.
-      Les plats programmés depuis plus d’un mois s’effacent seuls.
     </div>`;
   return html;
 }
@@ -1746,10 +1759,21 @@ window.openSettings=function(){
   openOverlay('settings-overlay');
 };
 window.saveSettings=function(){
-  const owner = document.getElementById('set-owner').value.trim();
-  const repo = document.getElementById('set-repo').value.trim();
+  // on tolère une adresse collée depuis GitHub, un « propriétaire/dépôt », un .git final
+  const propre = v => String(v).trim()
+    .replace(/^https?:\/\/(www\.)?github\.com\//i, '')
+    .replace(/\.git$/i, '').replace(/^\/+|\/+$/g, '');
+  let owner = propre(document.getElementById('set-owner').value);
+  let repo = propre(document.getElementById('set-repo').value);
+  if(owner.indexOf('/') > 0){                 // « jsiroteau/carnet-recettes » collé dans le 1er champ
+    const bouts = owner.split('/');
+    owner = bouts[0];
+    if(!repo) repo = bouts[1];
+  }
   const token = document.getElementById('set-token').value.trim();
   if(!owner||!repo||!token){ toast('⚠ Merci de remplir les 3 champs'); return; }
+  document.getElementById('set-owner').value = owner;
+  document.getElementById('set-repo').value = repo;
   localStorage.setItem('gh-config', JSON.stringify({owner,repo,token}));
   toast('✓ Réglages enregistrés sur cet appareil');
   closeAllOverlays();
@@ -1818,6 +1842,43 @@ async function compressImage(file, maxWidth=1400, quality=0.8){
     throw new Error('conversion impossible sur cet appareil (photo trop grande ?)');
   return url.split(',')[1];   // base64 sans préfixe
 }
+// Un 404 de l'API GitHub peut vouloir dire trois choses : dépôt inexistant,
+// jeton hors d'usage, ou jeton sans droit d'écriture. On interroge l'API pour
+// trancher au lieu de renvoyer un message qui ne dit rien.
+async function diagnostiquerGithub(cfg){
+  const entetes = {'Authorization':`token ${cfg.token}`, 'Accept':'application/vnd.github+json'};
+  let jeton = null, depot = null, infos = null, publicOk = false;
+  try{ jeton = (await fetch('https://api.github.com/user', {headers:entetes})).status; }catch(e){}
+  try{
+    const r = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}`, {headers:entetes});
+    depot = r.status;
+    if(r.ok) infos = await r.json();
+  }catch(e){}
+  try{ publicOk = (await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}`)).ok; }catch(e){}
+
+  if(jeton === 401) return 'le jeton est expiré ou révoqué — refaites-en un et enregistrez-le dans les Réglages';
+  if(depot !== 200){
+    return publicOk
+      ? `le dépôt ${cfg.owner}/${cfg.repo} existe, mais ce jeton n'y donne pas accès — s'il est « fine-grained », vérifiez qu'il inclut bien ce dépôt dans « Repository access »`
+      : `aucun dépôt ${cfg.owner}/${cfg.repo} — vérifiez le propriétaire et le nom dans les Réglages`;
+  }
+  if(infos && infos.permissions && !infos.permissions.push)
+    return `ce jeton peut lire ${cfg.owner}/${cfg.repo} mais pas y écrire — donnez-lui la permission « Contents : Read and write »`;
+  if(infos && infos.default_branch && infos.default_branch !== 'main')
+    return `la branche par défaut du dépôt est « ${infos.default_branch} » et non « main » : l'application écrit sur main`;
+  return null;
+}
+
+window.testerGithub=async function(){
+  const cfg = getGhConfig();
+  if(!cfg){ toast('⚠ Enregistrez d’abord le dépôt et le jeton'); return; }
+  const btn = document.getElementById('btn-test-gh');
+  if(btn){ btn.disabled = true; btn.textContent = 'Vérification…'; }
+  const souci = await diagnostiquerGithub(cfg);
+  if(btn){ btn.disabled = false; btn.textContent = '🔍 Tester la connexion'; }
+  toast(souci ? '⚠ ' + souci : `✓ ${cfg.owner}/${cfg.repo} accessible en écriture`);
+};
+
 window.uploadPhoto=async function(input, id){
   const file = input.files[0];
   if(!file) return;
@@ -1838,9 +1899,10 @@ window.uploadPhoto=async function(input, id){
     if(!res.ok){
       const err = await res.json().catch(()=>({}));
       // les messages bruts de GitHub sont en anglais et ne disent pas quoi faire
-      if(res.status===401) throw new Error('jeton GitHub refusé — vérifiez-le dans les Réglages');
-      if(res.status===403) throw new Error("ce jeton n'a pas le droit d'écrire dans le dépôt");
-      if(res.status===404) throw new Error('dépôt introuvable — vérifiez le propriétaire et le nom dans les Réglages');
+      if(res.status===401 || res.status===403 || res.status===404){
+        const souci = await diagnostiquerGithub(cfg);
+        throw new Error(souci || err.message || ('accès refusé par GitHub (' + res.status + ')'));
+      }
       if(res.status===413 || res.status===422) throw new Error('photo refusée par GitHub (trop lourde ?)');
       throw new Error(err.message || ('erreur ' + res.status));
     }
@@ -1932,10 +1994,12 @@ window.setDetailView=function(v){
   detailView=v; const r=recipes.find(x=>x.id===currentId); renderDetail(r); };
 function renderTextView(r, ratio){
   let html='';
+  let premier = true;   // le tout premier intitulé visible reçoit le motif de Noël
+  const marque = ()=>{ if(!premier) return ''; premier = false; return ' st-premier'; };
   (r.parts||[]).forEach(p=>{
-    if(p.name) html += `<div class="part-name">${esc(p.name)}</div>`;
+    if(p.name) html += `<div class="part-name${marque()}">${esc(p.name)}</div>`;
     if(p.ingredients && p.ingredients.length){
-      html += `<div class="section-title" style="${p.name?'display:none':''}">Ingrédients</div><ul class="ing-list">`;
+      html += `<div class="section-title${p.name?'':marque()}" style="${p.name?'display:none':''}">Ingrédients</div><ul class="ing-list">`;
       p.ingredients.forEach(ing=>{ html+=`<li>${esc(scaleIngredient(ing,ratio))}</li>`; });
       html += `</ul>`;
     }
