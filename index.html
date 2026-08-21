@@ -354,7 +354,9 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .aide-corps a{color:var(--rose);word-break:break-all}
 .regles b{font-weight:600}
 
-#toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:var(--card-hi);border:1px solid var(--border);border-radius:50px;padding:11px 22px;font-size:0.85rem;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+/* les messages de diagnostic sont longs : sans retour à la ligne, ils sortaient
+   de l'écran et l'utilisateur n'en lisait que le début */
+#toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:var(--card-hi);border:1px solid var(--border);border-radius:22px;padding:11px 20px;font-size:0.85rem;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;width:max-content;max-width:min(90vw,460px);text-align:center;line-height:1.45;box-shadow:0 6px 20px rgba(59,42,32,0.14)}
 #toast.show{opacity:1}
 </style>
 </head>
@@ -662,7 +664,16 @@ window.fermerEditeur=function(){
 let editingIngKeys = [];   // index d'origine de chaque ingrédient, null si nouveau
 let editingPhoto = null;
 
-function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+let minuteurToast = null;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(minuteurToast);
+  // un diagnostic de trois lignes ne se lit pas en deux secondes
+  const duree = Math.min(9000, 2200 + String(msg).length * 45);
+  minuteurToast = setTimeout(()=>t.classList.remove('show'), duree);
+}
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 let historyPushed = false;
 let inPopState = false;
@@ -1727,8 +1738,31 @@ function piedMenus(entrees){
 }
 
 // ── SETTINGS (stockés uniquement sur cet appareil) ──
+// Adresse collée, « propriétaire/dépôt », .git final, barre en trop : on
+// ramène à la forme attendue par l'API.
+function nettoyerNomGh(v){
+  return String(v||'').trim()
+    .replace(/^https?:\/\/(www\.)?github\.com\//i, '')
+    .replace(/\.git$/i, '').replace(/^\/+|\/+$/g, '');
+}
 function getGhConfig(){
-  try{ return JSON.parse(localStorage.getItem('gh-config')||'null'); }catch(e){ return null; }
+  let cfg;
+  try{ cfg = JSON.parse(localStorage.getItem('gh-config')||'null'); }catch(e){ return null; }
+  if(!cfg) return null;
+  // on nettoie aussi à la lecture : un réglage enregistré avant cette
+  // correction resterait sinon inutilisable sans qu'on comprenne pourquoi
+  const brut = cfg.owner + '|' + cfg.repo;
+  let owner = nettoyerNomGh(cfg.owner), repo = nettoyerNomGh(cfg.repo);
+  if(owner.indexOf('/') > 0){
+    const bouts = owner.split('/');
+    owner = bouts[0];
+    if(!repo) repo = bouts[1];
+  }
+  if(owner + '|' + repo !== brut){
+    cfg = {...cfg, owner, repo};
+    try{ localStorage.setItem('gh-config', JSON.stringify(cfg)); }catch(e){}
+  }
+  return cfg;
 }
 let modeModif = false;   // volontairement non mémorisé : éteint à chaque ouverture
 
@@ -1759,12 +1793,8 @@ window.openSettings=function(){
   openOverlay('settings-overlay');
 };
 window.saveSettings=function(){
-  // on tolère une adresse collée depuis GitHub, un « propriétaire/dépôt », un .git final
-  const propre = v => String(v).trim()
-    .replace(/^https?:\/\/(www\.)?github\.com\//i, '')
-    .replace(/\.git$/i, '').replace(/^\/+|\/+$/g, '');
-  let owner = propre(document.getElementById('set-owner').value);
-  let repo = propre(document.getElementById('set-repo').value);
+  let owner = nettoyerNomGh(document.getElementById('set-owner').value);
+  let repo = nettoyerNomGh(document.getElementById('set-repo').value);
   if(owner.indexOf('/') > 0){                 // « jsiroteau/carnet-recettes » collé dans le 1er champ
     const bouts = owner.split('/');
     owner = bouts[0];
@@ -1847,21 +1877,36 @@ async function compressImage(file, maxWidth=1400, quality=0.8){
 // trancher au lieu de renvoyer un message qui ne dit rien.
 async function diagnostiquerGithub(cfg){
   const entetes = {'Authorization':`token ${cfg.token}`, 'Accept':'application/vnd.github+json'};
-  let jeton = null, depot = null, infos = null, publicOk = false;
+  const adresse = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}`;
+  let jeton = null, depot = null, infos = null, anonyme = null;
   try{ jeton = (await fetch('https://api.github.com/user', {headers:entetes})).status; }catch(e){}
   try{
-    const r = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}`, {headers:entetes});
+    const r = await fetch(adresse, {headers:entetes});
     depot = r.status;
     if(r.ok) infos = await r.json();
   }catch(e){}
-  try{ publicOk = (await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}`)).ok; }catch(e){}
+  try{ anonyme = (await fetch(adresse)).status; }catch(e){}
 
   if(jeton === 401) return 'le jeton est expiré ou révoqué — refaites-en un et enregistrez-le dans les Réglages';
+
   if(depot !== 200){
-    return publicOk
-      ? `le dépôt ${cfg.owner}/${cfg.repo} existe, mais ce jeton n'y donne pas accès — s'il est « fine-grained », vérifiez qu'il inclut bien ce dépôt dans « Repository access »`
-      : `aucun dépôt ${cfg.owner}/${cfg.repo} — vérifiez le propriétaire et le nom dans les Réglages`;
+    // ce que le jeton sait atteindre : souvent la réponse est dans cette liste
+    let accessibles = [];
+    try{
+      const r = await fetch('https://api.github.com/user/repos?per_page=100&affiliation=owner,collaborator,organization_member', {headers:entetes});
+      if(r.ok) accessibles = (await r.json()).map(d=>d.full_name);
+    }catch(e){}
+    const piste = accessibles.length
+      ? ` Ce jeton donne accès à : ${accessibles.slice(0,5).join(', ')}${accessibles.length>5?'…':''}.`
+      : '';
+    if(anonyme === 200)
+      return `le dépôt ${cfg.owner}/${cfg.repo} existe, mais ce jeton n'y donne pas accès — s'il est « fine-grained », vérifiez qu'il inclut bien ce dépôt dans « Repository access ».${piste}`;
+    if(anonyme === 404)
+      return `aucun dépôt nommé « ${cfg.owner} » / « ${cfg.repo} » : ce sont bien ces deux valeurs qui sont enregistrées.${piste}`;
+    // vérification anonyme impossible (limite de requêtes, réseau) : on s'en tient aux faits
+    return `GitHub a répondu ${depot} pour ${cfg.owner}/${cfg.repo} avec ce jeton.${piste}`;
   }
+
   if(infos && infos.permissions && !infos.permissions.push)
     return `ce jeton peut lire ${cfg.owner}/${cfg.repo} mais pas y écrire — donnez-lui la permission « Contents : Read and write »`;
   if(infos && infos.default_branch && infos.default_branch !== 'main')
