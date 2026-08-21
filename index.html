@@ -189,68 +189,69 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .shop-item select{flex-shrink:0;max-width:104px;border:1px solid var(--border);background:var(--card);border-radius:9px;color:var(--muted);font-family:'Work Sans',sans-serif;font-size:0.72rem;padding:5px 4px;outline:none}
 .shop-count{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted);margin-top:22px;text-align:center}
 
+/* ── CADRAGE DES PHOTOS ── */
+.crop-cadre{position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--r);overflow:hidden;
+  background:#2A241E;touch-action:none;cursor:grab;user-select:none}
+.crop-cadre:active{cursor:grabbing}
+.crop-cadre canvas{display:block;width:100%;height:100%}
+.crop-aide{font-size:0.8rem;color:var(--muted);line-height:1.5;margin-bottom:14px}
+.crop-zoom{display:flex;align-items:center;gap:12px;margin-top:16px}
+.crop-zoom span{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.crop-zoom input{flex:1;accent-color:var(--accent)}
+
 /* ── HABILLAGE DE NOËL ── */
-/* Nuit d'hiver bleue : toute la fiche suit les variables, il suffit de les
-   redéfinir. Le doré était illisible en petits caractères — on prend le rouge
-   des baies de houx, assez soutenu pour la fête et assez clair pour se lire. */
+/* Une table dressée plutôt qu'un écran : nappe vert sauge tiède, porcelaine
+   blanc crème détachée par son ombre et non par un contour, houx rouge.
+   Le vert froid faisait clinique ; c'est le jaune dans le vert et la chaleur
+   du blanc qui donnent l'impression de fête. */
 #detail-overlay.noel{
-  --bg:#101B36; --surface:#1A2748; --card:#1A2748; --card-hi:#22315A;
-  --accent:#FF3B4E; --accent-ink:#16203C; --rose:#FF7A8C;
-  --text:#EAEFFA; --muted:#93A0C2; --border:rgba(234,239,250,0.16);
+  --bg:#E7EEDD; --card:#FFFDF7; --card-hi:#F3F7E9;
+  --text:#26362A; --muted:#7C8A72; --border:rgba(36,53,42,0.10);
+  --accent:#B01E30; --accent-ink:#FFF8F0; --rose:#B01E30;
   /* `color` est calculé une fois sur body : sans cette ligne, le texte hérité
-     reste celui du mode clair et devient illisible sur fond sombre. */
+     garde la teinte du mode ordinaire. */
   color:var(--text);
   background:
-    radial-gradient(130% 55% at 50% -12%, rgba(255,206,138,0.18) 0%, rgba(232,145,60,0.05) 45%, transparent 70%),
-    linear-gradient(#132140 0%, #101B36 45%, #0B1428 100%);
+    radial-gradient(120% 42% at 50% -6%, rgba(255,255,255,0.80) 0%, rgba(255,255,255,0.24) 45%, transparent 75%),
+    linear-gradient(#EDF2E2 0%, #E7EEDD 45%, #DEE7D0 100%);
 }
-#detail-overlay.noel .overlay-header{background:rgba(16,27,54,0.94)}
-#detail-overlay.noel .photo-upload-btn{background:rgba(11,20,40,0.82)}
-#detail-overlay.noel .btn-secondary{background:rgba(34,49,90,0.78)}
-#detail-overlay.noel .btn-danger{background:rgba(240,137,156,0.16);border-color:rgba(240,137,156,0.42)}
-#detail-overlay.noel .tag{border-color:rgba(255,59,78,0.45);color:#FF7A8C}
-/* boutons et numéros d'étape : le rouge profond des boules, lettré en blanc —
-   plus franc que l'aplat rose, et lisible (4,8 de contraste) */
-#detail-overlay.noel .vt-btn.active,
-#detail-overlay.noel .btn-primary{background:#E01B32;color:#FFF6F4}
-#detail-overlay.noel .steps-list li::before{background:#E01B32;color:#FFF6F4}
-#detail-overlay.noel .btn-danger{color:#FF8A9B}
-#detail-overlay.noel .detail-photo{background-color:rgba(26,39,72,0.72)}
+#detail-overlay.noel .overlay-header{background:rgba(237,242,226,0.95);border-bottom:1px solid rgba(36,53,42,0.10)}
+#detail-overlay.noel .overlay-header h2{font-style:italic}
+#detail-overlay.noel .meta-pill,#detail-overlay.noel .servings-ctrl,
+#detail-overlay.noel .detail-photo,#detail-overlay.noel .btn-secondary{
+  background:#FFFDF7;border:none;
+  box-shadow:0 3px 14px rgba(36,53,42,0.13),0 1px 3px rgba(36,53,42,0.08)}
+#detail-overlay.noel .meta-pill .v{color:#1F5B3C}
+#detail-overlay.noel .part-name{color:#1F5B3C}
+#detail-overlay.noel .view-toggle{background:#FFFDF7;box-shadow:0 3px 14px rgba(36,53,42,0.13)}
+#detail-overlay.noel .vt-btn.active{background:#1F5B3C;color:#FFFDF7}
+#detail-overlay.noel .ing-list li,#detail-overlay.noel .steps-list li{border-bottom:1px solid rgba(36,53,42,0.12)}
+#detail-overlay.noel .steps-list li::before{background:#B01E30;color:#FFF8F0}
+#detail-overlay.noel .tag{border-color:rgba(176,30,48,0.4);color:#B01E30}
 
-/* Trois motifs de houx — feuilles en pétales autour de trois boules de rayon
-   identique — posés dans les seuls creux de la mise en page : sous le titre,
-   sous la pastille de droite, et à côté des portions. Le titre reçoit une marge
-   pour que le texte s'arrête avant le motif au lieu de passer dessous. */
-#detail-overlay.noel #detail-title{position:relative;padding-right:46px;padding-bottom:4px}
-#detail-overlay.noel #detail-title::after{
-  content:'';position:absolute;right:-6px;bottom:-10px;width:42px;height:42px;pointer-events:none;
-  background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2096%2096%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3CradialGradient%20id=%22b%22%20cx=%2235%25%22%20cy=%2230%25%22%3E%3Cstop%20offset=%220%25%22%20stop-color=%22%23FF4A5C%22/%3E%3Cstop%20offset=%2255%25%22%20stop-color=%22%23E01B32%22/%3E%3Cstop%20offset=%22100%25%22%20stop-color=%22%23B8122A%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(48.0,48.0)%20rotate(132)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(48.0,48.0)%20rotate(252)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232E7B4E%22%20transform=%22translate(48.0,48.0)%20rotate(372)%20scale(0.62)%22/%3E%3Ccircle%20cx=%2250.1%22%20cy=%2254.4%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2250.1%22%20cy=%2254.4%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2248.2%22%20cy=%2252.3%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2241.4%22%20cy=%2246.6%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2241.4%22%20cy=%2246.6%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2239.5%22%20cy=%2244.6%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2252.5%22%20cy=%2243.0%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2252.5%22%20cy=%2243.0%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2250.6%22%20cy=%2241.0%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3C/svg%3E") center/contain no-repeat;
-}
-#detail-overlay.noel .meta-row{position:relative}
-#detail-overlay.noel .meta-row::after{
-  content:'';position:absolute;right:4px;top:calc(100% - 4px);width:50px;height:50px;pointer-events:none;
-  background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2096%2096%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3CradialGradient%20id=%22b%22%20cx=%2235%25%22%20cy=%2230%25%22%3E%3Cstop%20offset=%220%25%22%20stop-color=%22%23FF4A5C%22/%3E%3Cstop%20offset=%2255%25%22%20stop-color=%22%23E01B32%22/%3E%3Cstop%20offset=%22100%25%22%20stop-color=%22%23B8122A%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(48.0,48.0)%20rotate(172)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(48.0,48.0)%20rotate(292)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232E7B4E%22%20transform=%22translate(48.0,48.0)%20rotate(412)%20scale(0.62)%22/%3E%3Ccircle%20cx=%2245.5%22%20cy=%2254.2%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2245.5%22%20cy=%2254.2%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2243.6%22%20cy=%2252.2%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2243.9%22%20cy=%2242.7%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2243.9%22%20cy=%2242.7%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2241.9%22%20cy=%2240.7%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2254.7%22%20cy=%2247.1%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2254.7%22%20cy=%2247.1%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2252.7%22%20cy=%2245.0%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3C/svg%3E") center/contain no-repeat;
-}
+/* Les bouquets, tous de même taille : c'est la hauteur et l'abscisse qui
+   varient. Les intitulés se rétrécissent à leur texte, si bien que le bouquet
+   se pose après le mot — donc à une abscisse différente selon la recette. */
+#detail-overlay.noel .part-name,#detail-overlay.noel .section-title{display:inline-block}
+#detail-overlay.noel #detail-title{position:relative;padding-right:40px}
+#detail-overlay.noel #detail-title::after{content:'';position:absolute;right:-4px;bottom:-8px;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(168)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(288)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(408)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2253.9%22%20cy=%2262.6%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2251.9%22%20cy=%2260.5%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2251.4%22%20cy=%2250.9%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2249.4%22%20cy=%2248.7%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.8%22%20cy=%2254.6%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.8%22%20cy=%2252.4%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
 #detail-overlay.noel .servings-ctrl{position:relative}
-#detail-overlay.noel .servings-ctrl::after{
-  content:'';position:absolute;left:calc(100% + 14px);top:50%;transform:translateY(-50%);
-  width:46px;height:46px;pointer-events:none;
-  background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2096%2096%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3CradialGradient%20id=%22b%22%20cx=%2235%25%22%20cy=%2230%25%22%3E%3Cstop%20offset=%220%25%22%20stop-color=%22%23FF4A5C%22/%3E%3Cstop%20offset=%2255%25%22%20stop-color=%22%23E01B32%22/%3E%3Cstop%20offset=%22100%25%22%20stop-color=%22%23B8122A%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(48.0,48.0)%20rotate(158)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(48.0,48.0)%20rotate(278)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232E7B4E%22%20transform=%22translate(48.0,48.0)%20rotate(398)%20scale(0.62)%22/%3E%3Ccircle%20cx=%2247.1%22%20cy=%2254.7%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2247.1%22%20cy=%2254.7%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2245.1%22%20cy=%2252.6%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2242.7%22%20cy=%2243.9%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2242.7%22%20cy=%2243.9%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2240.8%22%20cy=%2241.8%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2254.2%22%20cy=%2245.5%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2254.2%22%20cy=%2245.5%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2252.3%22%20cy=%2243.4%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3C/svg%3E") center/contain no-repeat;
-}
+#detail-overlay.noel .servings-ctrl::after{content:'';position:absolute;left:calc(100% + 36px);top:52%;transform:translateY(-50%);width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(202)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(322)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(442)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2250.5%22%20cy=%2260.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2248.6%22%20cy=%2258.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2255.0%22%20cy=%2249.1%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2253.1%22%20cy=%2247.0%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.4%22%20cy=%2258.6%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.4%22%20cy=%2256.5%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
+#detail-overlay.noel .servings-ctrl::before{content:'';position:absolute;left:calc(100% + 178px);top:6%;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(322)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(442)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(562)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2255.0%22%20cy=%2249.1%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2253.1%22%20cy=%2247.0%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.4%22%20cy=%2258.6%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.4%22%20cy=%2256.5%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2250.5%22%20cy=%2260.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2248.6%22%20cy=%2258.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
 #detail-overlay.noel .view-toggle{position:relative}
-#detail-overlay.noel .view-toggle::after{
-  content:'';position:absolute;left:calc(100% + 18px);top:50%;transform:translateY(-50%);
-  width:44px;height:44px;pointer-events:none;
-  background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2096%2096%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3CradialGradient%20id=%22b%22%20cx=%2235%25%22%20cy=%2230%25%22%3E%3Cstop%20offset=%220%25%22%20stop-color=%22%23FF4A5C%22/%3E%3Cstop%20offset=%2255%25%22%20stop-color=%22%23E01B32%22/%3E%3Cstop%20offset=%22100%25%22%20stop-color=%22%23B8122A%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(48.0,48.0)%20rotate(118)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(48.0,48.0)%20rotate(238)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232E7B4E%22%20transform=%22translate(48.0,48.0)%20rotate(358)%20scale(0.62)%22/%3E%3Ccircle%20cx=%2251.6%22%20cy=%2253.7%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2251.6%22%20cy=%2253.7%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2249.6%22%20cy=%2251.7%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2241.3%22%20cy=%2248.2%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2241.3%22%20cy=%2248.2%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2239.4%22%20cy=%2246.2%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2251.2%22%20cy=%2242.1%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2251.2%22%20cy=%2242.1%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2249.2%22%20cy=%2240.0%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3C/svg%3E") center/contain no-repeat;
-}
-#detail-overlay.noel .st-premier{position:relative}
-#detail-overlay.noel .st-premier::after{
-  content:'';position:absolute;right:2px;top:50%;transform:translateY(-50%);
-  width:40px;height:40px;pointer-events:none;
-  background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2096%2096%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3CradialGradient%20id=%22b%22%20cx=%2235%25%22%20cy=%2230%25%22%3E%3Cstop%20offset=%220%25%22%20stop-color=%22%23FF4A5C%22/%3E%3Cstop%20offset=%2255%25%22%20stop-color=%22%23E01B32%22/%3E%3Cstop%20offset=%22100%25%22%20stop-color=%22%23B8122A%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232A7048%22%20transform=%22translate(48.0,48.0)%20rotate(190)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231E5E3E%22%20transform=%22translate(48.0,48.0)%20rotate(310)%20scale(0.62)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%232E7B4E%22%20transform=%22translate(48.0,48.0)%20rotate(430)%20scale(0.62)%22/%3E%3Ccircle%20cx=%2243.7%22%20cy=%2253.1%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2243.7%22%20cy=%2253.1%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2241.8%22%20cy=%2251.1%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2245.7%22%20cy=%2241.7%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2245.7%22%20cy=%2241.7%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2243.8%22%20cy=%2239.6%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3Ccircle%20cx=%2254.6%22%20cy=%2249.2%22%20r=%226.4%22%20fill=%22%23B8122A%22/%3E%3Ccircle%20cx=%2254.6%22%20cy=%2249.2%22%20r=%225.6%22%20fill=%22url(%23b)%22/%3E%3Ccircle%20cx=%2252.7%22%20cy=%2247.1%22%20r=%221.4%22%20fill=%22%23FFE3E6%22%20opacity=%220.92%22/%3E%3C/svg%3E") center/contain no-repeat;
-}
-/* dans la liste, l'étiquette du label suffit à annoncer la couleur */
-.tag-noel{color:#1F6B45!important;border-color:#1F6B45!important;background:rgba(31,107,69,0.09)}
+#detail-overlay.noel .view-toggle::after{content:'';position:absolute;left:calc(100% + 82px);top:30%;transform:translateY(-50%);width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(142)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(262)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(382)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2257.0%22%20cy=%2262.9%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2255.0%22%20cy=%2260.8%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2249.6%22%20cy=%2253.4%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2247.6%22%20cy=%2251.3%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2261.5%22%20cy=%2251.7%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2259.5%22%20cy=%2249.6%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
+#detail-overlay.noel .view-toggle::before{content:'';position:absolute;left:calc(100% + 128px);top:84%;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(246)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(366)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(486)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2249.1%22%20cy=%2255.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2247.1%22%20cy=%2253.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2260.1%22%20cy=%2250.4%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2258.1%22%20cy=%2248.3%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2258.8%22%20cy=%2262.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2256.8%22%20cy=%2260.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
+#detail-overlay.noel .steps-list{position:relative}
+#detail-overlay.noel .steps-list::after{content:'';position:absolute;right:4px;top:-40px;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(184)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(304)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(424)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2252.1%22%20cy=%2261.7%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2250.1%22%20cy=%2259.6%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2253.0%22%20cy=%2249.8%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2251.0%22%20cy=%2247.7%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.9%22%20cy=%2256.5%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.9%22%20cy=%2254.4%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
+#detail-overlay.noel .steps-list::before{content:'';position:absolute;right:104px;top:-26px;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(350)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(470)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(590)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2258.4%22%20cy=%2249.5%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2256.4%22%20cy=%2247.4%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2260.5%22%20cy=%2261.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2258.5%22%20cy=%2259.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2249.2%22%20cy=%2257.2%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2247.2%22%20cy=%2255.1%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
+/* un bouquet à droite de chaque intitulé de partie, décalé différemment
+   d'une partie à l'autre pour qu'ils ne s'alignent pas */
+#detail-overlay.noel .deco-1,#detail-overlay.noel .deco-2,#detail-overlay.noel .deco-3{position:relative}
+#detail-overlay.noel .deco-1::after{content:'';position:absolute;left:calc(100% + 160px);top:44%;transform:translateY(-50%);width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(272)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(392)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(512)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2250.1%22%20cy=%2252.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2248.1%22%20cy=%2250.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.1%22%20cy=%2252.7%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.1%22%20cy=%2250.6%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2255.8%22%20cy=%2262.9%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2253.8%22%20cy=%2260.8%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
+#detail-overlay.noel .deco-2::after{content:'';position:absolute;left:calc(100% + 92px);top:16%;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(126)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(246)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(366)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2258.8%22%20cy=%2262.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2256.8%22%20cy=%2260.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2249.1%22%20cy=%2255.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2247.1%22%20cy=%2253.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2260.1%22%20cy=%2250.4%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2258.1%22%20cy=%2248.3%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
+#detail-overlay.noel .deco-3::after{content:'';position:absolute;left:calc(100% + 208px);top:70%;transform:translateY(-50%);width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(184)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(304)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(424)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2252.1%22%20cy=%2261.7%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2250.1%22%20cy=%2259.6%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2253.0%22%20cy=%2249.8%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2251.0%22%20cy=%2247.7%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.9%22%20cy=%2256.5%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.9%22%20cy=%2254.4%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
+/* dans la liste, l'étiquette du label annonce la couleur */
+.tag-noel{color:#1F5B3C!important;border-color:#1F5B3C!important;background:rgba(31,91,60,0.09)}
 
 /* ── PLANIFICATION DES MENUS ── */
 .menu-intro{color:var(--muted);font-size:0.82rem;line-height:1.5;margin-bottom:14px}
@@ -494,6 +495,9 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
     <input id="set-owner" placeholder="ex. jsiroteau" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
     <label>Nom du dépôt</label>
     <input id="set-repo" placeholder="ex. carnet-recettes" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:5px;line-height:1.4">
+      Le nom exact tel qu'il figure dans l'adresse du dépôt, après la barre oblique — sans espaces ni accents.
+    </div>
     <label>Jeton d'accès personnel (Personal Access Token)</label>
     <input id="set-token" type="password" placeholder="ghp_…" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false">
     <div class="btn-row">
@@ -521,6 +525,27 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
     <button class="btn btn-secondary" style="padding:8px 12px;font-size:0.78rem" onclick="clearShoppingList()">🗑</button>
   </div>
   <div class="overlay-body" id="shop-body"></div>
+</div>
+
+<!-- CADRAGE PHOTO -->
+<div id="crop-overlay" class="overlay">
+  <div class="overlay-header">
+    <button class="back-btn" onclick="annulerCadrage()">‹</button>
+    <h2>Cadrer la photo</h2>
+  </div>
+  <div class="overlay-body">
+    <div class="crop-aide">Faites glisser l’image pour la déplacer, et utilisez le curseur — ou deux doigts — pour l’agrandir. Le cadre correspond exactement à ce qui s’affichera en tête de la recette.</div>
+    <div class="crop-cadre" id="crop-cadre"><canvas id="crop-canvas"></canvas></div>
+    <div class="crop-zoom">
+      <span>petit</span>
+      <input type="range" id="crop-zoom" min="100" max="400" value="100" oninput="zoomCadrage(this.value)">
+      <span>grand</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" style="flex:1" onclick="annulerCadrage()">Annuler</button>
+      <button class="btn btn-primary" style="flex:1.4" onclick="validerCadrage()">Utiliser ce cadrage</button>
+    </div>
+  </div>
 </div>
 
 <!-- MENUS OVERLAY -->
@@ -686,7 +711,7 @@ function openOverlay(id){
 }
 function closeOverlay(id){ document.getElementById(id).classList.remove('open'); }
 window.closeAllOverlays=function(){
-  closeOverlay('detail-overlay'); closeOverlay('edit-overlay'); closeOverlay('settings-overlay'); closeOverlay('shop-overlay'); closeOverlay('menu-overlay'); closeOverlay('add-overlay'); closeOverlay('import-overlay');
+  closeOverlay('crop-overlay'); closeOverlay('detail-overlay'); closeOverlay('edit-overlay'); closeOverlay('settings-overlay'); closeOverlay('shop-overlay'); closeOverlay('menu-overlay'); closeOverlay('add-overlay'); closeOverlay('import-overlay');
   if(historyPushed){
     historyPushed = false;
     if(!inPopState) history.back();
@@ -1745,6 +1770,25 @@ function nettoyerNomGh(v){
     .replace(/^https?:\/\/(www\.)?github\.com\//i, '')
     .replace(/\.git$/i, '').replace(/^\/+|\/+$/g, '');
 }
+// GitHub n'accepte que lettres, chiffres, point, tiret et souligné : un nom
+// écrit « à la française » (espaces, accents) ne peut désigner aucun dépôt.
+const NOM_GH_VALIDE = /^[A-Za-z0-9._-]+$/;
+function nomGhInvalide(v){ return !NOM_GH_VALIDE.test(v||''); }
+
+// Parmi les dépôts que le jeton peut atteindre, celui qui partage le plus de
+// mots avec ce qui a été saisi : « carnet de recettes » désigne « carnet-recettes ».
+function suggererDepot(saisi, accessibles){
+  const mots = t => new Set(noAccent(t).split(/[^a-z0-9]+/).filter(x=>x.length>2));
+  const cible = mots(saisi);
+  if(!cible.size) return null;
+  let meilleur = null, score = 0;
+  accessibles.forEach(nom=>{
+    const n = [...mots(nom.split('/').pop())].filter(m=>cible.has(m)).length;
+    if(n > score){ score = n; meilleur = nom; }
+  });
+  return score ? meilleur : null;
+}
+
 function getGhConfig(){
   let cfg;
   try{ cfg = JSON.parse(localStorage.getItem('gh-config')||'null'); }catch(e){ return null; }
@@ -1802,6 +1846,11 @@ window.saveSettings=function(){
   }
   const token = document.getElementById('set-token').value.trim();
   if(!owner||!repo||!token){ toast('⚠ Merci de remplir les 3 champs'); return; }
+  if(nomGhInvalide(owner) || nomGhInvalide(repo)){
+    const valeur = nomGhInvalide(repo) ? repo : owner;
+    toast(`⚠ « ${valeur} » ne peut pas être un nom GitHub : ni espace ni accent. Reprenez-le tel qu'il apparaît dans l'adresse du dépôt, par exemple carnet-recettes.`);
+    return;
+  }
   document.getElementById('set-owner').value = owner;
   document.getElementById('set-repo').value = repo;
   localStorage.setItem('gh-config', JSON.stringify({owner,repo,token}));
@@ -1877,6 +1926,22 @@ async function compressImage(file, maxWidth=1400, quality=0.8){
 // trancher au lieu de renvoyer un message qui ne dit rien.
 async function diagnostiquerGithub(cfg){
   const entetes = {'Authorization':`token ${cfg.token}`, 'Accept':'application/vnd.github+json'};
+  // un nom impossible ne désigne aucun dépôt : inutile d'interroger GitHub,
+  // et on peut proposer directement le bon
+  if(nomGhInvalide(cfg.owner) || nomGhInvalide(cfg.repo)){
+    const champ = nomGhInvalide(cfg.repo) ? 'nom du dépôt' : 'propriétaire';
+    const valeur = nomGhInvalide(cfg.repo) ? cfg.repo : cfg.owner;
+    let piste = '';
+    try{
+      const r = await fetch('https://api.github.com/user/repos?per_page=100&affiliation=owner,collaborator,organization_member', {headers:entetes});
+      if(r.ok){
+        const accessibles = (await r.json()).map(d=>d.full_name);
+        const propose = suggererDepot(valeur, accessibles);
+        if(propose) piste = ` Vous cherchez sans doute « ${propose.split('/').pop()} » (dépôt ${propose}).`;
+      }
+    }catch(e){}
+    return `« ${valeur} » ne peut pas être un ${champ} GitHub : ni espace ni accent, seulement lettres, chiffres, point, tiret et souligné. Reprenez le nom tel qu'il apparaît dans l'adresse du dépôt.${piste}`;
+  }
   const adresse = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}`;
   let jeton = null, depot = null, infos = null, anonyme = null;
   try{ jeton = (await fetch('https://api.github.com/user', {headers:entetes})).status; }catch(e){}
@@ -1924,17 +1989,151 @@ window.testerGithub=async function(){
   toast(souci ? '⚠ ' + souci : `✓ ${cfg.owner}/${cfg.repo} accessible en écriture`);
 };
 
-window.uploadPhoto=async function(input, id){
+// ── Cadrage ──
+// On raisonne dans les pixels de l'image d'origine : le cadre est un
+// rectangle 16/9 dont on choisit le centre et la taille. Le zoom rétrécit ce
+// rectangle, le glissement en déplace le centre. Aucune transformation CSS
+// n'intervient, donc ce qu'on voit est exactement ce qui sera enregistré.
+const RATIO_PHOTO = 16 / 9;
+let cadrage = null;
+
+window.uploadPhoto = async function(input, id){
   const file = input.files[0];
-  if(!file) return;
+  if(!file){ return; }
   const cfg = getGhConfig();
   if(!cfg){
     input.value = '';
     toast("⚠ Configurez d'abord GitHub dans ⚙️ Réglages"); openSettings(); return;
   }
-  toast('Compression et envoi de la photo…');
+  toast('Ouverture de la photo…');
   try{
-    const base64 = await compressImage(file);
+    const src = await decoderImage(file);
+    ouvrirCadrage(src, id);
+  }catch(e){
+    toast('⚠ Échec : ' + (e && e.message ? e.message : 'erreur inattendue'));
+  }finally{
+    // sans cette remise à zéro, reprendre la même photo ne déclenche rien
+    input.value = '';
+  }
+};
+
+function ouvrirCadrage(src, id){
+  // largeur maximale d'un rectangle 16/9 tenant dans l'image
+  const large = Math.min(src.width, src.height * RATIO_PHOTO);
+  cadrage = {src, id, large, zoom:1, cx:src.width/2, cy:src.height/2};
+  const curseur = document.getElementById('crop-zoom');
+  if(curseur) curseur.value = 100;
+  openOverlay('crop-overlay');
+  requestAnimationFrame(dessinerCadrage);
+}
+
+function rectCadrage(){
+  const c = cadrage;
+  const w = c.large / c.zoom;
+  return {w, h: w / RATIO_PHOTO};
+}
+
+function limiterCadrage(){
+  const c = cadrage, {w, h} = rectCadrage();
+  c.cx = Math.min(c.src.width - w/2, Math.max(w/2, c.cx));
+  c.cy = Math.min(c.src.height - h/2, Math.max(h/2, c.cy));
+}
+
+function dessinerCadrage(){
+  if(!cadrage) return;
+  const cadre = document.getElementById('crop-cadre');
+  const cv = document.getElementById('crop-canvas');
+  const L = cadre.clientWidth || 320;
+  const H = Math.round(L / RATIO_PHOTO);
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = Math.round(L*dpr); cv.height = Math.round(H*dpr);
+  limiterCadrage();
+  const {w, h} = rectCadrage();
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  ctx.drawImage(cadrage.src, cadrage.cx - w/2, cadrage.cy - h/2, w, h, 0, 0, cv.width, cv.height);
+}
+
+window.zoomCadrage = function(v){
+  if(!cadrage) return;
+  cadrage.zoom = Math.min(4, Math.max(1, Number(v)/100));
+  const curseur = document.getElementById('crop-zoom');
+  if(curseur && Number(curseur.value) !== Math.round(cadrage.zoom*100)) curseur.value = Math.round(cadrage.zoom*100);
+  dessinerCadrage();
+};
+// rotation de l'appareil ou changement de largeur : on redessine au bon format
+window.addEventListener('resize', ()=>{ if(cadrage) dessinerCadrage(); });
+
+// glissement à un doigt, pincement à deux
+(function(){
+  const doigts = new Map();
+  let ecart0 = 0, zoom0 = 1;
+  function cadre(){ return document.getElementById('crop-cadre'); }
+  function surCadre(e){ return cadrage && cadre() && cadre().contains(e.target); }
+  document.addEventListener('pointerdown', e=>{
+    if(!surCadre(e)) return;
+    doigts.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(doigts.size === 2){
+      const [a,b] = [...doigts.values()];
+      ecart0 = Math.hypot(a.x-b.x, a.y-b.y); zoom0 = cadrage.zoom;
+    }
+    try{ e.target.setPointerCapture(e.pointerId); }catch(_){}
+  });
+  document.addEventListener('pointermove', e=>{
+    if(!cadrage || !doigts.has(e.pointerId)) return;
+    const avant = doigts.get(e.pointerId);
+    doigts.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(doigts.size === 2){
+      const [a,b] = [...doigts.values()];
+      const ecart = Math.hypot(a.x-b.x, a.y-b.y);
+      if(ecart0 > 0){
+        cadrage.zoom = Math.min(4, Math.max(1, zoom0 * ecart / ecart0));
+        const curseur = document.getElementById('crop-zoom');
+        if(curseur) curseur.value = Math.round(cadrage.zoom*100);
+      }
+    } else {
+      // un pixel à l'écran vaut (largeur du cadre en pixels source / largeur affichée)
+      const L = cadre().clientWidth || 1;
+      const k = rectCadrage().w / L;
+      cadrage.cx -= (e.clientX - avant.x) * k;
+      cadrage.cy -= (e.clientY - avant.y) * k;
+    }
+    dessinerCadrage();
+    e.preventDefault();
+  }, {passive:false});
+  const fin = e=>{ doigts.delete(e.pointerId); if(doigts.size < 2) ecart0 = 0; };
+  document.addEventListener('pointerup', fin);
+  document.addEventListener('pointercancel', fin);
+})();
+
+window.annulerCadrage = function(){
+  if(cadrage && cadrage.src && cadrage.src.close) cadrage.src.close();
+  cadrage = null;
+  closeOverlay('crop-overlay');
+};
+
+window.validerCadrage = async function(){
+  if(!cadrage) return;
+  const {src, id} = cadrage;
+  const {w, h} = rectCadrage();
+  const sortie = document.createElement('canvas');
+  sortie.width = Math.min(1400, Math.round(w));
+  sortie.height = Math.round(sortie.width / RATIO_PHOTO);
+  sortie.getContext('2d').drawImage(src, cadrage.cx - w/2, cadrage.cy - h/2, w, h,
+                                    0, 0, sortie.width, sortie.height);
+  const url = sortie.toDataURL('image/jpeg', 0.85);
+  if(!url || url.indexOf('data:image/jpeg') !== 0 || url.length < 200){
+    toast('⚠ Échec : conversion impossible sur cet appareil'); return;
+  }
+  annulerCadrage();
+  await envoyerPhoto(url.split(',')[1], id);
+};
+
+async function envoyerPhoto(base64, id){
+  const cfg = getGhConfig();
+  if(!cfg){ toast("⚠ Configurez d'abord GitHub dans ⚙️ Réglages"); openSettings(); return; }
+  toast('Envoi de la photo…');
+  try{
     const path = `photos/${id}-${Date.now()}.jpg`;
     const res = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}`, {
       method:'PUT',
@@ -1943,7 +2142,6 @@ window.uploadPhoto=async function(input, id){
     });
     if(!res.ok){
       const err = await res.json().catch(()=>({}));
-      // les messages bruts de GitHub sont en anglais et ne disent pas quoi faire
       if(res.status===401 || res.status===403 || res.status===404){
         const souci = await diagnostiquerGithub(cfg);
         throw new Error(souci || err.message || ('accès refusé par GitHub (' + res.status + ')'));
@@ -1959,12 +2157,8 @@ window.uploadPhoto=async function(input, id){
     if(r) renderDetail(r);
   }catch(e){
     toast('⚠ Échec : ' + (e && e.message ? e.message : 'erreur inattendue'));
-  }finally{
-    // sans cette remise à zéro, reprendre la même photo après un échec ne
-    // déclenche aucun évènement : l'appli semble ne rien faire du tout
-    input.value = '';
   }
-};
+}
 window.openDetail=function(id){
   currentId = id;
   detailView = 'text';
@@ -2039,8 +2233,9 @@ window.setDetailView=function(v){
   detailView=v; const r=recipes.find(x=>x.id===currentId); renderDetail(r); };
 function renderTextView(r, ratio){
   let html='';
-  let premier = true;   // le tout premier intitulé visible reçoit le motif de Noël
-  const marque = ()=>{ if(!premier) return ''; premier = false; return ' st-premier'; };
+  // chaque intitulé de partie porte un bouquet, décalé différemment à chaque fois
+  let nDeco = 0;
+  const marque = ()=>' deco-' + (nDeco++ % 3 + 1);
   (r.parts||[]).forEach(p=>{
     if(p.name) html += `<div class="part-name${marque()}">${esc(p.name)}</div>`;
     if(p.ingredients && p.ingredients.length){
