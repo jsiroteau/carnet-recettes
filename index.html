@@ -32,7 +32,9 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .logo{font-family:'Fraunces',serif;font-weight:700;font-size:1.3rem;color:var(--accent);display:flex;align-items:baseline;gap:6px}
 .logo span{color:var(--text);font-weight:500;font-size:0.95rem}
 
-.screen{display:none;padding:78px 16px 96px;min-height:100vh;max-width:720px;margin:0 auto}
+/* overflow-x:clip (et non hidden) : la largeur est verrouillée sans créer de
+   conteneur de défilement, donc sans perturber le défilement vertical. */
+.screen{display:none;padding:78px 16px 96px;min-height:100vh;max-width:720px;margin:0 auto;overflow-x:clip}
 .screen.active{display:block}
 
 .hero{padding:6px 2px 22px}
@@ -63,9 +65,15 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .recipe-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .tag{font-size:0.66rem;padding:2px 9px;border-radius:50px;border:1px solid var(--border);color:var(--muted);font-family:'IBM Plex Mono',monospace}
 .tag-liste{color:var(--muted);border-style:dashed}
-.tag.diff-Facile{color:var(--success);border-color:rgba(127,184,138,0.4)}
-.tag.diff-Moyen{color:var(--accent);border-color:rgba(227,167,46,0.4)}
-.tag.diff-Difficile{color:var(--rose);border-color:rgba(201,112,100,0.4)}
+/* Trois couleurs franchement distinctes pour la difficulté : vert, ambre, rouge
+   sombre. « Moyen » empruntait auparavant le rose de l'accent, trop proche du
+   rose de « Difficile » pour se lire d'un coup d'œil. */
+.tag.diff-Facile{color:#3E8A5C;border-color:rgba(62,138,92,0.45);background:rgba(62,138,92,0.07)}
+.tag.diff-Moyen{color:#A96A00;border-color:rgba(169,106,0,0.45);background:rgba(169,106,0,0.08)}
+.tag.diff-Difficile{color:#B32E58;border-color:rgba(179,46,88,0.45);background:rgba(179,46,88,0.07)}
+/* Les mots-clés libres ne disent pas la difficulté : une quatrième teinte, le
+   violet, les met hors du barème vert/ambre/rouge. */
+.tag-perso{color:#5B4BA8;border-color:rgba(91,75,168,0.45);background:rgba(91,75,168,0.07)}
 
 .fab{position:fixed;right:18px;bottom:26px;width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--accent-ink);border:none;font-size:1.7rem;box-shadow:0 6px 18px rgba(0,0,0,0.35);cursor:pointer;z-index:90;display:flex;align-items:center;justify-content:center}
 
@@ -77,7 +85,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .overlay-header{position:sticky;top:0;z-index:10;background:rgba(255,251,243,0.95);backdrop-filter:blur(12px);padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
 .overlay-header h2{font-family:'Fraunces',serif;font-size:1.1rem;flex:1;font-weight:600}
 .back-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:none;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
-.overlay-body{padding:18px 16px 60px;flex:1;max-width:720px;margin:0 auto;width:100%}
+.overlay-body{padding:18px 16px 60px;flex:1;max-width:720px;margin:0 auto;width:100%;overflow-x:clip}
 
 .detail-photo{width:100%;aspect-ratio:16/9;border-radius:var(--r);background-color:var(--card);display:flex;align-items:center;justify-content:center;color:var(--muted);margin-bottom:16px;position:relative;overflow:hidden}
 .photo-upload-btn{position:absolute;bottom:10px;right:10px;background:rgba(59,42,32,0.75);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:8px 14px;border-radius:50px;font-size:0.78rem;cursor:pointer}
@@ -238,31 +246,30 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 #detail-overlay.noel .steps-list li::before{background:#B01E30;color:#FFF8F0}
 #detail-overlay.noel .tag{border-color:rgba(176,30,48,0.4);color:#B01E30}
 
-/* Les bouquets, tous de même taille : c'est la hauteur et l'abscisse qui
-   varient. Les intitulés se rétrécissent à leur texte, si bien que le bouquet
-   se pose après le mot — donc à une abscisse différente selon la recette. */
-/* `display:table` plutôt qu'`inline-block` : la boîte se rétrécit au texte,
-   ce qui permet d'accrocher le houx juste après le mot, mais elle reste de
-   niveau bloc. Sans quoi une partie sans ingrédient — « Montage » — voit son
-   intitulé et son déroulé se mettre côte à côte, faute d'une liste entre eux. */
-#detail-overlay.noel .part-name,#detail-overlay.noel .section-title{display:table}
+/* Les bouquets, tous de même taille : seules la hauteur et l'abscisse varient.
+   Ils sont désormais calés sur le bord DROIT de la colonne de texte, dont la
+   largeur est fixe, et non sur la fin du mot qui précède : la mise en page ne
+   bouge donc plus quand le texte change de longueur — par exemple quand on
+   modifie les quantités et que « 1 tarte » devient « 12 tartes ».
+   Les intitulés restent des blocs pleine largeur (comportement par défaut),
+   ce qui évite aussi qu'une partie sans ingrédient — « Montage » — voie son
+   intitulé et son déroulé se mettre côte à côte. */
+#detail-overlay.noel .deco-band{position:relative}
 #detail-overlay.noel #detail-title{position:relative;padding-right:40px}
 #detail-overlay.noel #detail-title::after{content:'';position:absolute;right:-4px;bottom:-8px;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(168)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(288)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(408)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2253.9%22%20cy=%2262.6%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2251.9%22%20cy=%2260.5%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2251.4%22%20cy=%2250.9%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2249.4%22%20cy=%2248.7%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.8%22%20cy=%2254.6%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.8%22%20cy=%2252.4%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
-#detail-overlay.noel .servings-ctrl{position:relative}
-#detail-overlay.noel .servings-ctrl::after{content:'';position:absolute;left:calc(100% + 36px);top:52%;transform:translateY(-50%);width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(202)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(322)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(442)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2250.5%22%20cy=%2260.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2248.6%22%20cy=%2258.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2255.0%22%20cy=%2249.1%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2253.1%22%20cy=%2247.0%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.4%22%20cy=%2258.6%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.4%22%20cy=%2256.5%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
-#detail-overlay.noel .servings-ctrl::before{content:'';position:absolute;left:calc(100% + 178px);top:6%;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(322)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(442)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(562)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2255.0%22%20cy=%2249.1%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2253.1%22%20cy=%2247.0%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.4%22%20cy=%2258.6%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.4%22%20cy=%2256.5%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2250.5%22%20cy=%2260.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2248.6%22%20cy=%2258.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
-#detail-overlay.noel .view-toggle{position:relative}
-#detail-overlay.noel .view-toggle::after{content:'';position:absolute;left:calc(100% + 82px);top:30%;transform:translateY(-50%);width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(142)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(262)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(382)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2257.0%22%20cy=%2262.9%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2255.0%22%20cy=%2260.8%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2249.6%22%20cy=%2253.4%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2247.6%22%20cy=%2251.3%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2261.5%22%20cy=%2251.7%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2259.5%22%20cy=%2249.6%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
-#detail-overlay.noel .view-toggle::before{content:'';position:absolute;left:calc(100% + 128px);top:84%;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(246)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(366)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(486)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2249.1%22%20cy=%2255.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2247.1%22%20cy=%2253.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2260.1%22%20cy=%2250.4%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2258.1%22%20cy=%2248.3%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2258.8%22%20cy=%2262.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2256.8%22%20cy=%2260.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
+#detail-overlay.noel .band-portions::after{content:'';position:absolute;right:26%;top:52%;transform:translateY(-50%);width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(202)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(322)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(442)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2250.5%22%20cy=%2260.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2248.6%22%20cy=%2258.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2255.0%22%20cy=%2249.1%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2253.1%22%20cy=%2247.0%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.4%22%20cy=%2258.6%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.4%22%20cy=%2256.5%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
+#detail-overlay.noel .band-portions::before{content:'';position:absolute;right:6%;top:0%;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(322)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(442)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(562)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2255.0%22%20cy=%2249.1%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2253.1%22%20cy=%2247.0%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.4%22%20cy=%2258.6%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.4%22%20cy=%2256.5%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2250.5%22%20cy=%2260.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2248.6%22%20cy=%2258.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
+#detail-overlay.noel .band-vue::after{content:'';position:absolute;right:20%;top:36%;transform:translateY(-50%);width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(142)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(262)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(382)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2257.0%22%20cy=%2262.9%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2255.0%22%20cy=%2260.8%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2249.6%22%20cy=%2253.4%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2247.6%22%20cy=%2251.3%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2261.5%22%20cy=%2251.7%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2259.5%22%20cy=%2249.6%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
+#detail-overlay.noel .band-vue::before{content:'';position:absolute;right:5%;top:64%;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(246)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(366)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(486)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2249.1%22%20cy=%2255.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2247.1%22%20cy=%2253.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2260.1%22%20cy=%2250.4%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2258.1%22%20cy=%2248.3%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2258.8%22%20cy=%2262.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2256.8%22%20cy=%2260.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
 #detail-overlay.noel .steps-list{position:relative}
-#detail-overlay.noel .steps-list::after{content:'';position:absolute;right:4px;top:-40px;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(184)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(304)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(424)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2252.1%22%20cy=%2261.7%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2250.1%22%20cy=%2259.6%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2253.0%22%20cy=%2249.8%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2251.0%22%20cy=%2247.7%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.9%22%20cy=%2256.5%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.9%22%20cy=%2254.4%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
-#detail-overlay.noel .steps-list::before{content:'';position:absolute;right:104px;top:-26px;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(350)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(470)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(590)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2258.4%22%20cy=%2249.5%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2256.4%22%20cy=%2247.4%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2260.5%22%20cy=%2261.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2258.5%22%20cy=%2259.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2249.2%22%20cy=%2257.2%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2247.2%22%20cy=%2255.1%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
+#detail-overlay.noel .steps-list::after{content:'';position:absolute;right:24%;top:-40px;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(184)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(304)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(424)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2252.1%22%20cy=%2261.7%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2250.1%22%20cy=%2259.6%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2253.0%22%20cy=%2249.8%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2251.0%22%20cy=%2247.7%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.9%22%20cy=%2256.5%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.9%22%20cy=%2254.4%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
+#detail-overlay.noel .steps-list::before{content:'';position:absolute;right:6%;top:-22px;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(350)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(470)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(590)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2258.4%22%20cy=%2249.5%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2256.4%22%20cy=%2247.4%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2260.5%22%20cy=%2261.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2258.5%22%20cy=%2259.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2249.2%22%20cy=%2257.2%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2247.2%22%20cy=%2255.1%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
 /* un bouquet à droite de chaque intitulé de partie, décalé différemment
    d'une partie à l'autre pour qu'ils ne s'alignent pas */
 #detail-overlay.noel .deco-1,#detail-overlay.noel .deco-2,#detail-overlay.noel .deco-3{position:relative}
-#detail-overlay.noel .deco-1::after{content:'';position:absolute;left:calc(100% + 160px);top:44%;transform:translateY(-50%);width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(272)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(392)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(512)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2250.1%22%20cy=%2252.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2248.1%22%20cy=%2250.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.1%22%20cy=%2252.7%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.1%22%20cy=%2250.6%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2255.8%22%20cy=%2262.9%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2253.8%22%20cy=%2260.8%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
-#detail-overlay.noel .deco-2::after{content:'';position:absolute;left:calc(100% + 92px);top:16%;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(126)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(246)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(366)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2258.8%22%20cy=%2262.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2256.8%22%20cy=%2260.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2249.1%22%20cy=%2255.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2247.1%22%20cy=%2253.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2260.1%22%20cy=%2250.4%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2258.1%22%20cy=%2248.3%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
-#detail-overlay.noel .deco-3::after{content:'';position:absolute;left:calc(100% + 208px);top:70%;transform:translateY(-50%);width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(184)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(304)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(424)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2252.1%22%20cy=%2261.7%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2250.1%22%20cy=%2259.6%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2253.0%22%20cy=%2249.8%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2251.0%22%20cy=%2247.7%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.9%22%20cy=%2256.5%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.9%22%20cy=%2254.4%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
+#detail-overlay.noel .deco-1::after{content:'';position:absolute;right:4%;top:44%;transform:translateY(-50%);width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(272)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(392)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(512)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2250.1%22%20cy=%2252.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2248.1%22%20cy=%2250.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.1%22%20cy=%2252.7%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.1%22%20cy=%2250.6%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2255.8%22%20cy=%2262.9%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2253.8%22%20cy=%2260.8%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
+#detail-overlay.noel .deco-2::after{content:'';position:absolute;right:20%;top:6%;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(126)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(246)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(366)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2258.8%22%20cy=%2262.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2256.8%22%20cy=%2260.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2249.1%22%20cy=%2255.3%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2247.1%22%20cy=%2253.2%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2260.1%22%20cy=%2250.4%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2258.1%22%20cy=%2248.3%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
+#detail-overlay.noel .deco-3::after{content:'';position:absolute;right:12%;top:66%;transform:translateY(-50%);width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(184)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(304)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(424)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2252.1%22%20cy=%2261.7%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2250.1%22%20cy=%2259.6%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2253.0%22%20cy=%2249.8%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2251.0%22%20cy=%2247.7%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.9%22%20cy=%2256.5%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.9%22%20cy=%2254.4%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
 /* dans la liste, l'étiquette du label annonce la couleur */
 .tag-noel{color:#1F5B3C!important;border-color:#1F5B3C!important;background:rgba(31,91,60,0.09)}
 
@@ -391,7 +398,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
     <h1 id="hero-count">— recettes</h1>
   </div>
   <div class="search-bar">
-    <input type="search" id="search-input" placeholder="Chercher une recette, un ingrédient…" oninput="renderList()" autocomplete="off">
+    <input type="search" id="search-input" placeholder="Chercher : titre, ingrédient, mot-clé (facile, frais, Noël…)" oninput="renderList()" autocomplete="off">
   </div>
   <div class="chips" id="cat-chips"></div>
   <div id="recipe-list"></div>
@@ -719,8 +726,20 @@ function toast(msg){
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 let historyPushed = false;
 let inPopState = false;
+// Remettre en haut : une fois tout de suite, une fois après le rendu, car un
+// navigateur restaure parfois le défilement juste après l'affichage.
+function hautDePage(el){
+  if(!el) return;
+  const remonter = ()=>{ el.scrollTop = 0; const c = el.querySelector('.overlay-body'); if(c) c.scrollTop = 0; };
+  remonter();
+  requestAnimationFrame(remonter);
+}
 function openOverlay(id){
-  document.getElementById(id).classList.add('open');
+  const el = document.getElementById(id);
+  el.classList.add('open');
+  // On arrive toujours en haut de la page qui s'ouvre : sans cela l'écran
+  // conserve la position de défilement de la consultation précédente.
+  hautDePage(el);
   if(!historyPushed){
     history.pushState({carnetOverlay:true}, '', location.href);
     historyPushed = true;
@@ -830,13 +849,23 @@ window.setCategory=function(c){ activeCategory=c; renderCategories(); renderList
 // ── LIST ──
 window.renderList=function(){
   document.getElementById('hero-count').textContent = `${recipes.length} recette${recipes.length>1?'s':''}`;
-  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  // Les mots sont cherchés sans accent et indépendamment les uns des autres :
+  // « noel facile » ne retient que les recettes qui portent les deux.
+  const termes = noAccent(document.getElementById('search-input').value).split(/\s+/).filter(Boolean);
   let list = recipes;
   if(activeCategory!=='Toutes') list = list.filter(r=>r.category===activeCategory);
-  if(q) list = list.filter(r=>{
-    const hay = [r.title, r.category, r.notes, ...(r.labels||[]), ...(r.parts||[]).flatMap(p=>[p.name,...(p.ingredients||[]),...(p.steps||[])])].join(' ').toLowerCase();
-    return hay.includes(q);
-  });
+  if(termes.length){
+    // Un mot qui EST un mot-clé du carnet (« Noël », « Frais », « Facile »)
+    // filtre sur l'étiquette elle-même : sans quoi « frais » ramènerait aussi
+    // les fraises et la levure fraîche. Tout autre mot est cherché partout,
+    // pour que la recherche par ingrédient continue de fonctionner.
+    const connus = tousLesTags();
+    list = list.filter(r=>{
+      const siens = tagsDe(r);
+      const hay = noAccent(texteCherchable(r));
+      return termes.every(t => connus.has(t) ? siens.has(t) : hay.includes(t));
+    });
+  }
   list = [...list].sort((a,b)=>(a.title||'').localeCompare(b.title||'','fr',{sensitivity:'base'}));
   const c = document.getElementById('recipe-list');
   if(!list.length){ c.innerHTML='<div class="empty-state">Aucune recette trouvée</div>'; return; }
@@ -851,11 +880,33 @@ window.renderList=function(){
           ${estListeSeule(r)?`<span class="tag tag-liste">📋 Ingrédients seulement</span>`:''}
           ${(r.labels||[]).map(l=>normTitre(l)==='noel'
             ? `<span class="tag tag-noel">🎄 ${esc(l)}</span>`
-            : `<span class="tag" style="color:var(--accent);border-color:var(--accent)">🏷 ${esc(l)}</span>`).join('')}
+            : `<span class="tag tag-perso">🏷 ${esc(l)}</span>`).join('')}
         </div>
       </div>
     </div>`).join('');
 };
+
+// Les mots-clés d'une recette : ses étiquettes et sa difficulté, sans accent.
+function tagsDe(r){
+  const s = new Set((r.labels||[]).map(noAccent));
+  if(r.difficulty) s.add(noAccent(r.difficulty));
+  return s;
+}
+// Tous ceux qui existent dans le carnet, pour reconnaître un mot-clé saisi.
+function tousLesTags(){
+  const s = new Set();
+  recipes.forEach(r=>tagsDe(r).forEach(t=>s.add(t)));
+  return s;
+}
+
+// Tout ce sur quoi la recherche porte. La difficulté et les mots-clés en font
+// partie : « facile », « frais » ou « Noël » filtrent donc la liste.
+function texteCherchable(r){
+  return [r.title, r.category, r.difficulty, r.notes, r.source,
+    ...(r.labels||[]),
+    ...(r.parts||[]).flatMap(p=>[p.name, ...(p.ingredients||[]), ...(p.steps||[])])
+  ].filter(Boolean).join(' ');
+}
 
 const normTitre = s => noAccent(s).replace(/[^a-z0-9]+/g,' ').trim();
 const estNoel = r => (r.labels||[]).some(l=>normTitre(l)==='noel');
@@ -869,7 +920,195 @@ function nbIngredients(r){
   return (r.parts||[]).reduce((n,p)=>n+(p.ingredients||[]).filter(i=>String(i).trim()).length, 0);
 }
 
+// ── ACCORD EN NOMBRE ──
+// Le français écrit « 1 œuf » mais « 2 œufs », « 1 tarte » mais « 2 tartes ».
+// Comme les quantités changent avec le curseur, le nom qui les suit doit
+// changer aussi. En français le pluriel ne commence qu'à 2 : « 1,5 litre ».
+const estPluriel = n => Math.abs(n) >= 2;
+
+// Un mot qui arrête le groupe : ce qui suit se rapporte à autre chose.
+// « riz au lait » : c'est le riz qui se met au pluriel, pas le lait.
+const ACC_STOP = new Set(['de','du','des','d','a','au','aux','en','et','ou','le','la','les','l',
+  'pour','par','sur','sous','avec','sans','dans','selon','si','ni','chez','vers','dont','que','qui']);
+// Invariables, mais le groupe continue après eux.
+const ACC_INVARIABLES = new Set(['tres','bien','environ','plus','moins','assez','demi','mi','semi',
+  'extra','super','ultra','non','kouign','maxi','mini']);
+// Abréviations d'unités : « 2 kg », jamais « 2 kgs ».
+const ACC_UNITES = new Set(['g','kg','mg','ml','cl','dl','l','cm','mm','m','h','mn','min','s','c','cs','cc','cas','cac','°c','°','%','th']);
+// Mots dont le « s » ou le « x » final appartient déjà au singulier.
+const ACC_S_SINGULIER = new Set(['gros','tres','frais','epais','bas','gras','jus','ananas','couscous',
+  'riz','anis','mais','os','dos','tas','bras','poids','velours','pays','choux','doux','vieux','roux',
+  'delicieux','moelleux','creux','sirupeux','onctueux']);
+// Adjectifs courants qui accompagnent le nom et s'accordent avec lui.
+const ACC_ADJECTIFS = new Set(['entier','entiere','entiers','entieres','gros','grosse','grosses',
+  'petit','petite','petits','petites','grand','grande','grands','grandes','moyen','moyenne','moyens',
+  'moyennes','mur','mure','murs','mures','frais','fraiche','fraiches','jaune','jaunes','blanc','blancs',
+  'blanche','blanches','rouge','rouges','vert','verte','verts','vertes','noir','noire','noirs','noires',
+  'doux','douce','douces','sec','seche','seches','dur','dure','durs','dures','mou','molle','molles',
+  'fondu','fondue','fondus','fondues','battu','battue','battus','battues','rape','rapee','rapes','rapees',
+  'tiede','tiedes','froid','froide','froids','froides','chaud','chaude','chauds','chaudes',
+  'entamé','entame','coupe','coupee','coupes','coupees','fume','fumee','fumes','fumees','bio','nature']);
+
+function motPluriel(mot){
+  const b = noAccent(mot);
+  if(ACC_UNITES.has(b) || ACC_INVARIABLES.has(b)) return mot;
+  if(/[sxz]$/.test(b)) return mot;              // déjà invariable au pluriel
+  if(/(eau|au|eu)$/.test(b)) return mot + 'x';  // gâteau → gâteaux
+  if(/al$/.test(b)) return mot.slice(0,-2) + 'aux';
+  return mot + 's';
+}
+function motSingulier(mot){
+  const b = noAccent(mot);
+  if(ACC_UNITES.has(b) || ACC_INVARIABLES.has(b) || ACC_S_SINGULIER.has(b)) return mot;
+  if(/eaux$/.test(b)) return mot.slice(0,-1);   // gâteaux → gâteau
+  if(/aux$/.test(b) && b.length > 4) return mot.slice(0,-3) + 'al';
+  if(/eux$/.test(b)) return mot;                // « moelleux » : même forme au singulier
+  if(/s$/.test(b)) return mot.slice(0,-1);
+  return mot;
+}
+function accorderMot(mot, pluriel){
+  if(!mot) return mot;
+  if(mot.indexOf('-') > 0){                     // demi-lune → demi-lunes
+    const bouts = mot.split('-');
+    bouts[bouts.length-1] = accorderMot(bouts[bouts.length-1], pluriel);
+    return bouts.join('-');
+  }
+  return pluriel ? motPluriel(mot) : motSingulier(mot);
+}
+// Un mot peut-il porter l'accord ? Ni une unité, ni une préposition, ni un
+// complément introduit par une apostrophe (« d'œuf », « l'eau »).
+function motAccordable(mot){
+  if(!mot) return false;
+  const b = noAccent(mot);
+  return !ACC_STOP.has(b) && !ACC_UNITES.has(b) && !ACC_INVARIABLES.has(b) && !/^[ld]['’]/.test(b);
+}
+// Accorde tout un intitulé : « très grosse meringue » → « très grosses meringues »,
+// mais « riz au lait » reste « riz au lait ».
+function accorderGroupe(texte, pluriel){
+  if(!texte) return texte;
+  let arrete = false;
+  return String(texte).split(/(\s+)/).map(m=>{
+    if(!m.trim() || arrete) return m;
+    const b = noAccent(m.replace(/[.,;:!?]+$/,''));
+    if(ACC_INVARIABLES.has(b) || ACC_UNITES.has(b)) return m;
+    if(ACC_STOP.has(b) || /^[ld]['’]/.test(b)){ arrete = true; return m; }
+    return accorderMot(m, pluriel);
+  }).join('');
+}
+// L'unité de portion telle qu'elle doit s'afficher pour ce nombre.
+function uniteAccordee(unite, n){
+  return accorderGroupe(unite, estPluriel(n));
+}
+// Le nom (et son éventuel adjectif) qui suit une quantité, réaccordé si la
+// quantité vient de franchir la frontière du singulier.
+function accorderSuite(avant, apres, mot1, reste){
+  const suite = (mot1||'') + (reste||'');
+  if(estPluriel(avant) === estPluriel(apres)) return suite;
+  if(!motAccordable(mot1)) return suite;
+  const pluriel = estPluriel(apres);
+  let out = accorderMot(mot1, pluriel);
+  // On poursuit l'accord tant que les mots appartiennent au même groupe :
+  // un adjectif s'accorde, et le nom qui suit un adjectif antéposé aussi
+  // (« 2 petites pommes vertes »). Dès qu'on sort de ce cas, on s'arrête,
+  // pour ne pas mettre au pluriel un complément qui ne s'y prête pas.
+  let precedentAdjectif = ACC_ADJECTIFS.has(noAccent(mot1));
+  let continuer = true;
+  out += String(reste||'').split(/(\s+)/).map(m=>{
+    if(!m.trim() || !continuer) return m;
+    const b = noAccent(m);
+    const estAdj = ACC_ADJECTIFS.has(b);
+    if(!motAccordable(m) || !(estAdj || precedentAdjectif)){ continuer = false; return m; }
+    precedentAdjectif = estAdj;
+    return accorderMot(m, pluriel);
+  }).join('');
+  return out;
+}
+
 // ── SCALING ──
+// Motif d'un mot français, apostrophe comprise : sert à retrouver le nom qui
+// suit une quantité pour l'accorder.
+const ACC_MOT = "[A-Za-zÀ-ÖØ-öø-ÿŒœ]+(?:['’][A-Za-zÀ-ÖØ-öø-ÿŒœ]+)?";
+const RE_FRACTION_MOT = new RegExp("\\b(\\d+)\\/(\\d+)\\b(?:(\\s+)("+ACC_MOT+")((?:\\s+"+ACC_MOT+"){0,2}))?", "g");
+const RE_NOMBRE_MOT   = new RegExp("(\\d+)([.,]\\d+)?(?:(\\s+)("+ACC_MOT+")((?:\\s+"+ACC_MOT+"){0,2}))?", "g");
+
+// ── FRACTIONS : QUANTITÉ OU PROPORTION ? ──
+// « 1/4 de litre de lait » est une quantité : elle suit les portions.
+// « Prélever 1/5 de la pâte » est une proportion : un cinquième reste un
+// cinquième, que la pâte soit grande ou petite. Deux indices les séparent,
+// tous deux vérifiés sur les recettes du carnet :
+//   · l'article défini — « de la pâte », « du mélange » — renvoie à quelque
+//     chose déjà présent dans la recette, dont la quantité varie déjà ;
+//   · le nom d'une préparation, même sans article : « 4/5 de pâte restants ».
+// À l'inverse « de citron », « de cuillère à café », « de verre » introduisent
+// un ingrédient ou un contenant : ce sont bien des quantités.
+const RE_PART_ARTICLE = /^\s*(?:de\s+la\b|de\s+l['’]|du\b|des\b|de\s+ce(?:tte|s)?\b|de\s+mon\b)/i;
+const RE_PART_PREPARATION = /^\s*(?:de\s+|du\s+|des\s+|d['’])?\s*(?:m[ée]lange|pr[ée]paration|appareil|p[âa]te|p[âa]ton|tout|ensemble|pommade|levain|d[ée]trempe|ganache|garniture|farce|masse|boudin|cr[èe]me\s+mont[ée]e|chantilly|meringue|pralin[ée])\b/i;
+// Une fraction suivie d'une durée n'est pas davantage une quantité :
+// « laisser reposer 1/2 heure » ne dépend pas du nombre de parts.
+const RE_PART_DUREE = /^\s*(?:heures?|h\b|minutes?|min\b|mn\b|secondes?|jours?|nuits?|semaines?|mois)\b/i;
+function estProportion(suite){
+  return RE_PART_DUREE.test(suite) || RE_PART_ARTICLE.test(suite) || RE_PART_PREPARATION.test(suite);
+}
+
+// Une quantité écrite en fraction doit le rester : « 1/4 de litre » doublé
+// s'écrit « 1/2 de litre », et non « 0,5 de litre ». On cherche donc d'abord à
+// exprimer le résultat sur un dénominateur usuel de cuisine ; à défaut
+// seulement, on retombe sur l'écriture décimale.
+const DENOMINATEURS = [2,3,4,5,6,8,10,12];
+function formaterQuantite(v, avecFractions){
+  const entier = Math.round(v);
+  if(Math.abs(v - entier) < 1e-9) return String(entier);
+  if(avecFractions && v > 0 && v < 1){
+    // dénominateurs croissants : la première correspondance est déjà réduite
+    for(const d of DENOMINATEURS){
+      const n = Math.round(v*d);
+      if(n > 0 && Math.abs(v - n/d) < 1e-6) return n + '/' + d;
+    }
+  }
+  const p = Math.abs(v) < 1 ? 100 : 10;      // sous l'unité, deux décimales
+  return String(Math.round(v*p)/p).replace('.', ',');
+}
+// Devant une unité abrégée, le décimal reste plus lisible : on veut « 0,42g »
+// et non « 5/12g ». Les unités écrites en toutes lettres, elles, acceptent la
+// fraction : « 1/4 de litre », « 3/4 de cuillère à café ».
+const RE_UNITE_ABREGEE = /^\s*(?:kg|mg|ml|cl|dl|g|l)\b/i;
+
+// Le « h » de « huile » s'élide, celui de « haricot » non.
+const H_ASPIRE = /^h(?:aricot|areng|omard|achis|oumous|ache|ors)/i;
+const elide = mot => /^[aeiouyàâäéèêëîïôöùûüœæ]/i.test(mot||'')
+  || (/^h/i.test(mot||'') && !H_ASPIRE.test(mot));
+// Le partitif accompagne les fractions — « 1/4 de litre », « 1/3 d'œuf » —
+// mais ni les entiers ni les décimaux : on dit « 1 litre », « 0,25 litre »,
+// « 1,5 cuillère ». La moitié fait exception et s'en passe aussi, comme dans
+// « un demi-litre » : « 1/2 litre ». On l'ajoute ou on le retire donc selon
+// la forme que prend la quantité, sans se soucier de celle qu'elle avait.
+function ajusterPartitif(txt, avant, apres, mot1, reste){
+  const fraction = txt !== '1/2' && /^\d+\/\d+$/.test(txt);
+  const sans = retirerPartitif(mot1, reste);      // null s'il n'y en a pas
+  if(fraction){
+    if(sans || !motAccordable(mot1)) return accorderSuite(avant, apres, mot1, reste);
+    return (elide(mot1) ? "d'" : 'de ') + accorderSuite(avant, apres, mot1, reste);
+  }
+  if(sans) return accorderSuite(avant, apres, sans.tete, sans.suite);
+  return accorderSuite(avant, apres, mot1, reste);
+}
+
+// Le « de » de « 3/4 de cuillère » est un partitif : il n'a de sens qu'en
+// dessous de l'unité. Passé 1, le français le laisse tomber — on dit « 1,5
+// cuillère à café », jamais « 1,5 de cuillère à café ».
+// Rend null si le mot n'est pas un partitif, ou s'il n'y a rien derrière lui.
+function retirerPartitif(mot1, reste){
+  if(noAccent(mot1||'') === 'de'){
+    const mots = String(reste||'').trim();
+    if(!mots) return null;
+    const bouts = mots.split(/\s+/);
+    const tete = bouts.shift();
+    return { tete, suite: bouts.length ? ' ' + bouts.join(' ') : '' };
+  }
+  if(/^d['’]./i.test(mot1||'')) return { tete: mot1.replace(/^d['’]/i,''), suite: reste||'' };
+  return null;
+}
+
 function scaleIngredient(str, ratio){
   if(ratio===1) return str;
   // Protéger les valeurs qui ne doivent JAMAIS être recalculées avec les portions :
@@ -879,14 +1118,26 @@ function scaleIngredient(str, ratio){
   let s = str;
   // Traiter d'abord les fractions (ex. "1/2") comme UNE seule valeur à recalculer,
   // pour éviter de multiplier séparément le numérateur et le dénominateur.
-  s = s.replace(/\b(\d+)\/(\d+)\b/g, (m, num, den)=>{
-    const val = (parseFloat(num)/parseFloat(den)) * ratio;
-    const v = Math.round(val*100)/100;
-    const formatted = (v % 1 === 0) ? String(v) : String(v).replace('.', ',');
-    protect.push(formatted);
-    return `\u0000${toLetters(protect.length-1)}\u0000`;
+  s = s.replace(RE_FRACTION_MOT, (m, num, den, sep, mot1, reste, offset, chaine)=>{
+    const queue = (sep||'') + (mot1||'') + (reste||'');
+    const suite = chaine.slice(offset + m.length - queue.length);
+    if(estProportion(suite)){
+      // On met la fraction à l'abri des passes suivantes, telle quelle.
+      protect.push(num + '/' + den);
+      return `\u0000${toLetters(protect.length-1)}\u0000` + queue;
+    }
+    const avant = parseFloat(num)/parseFloat(den);
+    const val = avant * ratio;
+    const txt = formaterQuantite(val, !RE_UNITE_ABREGEE.test(suite));
+    protect.push(txt);
+    const jeton = `\u0000${toLetters(protect.length-1)}\u0000`;
+    if(sep === undefined) return jeton;
+    return jeton + sep + ajusterPartitif(txt, avant, val, mot1, reste);
   });
   const nonScalablePatterns = [
+    // Un pourcentage décrit le produit, pas la quantité qu'on en prend :
+    // la crème reste à 30% de matière grasse quel que soit le nombre de babas.
+    /\d+([.,]\d+)?\s?%/g,
     /\d+([.,]\d+)?\s?°C/g,
     /\d+([.,]\d+)?\s?°/g,
     /\d+(\s?(à|et|ou|-)\s?\d+)?\s?(minutes?|min\b|mn\b|heures?\b|secondes?\b)/gi,
@@ -897,11 +1148,14 @@ function scaleIngredient(str, ratio){
   nonScalablePatterns.forEach(re=>{
     s = s.replace(re, m=>{ protect.push(m); return `\u0000${toLetters(protect.length-1)}\u0000`; });
   });
-  s = s.replace(/(\d+)([.,](\d+))?/g, (m, intPart, dec, decPart)=>{
-    const num = parseFloat((intPart+(dec?'.'+decPart:'')));
-    let v = num*ratio;
-    v = Math.round(v*10)/10;
-    return (v % 1 === 0) ? String(v) : String(v).replace('.', ',');
+  s = s.replace(RE_NOMBRE_MOT, (m, intPart, dec, sep, mot1, reste, offset, chaine)=>{
+    const num = parseFloat(intPart + (dec ? dec.replace(',','.') : ''));
+    const v = num * ratio;
+    const queue = (sep||'') + (mot1||'') + (reste||'');
+    const suite = chaine.slice(offset + m.length - queue.length);
+    const txt = formaterQuantite(v, !RE_UNITE_ABREGEE.test(suite));
+    if(sep === undefined) return txt;
+    return txt + sep + ajusterPartitif(txt, num, v, mot1, reste);
   });
   s = s.replace(/\u0000([a-z]+)\u0000/g, (m, letters)=>{
     let n=0; for(const c of letters){ n = n*26 + (c.charCodeAt(0)-96); }
@@ -924,7 +1178,7 @@ window.shareRecipe=async function(id){
   const sv = currentServings[id] || r.servingsBase;
   const ratio = (r.servingsBase && r.servingsBase>0) ? sv/r.servingsBase : 1;
   let text = `${r.title}\n`;
-  if(r.servingsBase) text += `Pour ${sv} ${r.servingsUnit||''}\n`;
+  if(r.servingsBase) text += `Pour ${sv} ${uniteAccordee(r.servingsUnit||'', sv)}\n`;
   text += '\n';
   (r.parts||[]).forEach(p=>{
     if(p.name) text += `— ${p.name} —\n`;
@@ -1133,7 +1387,7 @@ function renderShoppingList(){
   html += `<div class="shop-recipes">` + cart.recipes.map((rc,i)=>{
     const duMenu = String(rc.id).indexOf('menu:')===0;
     return `<span class="shop-recipe-chip${duMenu?' du-menu':''}">${duMenu?'📅 ':''}${esc(rc.title)}
-      <span class="sv">${rc.servings?rc.servings+' '+esc(rc.unit||''):''}</span>
+      <span class="sv">${rc.servings?rc.servings+' '+esc(uniteAccordee(rc.unit||'', rc.servings)):''}</span>
       ${duMenu ? '' : `<button onclick="removeFromShoppingList(${i})" title="Retirer">✕</button>`}
     </span>`;
   }).join('') + `</div>`;
@@ -1726,7 +1980,7 @@ function carteplat(e){
   if(e.recipeId && existe && e.servings){
     html += `<div class="mp-portions">
       <button onclick="changerPortionsMenu('${e.uid}',-1)">−</button>
-      <span class="v">${e.servings} ${esc(e.unit||'')}</span>
+      <span class="v">${e.servings} ${esc(uniteAccordee(e.unit||'', e.servings))}</span>
       <button onclick="changerPortionsMenu('${e.uid}',1)">+</button>
     </div>`;
   }
@@ -2017,6 +2271,10 @@ let cadrage = null;
 window.uploadPhoto = async function(input, id){
   const file = input.files[0];
   if(!file){ return; }
+  if(!modeModif){
+    input.value = '';
+    toast('Activez « Autoriser la modification » dans ⚙️ Réglages'); return;
+  }
   const cfg = getGhConfig();
   if(!cfg){
     input.value = '';
@@ -2225,30 +2483,35 @@ function renderDetail(r){
   const ratio = (r.servingsBase && r.servingsBase>0) ? sv/r.servingsBase : 1;
   const noel = estNoel(r);
   document.getElementById('detail-overlay').classList.toggle('noel', noel);
+  // Changer la photo est une modification comme une autre : le bouton n'existe
+  // que si le réglage « Autoriser la modification » a été activé. Il cessait
+  // sinon de se superposer inutilement à chaque photo du carnet.
   let html = `<div class="detail-photo">
       ${r.photoUrl?`<img class="photo-img" src="${esc(r.photoUrl)}" alt="">`:'📷 Pas encore de photo'}
-      <label class="photo-upload-btn">📸 ${r.photoUrl?'Changer':'Ajouter'} une photo
+      ${modeModif ? `<label class="photo-upload-btn">📸 ${r.photoUrl?'Changer':'Ajouter'} une photo
         <input type="file" accept="image/*" style="display:none" onchange="uploadPhoto(this,'${r.id}')">
-      </label>
+      </label>` : ''}
     </div>
     <div class="meta-row">
       <div class="meta-pill"><div class="v">${esc(r.category||'—')}</div><div class="l">Catégorie</div></div>
       ${r.difficulty?`<div class="meta-pill"><div class="v">${esc(r.difficulty)}</div><div class="l">Difficulté</div></div>`:''}
     </div>`;
   if(r.servingsBase){
-    html += `<div class="servings-ctrl">
+    // La bande enveloppante occupe toute la largeur : c'est elle qui porte les
+    // bouquets de houx, dont la position ne dépend donc plus du texte.
+    html += `<div class="deco-band band-portions"><div class="servings-ctrl">
       <button onclick="changeServings(-1)">−</button>
-      <span class="sv-val mono">${sv} ${esc(r.servingsUnit||'')}</span>
+      <span class="sv-val mono">${sv} ${esc(uniteAccordee(r.servingsUnit||'', sv))}</span>
       <button onclick="changeServings(1)">+</button>
-    </div>`;
+    </div></div>`;
   }
   // sans étapes, il n'y a rien à schématiser : on n'offre pas la bascule
   if(estListeSeule(r)) detailView = 'text';
   if(!estListeSeule(r)){
-    html += `<div class="view-toggle">
+    html += `<div class="deco-band band-vue"><div class="view-toggle">
       <button class="vt-btn ${detailView==='text'?'active':''}" onclick="setDetailView('text')">📋 Texte</button>
       <button class="vt-btn ${detailView==='schema'?'active':''}" onclick="setDetailView('schema')">🗺 Schéma</button>
-    </div>`;
+    </div></div>`;
   }
   html += `<div id="recipe-content">${detailView==='text'?renderTextView(r,ratio):renderSchemaView(r,ratio)}</div>`;
   if(r.notes) html += `<div class="notes-box"><b>Notes :</b><br>${esc(r.notes)}</div>`;
