@@ -219,7 +219,9 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 #detail-overlay.noel .overlay-header h2{font-style:italic}
 #detail-overlay.noel .meta-pill,#detail-overlay.noel .servings-ctrl,
 #detail-overlay.noel .detail-photo,#detail-overlay.noel .btn-secondary{
-  background:#FFFDF7;border:none;
+  /* background-color et non background : la forme abrégée effacerait le
+     « center/cover » de la règle de base et décadrerait la photo */
+  background-color:#FFFDF7;border:none;
   box-shadow:0 3px 14px rgba(36,53,42,0.13),0 1px 3px rgba(36,53,42,0.08)}
 #detail-overlay.noel .meta-pill .v{color:#1F5B3C}
 #detail-overlay.noel .part-name{color:#1F5B3C}
@@ -232,7 +234,11 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 /* Les bouquets, tous de même taille : c'est la hauteur et l'abscisse qui
    varient. Les intitulés se rétrécissent à leur texte, si bien que le bouquet
    se pose après le mot — donc à une abscisse différente selon la recette. */
-#detail-overlay.noel .part-name,#detail-overlay.noel .section-title{display:inline-block}
+/* `display:table` plutôt qu'`inline-block` : la boîte se rétrécit au texte,
+   ce qui permet d'accrocher le houx juste après le mot, mais elle reste de
+   niveau bloc. Sans quoi une partie sans ingrédient — « Montage » — voit son
+   intitulé et son déroulé se mettre côte à côte, faute d'une liste entre eux. */
+#detail-overlay.noel .part-name,#detail-overlay.noel .section-title{display:table}
 #detail-overlay.noel #detail-title{position:relative;padding-right:40px}
 #detail-overlay.noel #detail-title::after{content:'';position:absolute;right:-4px;bottom:-8px;width:38px;height:38px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20112%20112%22%3E%3Cdefs%3E%3Cpath%20id=%22h%22%20d=%22M0%200%20C1%20-3%204%20-6%208%20-6%20C10%20-8%2012%20-10%2014%20-14%20C16%20-10%2019%20-9%2021%20-7%20C23%20-9%2026%20-11.5%2028%20-15.5%20C30%20-11.5%2034%20-9%2036%20-7%20C38%20-9%2042%20-9%2044%20-13%20C46%20-9%2053%20-3%2056%200%20C53.0%203.0%2046.0%209.0%2044.0%2013.0%20C42.0%209.0%2038.0%209.0%2036.0%207.0%20C34.0%209.0%2030.0%2011.5%2028.0%2015.5%20C26.0%2011.5%2023.0%209.0%2021.0%207.0%20C19.0%209.0%2016.0%2010.0%2014.0%2014.0%20C12.0%2010.0%2010.0%208.0%208.0%206.0%20C4.0%206.0%201.0%203.0%200%200%20Z%22/%3E%3C/defs%3E%3Cuse%20href=%22%23h%22%20fill=%22%232C6B45%22%20transform=%22translate(56.0,56.0)%20rotate(168)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%231F5137%22%20transform=%22translate(56.0,56.0)%20rotate(288)%20scale(0.60)%22/%3E%3Cuse%20href=%22%23h%22%20fill=%22%23357A4F%22%20transform=%22translate(56.0,56.0)%20rotate(408)%20scale(0.60)%22/%3E%3Ccircle%20cx=%2253.9%22%20cy=%2262.6%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2251.9%22%20cy=%2260.5%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2251.4%22%20cy=%2250.9%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2249.4%22%20cy=%2248.7%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3Ccircle%20cx=%2262.8%22%20cy=%2254.6%22%20r=%226.6%22%20fill=%22%23C4142A%22/%3E%3Ccircle%20cx=%2260.8%22%20cy=%2252.4%22%20r=%221.5%22%20fill=%22%23FFF%22%20opacity=%220.8%22/%3E%3C/svg%3E") center/contain no-repeat}
 #detail-overlay.noel .servings-ctrl{position:relative}
@@ -534,12 +540,16 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
     <h2>Cadrer la photo</h2>
   </div>
   <div class="overlay-body">
-    <div class="crop-aide">Faites glisser l’image pour la déplacer, et utilisez le curseur — ou deux doigts — pour l’agrandir. Le cadre correspond exactement à ce qui s’affichera en tête de la recette.</div>
+    <div class="crop-aide">Faites glisser l’image pour la déplacer, et le curseur — ou deux doigts — pour l’agrandir ou la réduire. En deçà du cadre, les bords sont complétés par un fond flou. Ce cadre est exactement ce qui s’affichera en tête de la recette.</div>
     <div class="crop-cadre" id="crop-cadre"><canvas id="crop-canvas"></canvas></div>
     <div class="crop-zoom">
       <span>petit</span>
-      <input type="range" id="crop-zoom" min="100" max="400" value="100" oninput="zoomCadrage(this.value)">
+      <input type="range" id="crop-zoom" min="40" max="400" value="100" oninput="zoomCadrage(this.value)">
       <span>grand</span>
+    </div>
+    <div class="shop-tools" style="margin-top:12px">
+      <span class="chip" onclick="cadrageEntier()">🖼 Photo entière</span>
+      <span class="chip" onclick="cadrageRempli()">⤢ Remplir le cadre</span>
     </div>
     <div class="btn-row">
       <button class="btn btn-secondary" style="flex:1" onclick="annulerCadrage()">Annuler</button>
@@ -2018,14 +2028,24 @@ window.uploadPhoto = async function(input, id){
 };
 
 function ouvrirCadrage(src, id){
-  // largeur maximale d'un rectangle 16/9 tenant dans l'image
+  // « remplir » : le plus grand rectangle 16/9 contenu dans l'image
   const large = Math.min(src.width, src.height * RATIO_PHOTO);
-  cadrage = {src, id, large, zoom:1, cx:src.width/2, cy:src.height/2};
+  // « photo entière » : le plus petit rectangle 16/9 qui contient l'image ;
+  // c'est lui qui fixe le zoom minimal, sans quoi on ne pourrait que rogner
+  const englobant = Math.max(src.width, src.height * RATIO_PHOTO);
+  cadrage = {src, id, large, zoomMin: large/englobant, zoom:1,
+             cx:src.width/2, cy:src.height/2};
   const curseur = document.getElementById('crop-zoom');
-  if(curseur) curseur.value = 100;
+  if(curseur){
+    curseur.min = Math.floor(cadrage.zoomMin * 100);
+    curseur.value = 100;
+  }
   openOverlay('crop-overlay');
   requestAnimationFrame(dessinerCadrage);
 }
+
+window.cadrageEntier = function(){ if(cadrage) zoomCadrage(cadrage.zoomMin * 100); };
+window.cadrageRempli = function(){ if(cadrage) zoomCadrage(100); };
 
 function rectCadrage(){
   const c = cadrage;
@@ -2035,8 +2055,10 @@ function rectCadrage(){
 
 function limiterCadrage(){
   const c = cadrage, {w, h} = rectCadrage();
-  c.cx = Math.min(c.src.width - w/2, Math.max(w/2, c.cx));
-  c.cy = Math.min(c.src.height - h/2, Math.max(h/2, c.cy));
+  // quand le cadre est plus large que la photo sur un axe, on la centre :
+  // la faire glisser dans le vide n'aurait pas de sens
+  c.cx = w >= c.src.width  ? c.src.width/2  : Math.min(c.src.width - w/2,  Math.max(w/2, c.cx));
+  c.cy = h >= c.src.height ? c.src.height/2 : Math.min(c.src.height - h/2, Math.max(h/2, c.cy));
 }
 
 function dessinerCadrage(){
@@ -2050,13 +2072,26 @@ function dessinerCadrage(){
   limiterCadrage();
   const {w, h} = rectCadrage();
   const ctx = cv.getContext('2d');
-  ctx.clearRect(0, 0, cv.width, cv.height);
+  fondFlou(ctx, cadrage.src, cv.width, cv.height);
   ctx.drawImage(cadrage.src, cadrage.cx - w/2, cadrage.cy - h/2, w, h, 0, 0, cv.width, cv.height);
+}
+
+// Comble les bords quand la photo ne remplit pas le cadre : la photo elle-même,
+// agrandie et floutée, plutôt que deux bandes blanches.
+function fondFlou(ctx, src, L, H){
+  ctx.clearRect(0, 0, L, H);
+  const k = Math.max(L/src.width, H/src.height) * 1.25;
+  const w = src.width*k, h = src.height*k;
+  ctx.save();
+  try{ ctx.filter = 'blur(' + Math.round(Math.max(L, H)/28) + 'px)'; }catch(_){}
+  ctx.globalAlpha = 0.85;
+  ctx.drawImage(src, (L-w)/2, (H-h)/2, w, h);
+  ctx.restore();
 }
 
 window.zoomCadrage = function(v){
   if(!cadrage) return;
-  cadrage.zoom = Math.min(4, Math.max(1, Number(v)/100));
+  cadrage.zoom = Math.min(4, Math.max(cadrage.zoomMin, Number(v)/100));
   const curseur = document.getElementById('crop-zoom');
   if(curseur && Number(curseur.value) !== Math.round(cadrage.zoom*100)) curseur.value = Math.round(cadrage.zoom*100);
   dessinerCadrage();
@@ -2087,7 +2122,7 @@ window.addEventListener('resize', ()=>{ if(cadrage) dessinerCadrage(); });
       const [a,b] = [...doigts.values()];
       const ecart = Math.hypot(a.x-b.x, a.y-b.y);
       if(ecart0 > 0){
-        cadrage.zoom = Math.min(4, Math.max(1, zoom0 * ecart / ecart0));
+        cadrage.zoom = Math.min(4, Math.max(cadrage.zoomMin, zoom0 * ecart / ecart0));
         const curseur = document.getElementById('crop-zoom');
         if(curseur) curseur.value = Math.round(cadrage.zoom*100);
       }
@@ -2119,8 +2154,10 @@ window.validerCadrage = async function(){
   const sortie = document.createElement('canvas');
   sortie.width = Math.min(1400, Math.round(w));
   sortie.height = Math.round(sortie.width / RATIO_PHOTO);
-  sortie.getContext('2d').drawImage(src, cadrage.cx - w/2, cadrage.cy - h/2, w, h,
-                                    0, 0, sortie.width, sortie.height);
+  const ctx = sortie.getContext('2d');
+  fondFlou(ctx, src, sortie.width, sortie.height);
+  ctx.drawImage(src, cadrage.cx - w/2, cadrage.cy - h/2, w, h,
+                0, 0, sortie.width, sortie.height);
   const url = sortie.toDataURL('image/jpeg', 0.85);
   if(!url || url.indexOf('data:image/jpeg') !== 0 || url.length < 200){
     toast('⚠ Échec : conversion impossible sur cet appareil'); return;
