@@ -96,6 +96,9 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .meta-pill .l{font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
 
 .servings-ctrl{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:50px;padding:6px 8px;margin-bottom:18px;width:fit-content}
+/* un appui prolongé ne doit ni sélectionner le texte, ni ouvrir le menu
+   système de copie, ni déclencher le zoom par double frappe */
+.rep-btn{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
 .servings-ctrl button{width:32px;height:32px;border-radius:50%;border:none;background:var(--card-hi);color:var(--text);font-size:1.1rem;cursor:pointer}
 .servings-ctrl .sv-val{font-family:'IBM Plex Mono',monospace;font-weight:600;min-width:70px;text-align:center;font-size:0.88rem}
 
@@ -925,6 +928,12 @@ function nbIngredients(r){
 // Comme les quantités changent avec le curseur, le nom qui les suit doit
 // changer aussi. En français le pluriel ne commence qu'à 2 : « 1,5 litre ».
 const estPluriel = n => Math.abs(n) >= 2;
+// L'accord doit porter sur le nombre TEL QU'IL S'AFFICHE, et non sur la valeur
+// exacte : 1,95 s'écrit « 2 » après arrondi, et réclame donc le pluriel.
+function valeurAffichee(txt){
+  if(/^\d+\/\d+$/.test(txt)){ const [a,b] = txt.split('/'); return parseFloat(a)/parseFloat(b); }
+  return parseFloat(String(txt).replace(',', '.'));
+}
 
 // Un mot qui arrête le groupe : ce qui suit se rapporte à autre chose.
 // « riz au lait » : c'est le riz qui se met au pluriel, pas le lait.
@@ -1132,7 +1141,7 @@ function scaleIngredient(str, ratio){
     protect.push(txt);
     const jeton = `\u0000${toLetters(protect.length-1)}\u0000`;
     if(sep === undefined) return jeton;
-    return jeton + sep + ajusterPartitif(txt, avant, val, mot1, reste);
+    return jeton + sep + ajusterPartitif(txt, avant, valeurAffichee(txt), mot1, reste);
   });
   const nonScalablePatterns = [
     // Un pourcentage décrit le produit, pas la quantité qu'on en prend :
@@ -1155,7 +1164,7 @@ function scaleIngredient(str, ratio){
     const suite = chaine.slice(offset + m.length - queue.length);
     const txt = formaterQuantite(v, !RE_UNITE_ABREGEE.test(suite));
     if(sep === undefined) return txt;
-    return txt + sep + ajusterPartitif(txt, num, v, mot1, reste);
+    return txt + sep + ajusterPartitif(txt, num, valeurAffichee(txt), mot1, reste);
   });
   s = s.replace(/\u0000([a-z]+)\u0000/g, (m, letters)=>{
     let n=0; for(const c of letters){ n = n*26 + (c.charCodeAt(0)-96); }
@@ -1822,10 +1831,18 @@ window.basculerCourses=function(uid){
   savePlan(); syncCourses(); renderPlanListe();
   toast(e.courses ? '✓ Ajouté à la liste de courses' : 'Retiré de la liste de courses');
 };
-window.changerPortionsMenu=function(uid, d){
+window.changerPortionsMenu=function(uid, sens, pas, leger){
   const e = plan.find(x=>x.uid===uid); if(!e || !e.recipeId) return;
-  e.servings = Math.max(1, (e.servings||1) + d);
-  savePlan(); syncCourses(); renderPlanListe();
+  const n = Math.max(1, prochaineValeur(e.servings||1, sens, pas || 1));
+  if(n === e.servings) return;
+  e.servings = n;
+  savePlan();
+  if(leger){
+    const el = document.querySelector('.menu-plat[data-uid="'+uid+'"] .mp-portions .v');
+    if(el) el.textContent = n + ' ' + uniteAccordee(e.unit||'', n);
+    return;
+  }
+  syncCourses(); renderPlanListe();
 };
 window.ouvrirDepuisMenu=function(uid){
   const e = plan.find(x=>x.uid===uid); if(!e || !e.recipeId) return;
@@ -1966,7 +1983,7 @@ function carteplat(e){
   const deplie = planDeplies.has(e.uid);
   const ings = deplie ? platIngredients(e) : null;
   const existe = e.recipeId ? !!recipes.find(r=>r.id===e.recipeId) : true;
-  let html = `<div class="menu-plat">
+  let html = `<div class="menu-plat" data-uid="${e.uid}">
     <div class="mp-top">
       <div class="mp-nom" ${e.recipeId&&existe?`onclick="ouvrirDepuisMenu('${e.uid}')"`:''}>${esc(e.title)}
         ${!e.recipeId?`<span class="libre">Hors carnet · liste d’ingrédients</span>`:''}
@@ -1979,9 +1996,9 @@ function carteplat(e){
     <div class="mp-bas">`;
   if(e.recipeId && existe && e.servings){
     html += `<div class="mp-portions">
-      <button onclick="changerPortionsMenu('${e.uid}',-1)">−</button>
+      <button class="rep-btn" data-rep="menu:${e.uid}" data-sens="-1" aria-label="Moins">−</button>
       <span class="v">${e.servings} ${esc(uniteAccordee(e.unit||'', e.servings))}</span>
-      <button onclick="changerPortionsMenu('${e.uid}',1)">+</button>
+      <button class="rep-btn" data-rep="menu:${e.uid}" data-sens="1" aria-label="Plus">+</button>
     </div>`;
   }
   html += `<button class="mp-btn ${deplie?'on':''}" onclick="basculerIngredients('${e.uid}')">🥕 Ingrédients</button>
@@ -2365,6 +2382,62 @@ window.zoomCadrage = function(v){
 window.addEventListener('resize', ()=>{ if(cadrage) dessinerCadrage(); });
 
 // glissement à un doigt, pincement à deux
+// ══════════════════════════════════
+// APPUI PROLONGÉ SUR − ET +
+// ══════════════════════════════════
+// À 4 portions, avancer d'une unité convient ; à 100 bouchées, c'est long.
+// Maintenir le bouton fait défiler, de plus en plus vite, en s'alignant sur des
+// nombres ronds. Pendant le défilement, seul le compteur est redessiné : le
+// rendu complet de la fiche — ingrédients, schéma — attend le relâchement.
+const PALIERS = [[1400,1],[2600,5],[4200,10]];
+function pasCourant(ecoule){
+  for(const [duree, pas] of PALIERS) if(ecoule < duree) return pas;
+  return 25;
+}
+// Au-delà du pas de 1, on se cale sur les multiples : 103 → 105 → 110.
+function prochaineValeur(v, sens, pas){
+  if(pas <= 1) return v + sens;
+  return sens > 0 ? Math.floor(v/pas)*pas + pas : Math.ceil(v/pas)*pas - pas;
+}
+
+let repetition = null;
+function appliquerPas(cible, sens, pas, leger){
+  if(cible === 'portions') changeServings(sens, pas, leger);
+  else if(cible.indexOf('menu:') === 0) changerPortionsMenu(cible.slice(5), sens, pas, leger);
+}
+function demarrerRepetition(cible, sens){
+  arreterRepetition();
+  const debut = Date.now();
+  const etat = { cible, minuteurs: [], leger: false };
+  repetition = etat;
+  appliquerPas(cible, sens, 1, false);           // le premier pas est immédiat
+  etat.minuteurs.push(setTimeout(()=>{
+    etat.leger = true;
+    etat.minuteurs.push(setInterval(()=>{
+      appliquerPas(cible, sens, pasCourant(Date.now()-debut), true);
+    }, 110));
+  }, 450));
+}
+function arreterRepetition(){
+  if(!repetition) return;
+  const etat = repetition;
+  repetition = null;
+  etat.minuteurs.forEach(m=>{ clearTimeout(m); clearInterval(m); });
+  if(!etat.leger) return;                        // simple clic : déjà rendu
+  if(etat.cible === 'portions'){
+    const r = recipes.find(x=>x.id===currentId);
+    if(r) renderDetail(r);
+  } else { syncCourses(); renderPlanListe(); }
+}
+document.addEventListener('pointerdown', e=>{
+  const b = e.target && e.target.closest && e.target.closest('.rep-btn');
+  if(!b || (e.button !== undefined && e.button > 0)) return;
+  e.preventDefault();                            // évite aussi le clic qui suivrait
+  demarrerRepetition(b.dataset.rep, parseInt(b.dataset.sens, 10) || 1);
+});
+['pointerup','pointercancel','pointerleave','blur'].forEach(ev=>
+  window.addEventListener(ev, arreterRepetition, true));
+
 (function(){
   const doigts = new Map();
   let ecart0 = 0, zoom0 = 1;
@@ -2500,9 +2573,9 @@ function renderDetail(r){
     // La bande enveloppante occupe toute la largeur : c'est elle qui porte les
     // bouquets de houx, dont la position ne dépend donc plus du texte.
     html += `<div class="deco-band band-portions"><div class="servings-ctrl">
-      <button onclick="changeServings(-1)">−</button>
+      <button class="rep-btn" data-rep="portions" data-sens="-1" aria-label="Moins">−</button>
       <span class="sv-val mono">${sv} ${esc(uniteAccordee(r.servingsUnit||'', sv))}</span>
-      <button onclick="changeServings(1)">+</button>
+      <button class="rep-btn" data-rep="portions" data-sens="1" aria-label="Plus">+</button>
     </div></div>`;
   }
   // sans étapes, il n'y a rien à schématiser : on n'offre pas la bascule
@@ -3353,9 +3426,17 @@ function drawSchemaConnectors(){
   svg.innerHTML = content;
 }
 window.addEventListener('resize', ()=>{ if(document.getElementById('schema-wrap')) drawSchemaConnectors(); });
-window.changeServings=function(delta){
-  const r = recipes.find(x=>x.id===currentId);
-  currentServings[currentId] = Math.max(1, (currentServings[currentId]||r.servingsBase) + delta);
+window.changeServings=function(sens, pas, leger){
+  const r = recipes.find(x=>x.id===currentId); if(!r) return;
+  const v = currentServings[currentId] || r.servingsBase || 1;
+  const n = Math.max(1, prochaineValeur(v, sens, pas || 1));
+  if(n === currentServings[currentId]) return;
+  currentServings[currentId] = n;
+  if(leger){                        // défilement : on ne redessine que le compteur
+    const el = document.querySelector('#detail-body .sv-val');
+    if(el) el.textContent = n + ' ' + uniteAccordee(r.servingsUnit||'', n);
+    return;
+  }
   renderDetail(r);
 };
 window.deleteRecipe=function(id){
