@@ -627,6 +627,14 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
   </div>
 </div>
 
+<div id="copy-part-overlay" class="overlay">
+  <div class="overlay-header">
+    <button class="back-btn" onclick="closeOverlay('copy-part-overlay')">‹</button>
+    <h2>Copier une sous-partie</h2>
+  </div>
+  <div class="overlay-body" id="copy-part-body"></div>
+</div>
+
 <div id="toast"></div>
 
 <script type="module">
@@ -750,7 +758,7 @@ function openOverlay(id){
 }
 function closeOverlay(id){ document.getElementById(id).classList.remove('open'); }
 window.closeAllOverlays=function(){
-  closeOverlay('crop-overlay'); closeOverlay('detail-overlay'); closeOverlay('edit-overlay'); closeOverlay('settings-overlay'); closeOverlay('shop-overlay'); closeOverlay('menu-overlay'); closeOverlay('add-overlay'); closeOverlay('import-overlay');
+  closeOverlay('crop-overlay'); closeOverlay('detail-overlay'); closeOverlay('edit-overlay'); closeOverlay('settings-overlay'); closeOverlay('shop-overlay'); closeOverlay('menu-overlay'); closeOverlay('add-overlay'); closeOverlay('import-overlay'); closeOverlay('copy-part-overlay');
   if(historyPushed){
     historyPushed = false;
     if(!inPopState) history.back();
@@ -3821,7 +3829,10 @@ function buildEditForm(r){
       📸 La photo s'ajoute depuis la fiche de la recette, avec le bouton sous l'image : elle est compressée sur l'appareil puis envoyée dans votre dépôt. Rien à saisir ici.
     </div>
     <div id="parts-container"></div>
-    <button type="button" class="btn-ghost" onclick="addPart()">+ Ajouter une sous-partie (ex. pâte, ganache…)</button>
+    <div class="btn-row">
+      <button type="button" class="btn-ghost" style="flex:1" onclick="addPart()">+ Nouvelle sous-partie</button>
+      <button type="button" class="btn-ghost" style="flex:1" onclick="openCopyPart()">📋 Copier une sous-partie existante</button>
+    </div>
     <label>Notes</label><textarea id="ed-notes">${esc(r.notes||'')}</textarea>
     <label>Source</label><input id="ed-source" value="${esc(r.source||'')}" placeholder="Livre, site, personne…">
     <div class="btn-row">
@@ -3832,9 +3843,12 @@ function buildEditForm(r){
 }
 function renderParts(){
   const c = document.getElementById('parts-container');
-  c.innerHTML = editingParts.map((p,pi)=>`
-    <div class="part-edit-block">
-      <div class="ph"><span class="lbl">Sous-partie ${pi+1}</span>
+  c.innerHTML = `<div id="parts-list">` + editingParts.map((p,pi)=>`
+    <div class="part-edit-block" data-i="${pi}">
+      <div class="ph">
+        ${editingParts.length>1?`<button type="button" class="drag-handle" title="Glisser pour réordonner la sous-partie"
+          onpointerdown="debutGlisserPart(event,${pi})">⠿</button>`:''}
+        <span class="lbl">Sous-partie ${pi+1}</span>
         ${editingParts.length>1?`<button class="btn-icon-del" onclick="removePart(${pi})">🗑</button>`:''}
       </div>
       ${editingParts.length>1?`<input placeholder="Nom (ex. Ganache)" value="${esc(p.name)}" oninput="setPartName(${pi},this.value)">`:''}
@@ -3848,7 +3862,7 @@ function renderParts(){
       ${p.steps.map((s,si)=>ligneEdit(pi,'steps',si,s,'ex. Préchauffer le four à 180°C')).join('')}
       </div>
       <button type="button" class="btn-ghost" onclick="addLine(${pi},'steps')">+ Étape</button>
-    </div>`).join('');
+    </div>`).join('') + `</div>`;
 }
 function ligneEdit(pi,field,i,val,ph){
   return `<div class="line-row" data-i="${i}">
@@ -3932,7 +3946,116 @@ window.majCleIng=function(pi,op,a,b){
   else if(op==='move') t.splice(b,0,t.splice(a,1)[0]);
   else if(op==='push') t.push(null);
 };
+// ── glisser-déposer des sous-parties entières (même principe que les lignes) ──
+let glissePart = null;
+window.debutGlisserPart=function(ev,pi){
+  ev.preventDefault();
+  ev.stopPropagation();
+  const row = ev.currentTarget.closest('.part-edit-block');
+  const liste = row.parentNode;
+  const rows = [...liste.querySelectorAll('.part-edit-block')];
+  glissePart = {from:pi, row, liste, y0:ev.clientY, dy:0, to:pi};
+  row.classList.add('dragging');
+  const marque = document.createElement('div');
+  marque.className='drop-marker'; glissePart.marque=marque;
+  ev.currentTarget.setPointerCapture(ev.pointerId);
+  ev.currentTarget.onpointermove = surGlisserPart;
+  ev.currentTarget.onpointerup = ev.currentTarget.onpointercancel = finGlisserPart;
+};
+function surGlisserPart(ev){
+  if(!glissePart) return;
+  glissePart.dy = ev.clientY - glissePart.y0;
+  glissePart.row.style.transform = `translateY(${glissePart.dy}px)`;
+  const rows = [...glissePart.liste.querySelectorAll('.part-edit-block')];
+  const rects = rows.map(r=>r.getBoundingClientRect());
+  const centre = rects[glissePart.from].top + rects[glissePart.from].height/2;
+  let to = 0;
+  rects.forEach((r,k)=>{ if(k!==glissePart.from && centre > r.top + r.height/2) to++; });
+  glissePart.to = to;
+  const autres = rows.filter((_,k)=>k!==glissePart.from);
+  glissePart.marque.remove();
+  if(autres.length){
+    if(to < autres.length) autres[to].before(glissePart.marque);
+    else autres[autres.length-1].after(glissePart.marque);
+  }
+  const boite = glissePart.liste.closest('.overlay');
+  if(boite){
+    if(ev.clientY < 100) boite.scrollBy(0,-14);
+    else if(ev.clientY > window.innerHeight-100) boite.scrollBy(0,14);
+  }
+}
+function finGlisserPart(ev){
+  if(!glissePart) return;
+  const {from,to} = glissePart;
+  glissePart.row.classList.remove('dragging');
+  glissePart.row.style.transform='';
+  if(glissePart.marque.parentNode) glissePart.marque.remove();
+  try{ ev.currentTarget.releasePointerCapture(ev.pointerId); }catch(e){}
+  ev.currentTarget.onpointermove = ev.currentTarget.onpointerup = ev.currentTarget.onpointercancel = null;
+  glissePart = null;
+  if(to !== from){
+    editModifie = true;
+    editingParts.splice(to,0,editingParts.splice(from,1)[0]);
+    editingIngKeys.splice(to,0,editingIngKeys.splice(from,1)[0]);
+    renderParts();
+  }
+}
 window.addPart=function(){ editModifie=true; editingParts.push({name:'',ingredients:[''],steps:['']}); editingIngKeys.push([null]); renderParts(); };
+
+// ── copier une sous-partie depuis une autre recette ──
+window.openCopyPart=function(){
+  document.getElementById('copy-part-body').innerHTML = copyPartRecipeListHtml('');
+  openOverlay('copy-part-overlay');
+};
+function copyPartRecipeListHtml(q){
+  const ql = (q||'').toLowerCase();
+  const list = recipes
+    .filter(r=>!ql || r.title.toLowerCase().includes(ql))
+    .sort((a,b)=>a.title.localeCompare(b.title,'fr',{sensitivity:'base'}));
+  return `
+    <input id="copy-part-search" placeholder="Chercher une recette…" value="${esc(q||'')}"
+      oninput="filterCopyPart(this.value)" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'Work Sans',sans-serif;font-size:0.9rem;outline:none;margin-bottom:14px">
+    <div id="copy-part-list">${copyPartItemsHtml(list)}</div>`;
+}
+function copyPartItemsHtml(list){
+  if(!list.length) return '<div class="empty-state">Aucune recette trouvée</div>';
+  return list.map(r=>`
+    <div class="recipe-item" style="cursor:pointer" onclick="showCopyPartChoices('${r.id}')">
+      <div class="recipe-body"><h3>${esc(r.title)}</h3>
+      <div class="recipe-meta"><span class="tag">${(r.parts||[]).length} sous-partie${(r.parts||[]).length>1?'s':''}</span></div></div>
+    </div>`).join('');
+}
+window.filterCopyPart=function(q){
+  const ql=(q||'').toLowerCase();
+  const list = recipes.filter(r=>!ql || r.title.toLowerCase().includes(ql)).sort((a,b)=>a.title.localeCompare(b.title,'fr',{sensitivity:'base'}));
+  document.getElementById('copy-part-list').innerHTML = copyPartItemsHtml(list);
+};
+window.showCopyPartChoices=function(recipeId){
+  const r = recipes.find(x=>x.id===recipeId);
+  if(!r) return;
+  const parts = r.parts||[];
+  document.getElementById('copy-part-body').innerHTML = `
+    <button type="button" class="btn-ghost" onclick="openCopyPart()">‹ Changer de recette</button>
+    <div class="section-title" style="margin-top:14px">${esc(r.title)}</div>
+    ${parts.map((p,pi)=>`
+      <div class="part-edit-block" style="cursor:pointer" onclick="doCopyPart('${recipeId}',${pi})">
+        <div class="ph"><span class="lbl">${esc(p.name || (parts.length>1?('Sous-partie '+(pi+1)):'Toute la recette'))}</span></div>
+        <div style="font-size:0.78rem;color:var(--muted)">${(p.ingredients||[]).length} ingrédient${(p.ingredients||[]).length>1?'s':''} · ${(p.steps||[]).length} étape${(p.steps||[]).length>1?'s':''}</div>
+      </div>`).join('') || '<div class="empty-state">Cette recette n\'a pas de sous-partie à copier</div>'}
+  `;
+};
+window.doCopyPart=function(recipeId, partIndex){
+  const r = recipes.find(x=>x.id===recipeId);
+  if(!r || !r.parts || !r.parts[partIndex]) return;
+  const p = r.parts[partIndex];
+  const copie = { name: p.name||'', ingredients:[...(p.ingredients||[])], steps:[...(p.steps||[])] };
+  editingParts.push(copie);
+  editingIngKeys.push(copie.ingredients.map(()=>null));
+  editModifie = true;
+  closeOverlay('copy-part-overlay');
+  renderParts();
+  toast('✓ Sous-partie copiée — vérifiez le nom et les quantités');
+};
 window.removePart=function(i){ editModifie=true; editingParts.splice(i,1); editingIngKeys.splice(i,1); renderParts(); };
 window.setPartName=function(pi,val){ editModifie=true; editingParts[pi].name=val; };
 window.setPartField=function(pi,field,idx,val){ editModifie=true; editingParts[pi][field][idx]=val; };
