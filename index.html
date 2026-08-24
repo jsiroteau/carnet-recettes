@@ -967,8 +967,13 @@ const ACC_INVARIABLES = new Set(['tres','bien','environ','plus','moins','assez',
 const ACC_UNITES = new Set(['g','kg','mg','ml','cl','dl','l','cm','mm','m','h','mn','min','s','c','cs','cc','cas','cac','°c','°','%','th']);
 // Mots dont le « s » ou le « x » final appartient déjà au singulier.
 const ACC_S_SINGULIER = new Set(['gros','tres','frais','epais','bas','gras','jus','ananas','couscous',
-  'riz','anis','mais','os','dos','tas','bras','poids','velours','pays','choux','doux','vieux','roux',
-  'delicieux','moelleux','creux','sirupeux','onctueux']);
+  'riz','anis','mais','os','dos','tas','bras','poids','velours','pays','doux','vieux','roux',
+  'delicieux','moelleux','creux','sirupeux','onctueux',
+  // Noms dont le « s » appartient déjà au singulier : « 1 clafoutis », pas « 1 clafouti ».
+  'clafoutis','coulis','cassis','radis','pois','tapas','burritos','nachos','chips']);
+// Les sept noms en « -ou » qui font leur pluriel en « -oux ». « choux » n'est
+// donc pas invariable : c'est le pluriel de « chou ».
+const ACC_OU_X = new Set(['bijou','caillou','chou','genou','hibou','joujou','pou']);
 // Adjectifs courants qui accompagnent le nom et s'accordent avec lui.
 const ACC_ADJECTIFS = new Set(['entier','entiere','entiers','entieres','gros','grosse','grosses',
   'petit','petite','petits','petites','grand','grande','grands','grandes','moyen','moyenne','moyens',
@@ -977,12 +982,14 @@ const ACC_ADJECTIFS = new Set(['entier','entiere','entiers','entieres','gros','g
   'doux','douce','douces','sec','seche','seches','dur','dure','durs','dures','mou','molle','molles',
   'fondu','fondue','fondus','fondues','battu','battue','battus','battues','rape','rapee','rapes','rapees',
   'tiede','tiedes','froid','froide','froids','froides','chaud','chaude','chauds','chaudes',
-  'entamé','entame','coupe','coupee','coupes','coupees','fume','fumee','fumes','fumees','bio','nature']);
+  'entamé','entame','coupe','coupee','coupes','coupees','fume','fumee','fumes','fumees','bio','nature',
+  'chiche','chiches','emonde','emondee','emondes','emondees','sale','salee','sales','salees']);
 
 function motPluriel(mot){
   const b = noAccent(mot);
   if(ACC_UNITES.has(b) || ACC_INVARIABLES.has(b)) return mot;
   if(/[sxz]$/.test(b)) return mot;              // déjà invariable au pluriel
+  if(ACC_OU_X.has(b)) return mot + 'x';         // chou → choux
   if(/(eau|au|eu)$/.test(b)) return mot + 'x';  // gâteau → gâteaux
   if(/al$/.test(b)) return mot.slice(0,-2) + 'aux';
   return mot + 's';
@@ -992,6 +999,7 @@ function motSingulier(mot){
   if(ACC_UNITES.has(b) || ACC_INVARIABLES.has(b) || ACC_S_SINGULIER.has(b)) return mot;
   if(/eaux$/.test(b)) return mot.slice(0,-1);   // gâteaux → gâteau
   if(/aux$/.test(b) && b.length > 4) return mot.slice(0,-3) + 'al';
+  if(/oux$/.test(b) && ACC_OU_X.has(b.slice(0,-1))) return mot.slice(0,-1);  // choux → chou
   if(/eux$/.test(b)) return mot;                // « moelleux » : même forme au singulier
   if(/s$/.test(b)) return mot.slice(0,-1);
   return mot;
@@ -1170,8 +1178,19 @@ function scaleIngredient(str, ratio){
     /\d+([.,]\d+)?\s?%/g,
     /\d+([.,]\d+)?\s?°C/g,
     /\d+([.,]\d+)?\s?°/g,
-    /\d+(\s?(à|et|ou|-)\s?\d+)?\s?(minutes?|min\b|mn\b|heures?\b|secondes?\b)/gi,
-    /\d+(\s?[x×]\s?\d+)?\s?(cm|mm)\b/gi,
+    // « 1 heure 30 », « 1h30 » : les deux nombres décrivent la même durée.
+    /\d+\s?h(?:eures?)?\s?\d+/gi,
+    // Un adjectif peut s'intercaler : « les 20 premières minutes ».
+    /\d+(\s?(à|et|ou|-)\s?\d+)?\s?((premi[èe]res?|derni[èe]res?|autres?|bonnes?|petites?|grosses?)\s+)?(minutes?|min\b|mn\b|heures?\b|secondes?\b)/gi,
+    // Dimension composée ou donnée en fourchette : « 30cm x 15cm », « 30x40cm »,
+    // « 3,5 à 4cm », « 19-20 cm » : c'est une seule mesure, aucun des deux
+    // nombres ne suit les portions.
+    /\d+([.,]\d+)?\s?(cm|mm)?\s?([x×]|à|-)\s?\d+([.,]\d+)?\s?(cm|mm)/gi,
+    // Dimension simple, décimales comprises : « 1,5cm », « 3 mm ».
+    // On refuse la frontière \b, qui laisserait passer le « 30cm » de « 30cmx15cm ».
+    /\d+([.,]\d+)?\s?(cm|mm)(?![a-zà-ÿ])/gi,
+    // Un numéro de douille ou de thermostat n'est pas une quantité.
+    /n°\s?\d+/gi,
     /th\.?\s?\d+/gi,
     /\d+\s?(jours?|nuits?|semaines?|mois)\b/gi
   ];
