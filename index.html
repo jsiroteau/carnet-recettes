@@ -65,12 +65,53 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .recipe-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .tag{font-size:0.66rem;padding:2px 9px;border-radius:50px;border:1px solid var(--border);color:var(--muted);font-family:'IBM Plex Mono',monospace}
 .tag-liste{color:var(--muted);border-style:dashed}
-/* Trois couleurs franchement distinctes pour la difficulté : vert, ambre, rouge
-   sombre. « Moyen » empruntait auparavant le rose de l'accent, trop proche du
-   rose de « Difficile » pour se lire d'un coup d'œil. */
-.tag.diff-Facile{color:#3E8A5C;border-color:rgba(62,138,92,0.45);background:rgba(62,138,92,0.07)}
-.tag.diff-Moyen{color:#A96A00;border-color:rgba(169,106,0,0.45);background:rgba(169,106,0,0.08)}
-.tag.diff-Difficile{color:#B32E58;border-color:rgba(179,46,88,0.45);background:rgba(179,46,88,0.07)}
+/* Difficulté et durée sont deux échelles à cinq crans : elles partagent la même
+   rampe de couleur, du vert (facile, court) au rose sombre (difficile, long).
+   Un seul repère visuel sert donc aux deux, dans les vignettes comme dans les
+   filtres. Les crans 1, 3 et 5 gardent les teintes des anciens Facile / Moyen /
+   Difficile, pour que le carnet ne change pas d'aspect. */
+.tag.niv-1,.niv.n1.on{color:#3E8A5C;border-color:rgba(62,138,92,0.45);background:rgba(62,138,92,0.07)}
+.tag.niv-2,.niv.n2.on{color:#7A8F3C;border-color:rgba(122,143,60,0.45);background:rgba(122,143,60,0.07)}
+.tag.niv-3,.niv.n3.on{color:#A96A00;border-color:rgba(169,106,0,0.45);background:rgba(169,106,0,0.08)}
+.tag.niv-4,.niv.n4.on{color:#C0512F;border-color:rgba(192,81,47,0.45);background:rgba(192,81,47,0.07)}
+.tag.niv-5,.niv.n5.on{color:#B32E58;border-color:rgba(179,46,88,0.45);background:rgba(179,46,88,0.07)}
+
+/* ── FILTRES DIFFICULTÉ / DURÉE ──
+   Une ligne par échelle, et rien de plus : un intitulé, cinq crans, une croix.
+   Chaque cran choisit son mode d'expression et s'y tient — la difficulté se
+   lit à la jauge, la durée se lit au mot. Redire le mot sous la jauge, ou
+   l'intervalle sous le mot, ne dirait rien de neuf et volerait deux lignes. */
+.filtres{display:grid;gap:7px;margin-bottom:16px}
+.filtre-ligne{display:flex;align-items:center;gap:8px}
+.filtre-titre{flex:0 0 56px;font-family:'IBM Plex Mono',monospace;font-size:0.57rem;
+  letter-spacing:1px;text-transform:uppercase;color:var(--muted);line-height:1.1}
+.filtre-opts{flex:1;display:flex;gap:5px;min-width:0}
+.niv{flex:1 1 auto;min-width:0;height:30px;display:flex;align-items:center;justify-content:center;
+  padding:0 3px;border:1px solid var(--border);background:var(--card);border-radius:9px;
+  color:var(--muted);cursor:pointer;transition:all .15s;font-size:0.62rem;letter-spacing:-0.1px;
+  font-family:'Work Sans',sans-serif;white-space:nowrap;box-shadow:0 1px 4px rgba(59,42,32,0.05)}
+.niv:active{transform:scale(0.96)}
+.niv.on{font-weight:600;box-shadow:0 2px 8px rgba(59,42,32,0.09)}
+.filtre-raz{flex:0 0 16px;visibility:hidden;background:none;border:none;padding:0;
+  cursor:pointer;color:var(--accent);font-size:0.9rem;line-height:1}
+.filtre-raz.vu{visibility:visible}
+
+/* La jauge : cinq barres croissantes, N allumées. Elle sert de bouton de
+   filtre et d'étiquette sur les vignettes, où elle remplace le mot. */
+.niv-jauge{display:inline-flex;align-items:flex-end;gap:2px;height:11px}
+.niv-jauge i{display:block;width:3px;border-radius:1px;background:currentColor;opacity:0.22}
+.niv-jauge i.on{opacity:1}
+.niv-jauge i:nth-child(1){height:4px}
+.niv-jauge i:nth-child(2){height:5.5px}
+.niv-jauge i:nth-child(3){height:7px}
+.niv-jauge i:nth-child(4){height:9px}
+.niv-jauge i:nth-child(5){height:11px}
+.tag-jauge{display:inline-flex;align-items:center;padding:4px 8px}
+
+.duree-calc{font-size:0.72rem;line-height:1.4;color:var(--text);margin-top:5px}
+.duree-calc .dc-x{color:var(--muted)}
+.niv-txt-1{color:#3E8A5C}.niv-txt-2{color:#7A8F3C}.niv-txt-3{color:#A96A00}
+.niv-txt-4{color:#C0512F}.niv-txt-5{color:#B32E58}
 /* Les mots-clés libres ne disent pas la difficulté : une quatrième teinte, le
    violet, les met hors du barème vert/ambre/rouge. */
 .tag-perso{color:#5B4BA8;border-color:rgba(91,75,168,0.45);background:rgba(91,75,168,0.07)}
@@ -417,6 +458,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
     <input type="search" id="search-input" placeholder="Chercher : titre, ingrédient, mot-clé (facile, frais, Noël…)" oninput="renderList()" autocomplete="off">
   </div>
   <div class="chips" id="cat-chips"></div>
+  <div class="filtres" id="filtres"></div>
   <div id="recipe-list"></div>
 </div>
 
@@ -651,6 +693,10 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 <div id="toast"></div>
 
 <script type="module">
+// L'échelle des durées et son calcul indicatif vivent dans duree.js.
+import { DUREES, DUREES_BORNES, detailDuree,
+         niveauDepuisMinutes, formatDuree } from './duree.js';
+
 // ══════════════════════════════════
 // STOCKAGE
 // ══════════════════════════════════
@@ -690,7 +736,8 @@ function identifiant(titre, i){
 }
 function nettoyerPourExport(r){
   return {
-    title:r.title||'', category:r.category||'Plat', difficulty:r.difficulty||'',
+    title:r.title||'', category:r.category||'Plat',
+    difficulty:r.difficulty||'', duration:r.duration||'',
     servingsBase:r.servingsBase||0, servingsUnit:r.servingsUnit||'',
     source:r.source||'', notes:r.notes||'', labels:r.labels||[],
     photoUrl:r.photoUrl||'',
@@ -717,6 +764,24 @@ async function lireSeedDistant(){
 // CATÉGORIES
 // ══════════════════════════════════
 const CATEGORIES = ['Apéritif','Entrée','Plat','Dessert','Goûter'];
+
+// ══════════════════════════════════
+// LES DEUX ÉCHELLES : DIFFICULTÉ ET DURÉE
+// ══════════════════════════════════
+// Cinq crans de chaque côté, traités exactement pareil : liste déroulante dans
+// le formulaire, filtre à sélection multiple dans la liste des recettes.
+// L'ordre des tableaux EST l'échelle : le cran d'une recette est la position de
+// sa valeur, de 1 à 5. Renommer un cran se fait donc ici, en un seul endroit.
+// « Facile », « Moyen » et « Difficile » gardent volontairement les crans 1, 3
+// et 5 : les recettes déjà saisies restent valides sans aucune conversion.
+const DIFFICULTES = ['Facile','Assez facile','Moyen','Assez difficile','Difficile'];
+// `duration` est l'intervalle choisi à la saisie, pas une durée en minutes :
+// les étapes ne sont pas assez précises pour qu'un chiffre soit honnête. Le
+// calcul de duree.js ne sert qu'à suggérer l'intervalle dans le formulaire.
+// DUREES et DUREES_BORNES viennent de ce module : une seule échelle.
+
+const niveauDiff  = r => DIFFICULTES.indexOf(r && r.difficulty || '') + 1;  // 0 = non renseigné
+const niveauDuree = r => DUREES.indexOf(r && r.duration || '') + 1;         // 0 = non renseigné
 // Anciennes catégories renommées : les recettes concernées sont reclassées
 // automatiquement, une seule fois, au premier lancement.
 const CATEGORIES_RENOMMEES = { 'Boulangerie': 'Goûter' };
@@ -807,7 +872,7 @@ async function loadRecipes(){
   await reclasserAnciennesCategories();
   majIndicateurExport();
   syncCourses();                 // les ingrédients des plats au menu en dépendent
-  renderCategories(); renderList();
+  renderCategories(); renderFiltres(); renderList();
 }
 
 function proposerVersionDistante(seed, sig){
@@ -870,14 +935,63 @@ function renderCategories(){
 }
 window.setCategory=function(c){ activeCategory=c; renderCategories(); renderList(); };
 
+// ── FILTRES DIFFICULTÉ / DURÉE ──
+// Deux ensembles de crans retenus. Vides = aucun filtre, donc tout s'affiche :
+// c'est plus lisible que de tout cocher au départ et de demander de décocher.
+// Plusieurs crans peuvent coexister (« facile OU assez facile »), et les deux
+// échelles se combinent (« … ET express OU rapide »).
+let filtreDiff = new Set(), filtreDuree = new Set();
+
+function jauge(n){
+  return '<span class="niv-jauge">' +
+    [1,2,3,4,5].map(i=>`<i class="${i<=n?'on':''}"></i>`).join('') + '</span>';
+}
+// `contenu` décide du mode d'expression : la jauge pour la difficulté, le mot
+// pour la durée. Chaque échelle en choisit un et s'y tient — redire le mot
+// sous la jauge, ou l'intervalle sous le mot, n'apprendrait rien et coûterait
+// une ligne. Le libellé complet reste en infobulle, qui ne prend pas de place.
+function ligneFiltre(titre, noms, choisis, cle, contenu, infobulle){
+  const boutons = noms.map((nom,i)=>{
+    const n = i+1, on = choisis.has(n);
+    return `<button type="button" class="niv n${n}${on?' on':''}" aria-pressed="${on}"
+      aria-label="${esc(nom)}" title="${esc(infobulle(nom,i))}"
+      onclick="toggleFiltre('${cle}',${n})">${contenu(nom,n)}</button>`;
+  }).join('');
+  return `<div class="filtre-ligne">
+    <span class="filtre-titre">${titre}</span>
+    <div class="filtre-opts">${boutons}</div>
+    <button type="button" class="filtre-raz${choisis.size?' vu':''}" title="Tout afficher"
+      onclick="razFiltre('${cle}')">✕</button>
+  </div>`;
+}
+function renderFiltres(){
+  document.getElementById('filtres').innerHTML =
+    ligneFiltre('Difficulté', DIFFICULTES, filtreDiff, 'diff',
+      (nom,n) => jauge(n), nom => nom) +
+    ligneFiltre('Durée', DUREES, filtreDuree, 'duree',
+      nom => esc(nom), (nom,i) => `${nom} · ${DUREES_BORNES[i]}`);
+}
+window.toggleFiltre=function(cle, n){
+  const s = (cle==='diff') ? filtreDiff : filtreDuree;
+  s.has(n) ? s.delete(n) : s.add(n);
+  renderFiltres(); renderList();
+};
+window.razFiltre=function(cle){
+  (cle==='diff' ? filtreDiff : filtreDuree).clear();
+  renderFiltres(); renderList();
+};
+
 // ── LIST ──
 window.renderList=function(){
-  document.getElementById('hero-count').textContent = `${recipes.length} recette${recipes.length>1?'s':''}`;
   // Les mots sont cherchés sans accent et indépendamment les uns des autres :
   // « noel facile » ne retient que les recettes qui portent les deux.
   const termes = noAccent(document.getElementById('search-input').value).split(/\s+/).filter(Boolean);
   let list = recipes;
   if(activeCategory!=='Toutes') list = list.filter(r=>r.category===activeCategory);
+  // Une recette sans difficulté (ou sans durée) renseignée a le cran 0 : elle
+  // sort dès qu'on filtre sur cette échelle, jamais quand on filtre sur l'autre.
+  if(filtreDiff.size)  list = list.filter(r=>filtreDiff.has(niveauDiff(r)));
+  if(filtreDuree.size) list = list.filter(r=>filtreDuree.has(niveauDuree(r)));
   if(termes.length){
     // Un mot qui EST un mot-clé du carnet (« Noël », « Frais », « Facile »)
     // filtre sur l'étiquette elle-même : sans quoi « frais » ramènerait aussi
@@ -891,6 +1005,12 @@ window.renderList=function(){
     });
   }
   list = [...list].sort((a,b)=>(a.title||'').localeCompare(b.title||'','fr',{sensitivity:'base'}));
+  // Le titre annonce ce qui reste : sans lui, un filtre trop serré ressemble à
+  // un carnet qui aurait perdu des recettes.
+  const total = recipes.length;
+  document.getElementById('hero-count').textContent = (list.length===total)
+    ? `${total} recette${total>1?'s':''}`
+    : `${list.length} recette${list.length>1?'s':''} sur ${total}`;
   const c = document.getElementById('recipe-list');
   if(!list.length){ c.innerHTML='<div class="empty-state">Aucune recette trouvée</div>'; return; }
   c.innerHTML = list.map(r=>`
@@ -900,7 +1020,8 @@ window.renderList=function(){
         <h3>${esc(r.title)}</h3>
         <div class="recipe-meta">
           <span class="tag">${esc(r.category||'')}</span>
-          ${r.difficulty?`<span class="tag diff-${r.difficulty}">${esc(r.difficulty)}</span>`:''}
+          ${niveauDiff(r)?`<span class="tag tag-jauge niv-${niveauDiff(r)}" title="Difficulté : ${esc(r.difficulty)}">${jauge(niveauDiff(r))}</span>`:''}
+          ${niveauDuree(r)?`<span class="tag niv-${niveauDuree(r)}">${esc(r.duration)}</span>`:''}
           ${estListeSeule(r)?`<span class="tag tag-liste">📋 Ingrédients seulement</span>`:''}
           ${(r.labels||[]).map(l=>normTitre(l)==='noel'
             ? `<span class="tag tag-noel">🎄 ${esc(l)}</span>`
@@ -914,6 +1035,7 @@ window.renderList=function(){
 function tagsDe(r){
   const s = new Set((r.labels||[]).map(noAccent));
   if(r.difficulty) s.add(noAccent(r.difficulty));
+  if(r.duration)   s.add(noAccent(r.duration));
   return s;
 }
 // Tous ceux qui existent dans le carnet, pour reconnaître un mot-clé saisi.
@@ -926,7 +1048,7 @@ function tousLesTags(){
 // Tout ce sur quoi la recherche porte. La difficulté et les mots-clés en font
 // partie : « facile », « frais » ou « Noël » filtrent donc la liste.
 function texteCherchable(r){
-  return [r.title, r.category, r.difficulty, r.notes, r.source,
+  return [r.title, r.category, r.difficulty, r.duration, r.notes, r.source,
     ...(r.labels||[]),
     ...(r.parts||[]).flatMap(p=>[p.name, ...(p.ingredients||[]), ...(p.steps||[])])
   ].filter(Boolean).join(' ');
@@ -2608,6 +2730,7 @@ function renderDetail(r){
     <div class="meta-row">
       <div class="meta-pill"><div class="v">${esc(r.category||'—')}</div><div class="l">Catégorie</div></div>
       ${r.difficulty?`<div class="meta-pill"><div class="v">${esc(r.difficulty)}</div><div class="l">Difficulté</div></div>`:''}
+      ${niveauDuree(r)?`<div class="meta-pill"><div class="v">${esc(r.duration)}</div><div class="l">Durée</div></div>`:''}
     </div>`;
   if(r.servingsBase){
     // La bande enveloppante occupe toute la largeur : c'est elle qui porte les
@@ -3571,10 +3694,17 @@ function analyserTexteRecette(brut){
 
 
     // — difficulté —
-    m = l.match(/^\s*(?:difficult[ée]\s*:?\s*)?(tr[èe]s facile|facile|moyen(?:ne)?|difficile)\s*$/i);
-    if(m){ const d = m[1].toLowerCase();
-      meta.difficulty = /difficile/.test(d) ? 'Difficile' : /moyen/.test(d) ? 'Moyen' : 'Facile';
+    // Cinq crans, mais un texte collé n'en emploie souvent que trois : on
+    // rattache alors au cran le plus proche (« très facile » → Facile).
+    m = l.match(/^\s*(?:difficult[ée]\s*:?\s*)?((?:tr[èe]s|assez|plut[ôo]t)\s+)?(facile|moyen(?:ne)?|difficile)\s*$/i);
+    if(m){
+      const nuance = (m[1]||'').trim().toLowerCase(), base = m[2].toLowerCase();
+      const intermediaire = /assez|plut[ôo]t/.test(nuance);
+      meta.difficulty = /moyen/.test(base) ? 'Moyen'
+        : /difficile/.test(base) ? (intermediaire ? 'Assez difficile' : 'Difficile')
+        : (intermediaire ? 'Assez facile' : 'Facile');
       continue; }
+
 
     if(RE_NOTE.test(l) && l.length > 15){ meta.notes = (meta.notes ? meta.notes+'\n' : '') + l; continue; }
     corps.push({texte: l});
@@ -3683,7 +3813,6 @@ function setImportStatus(msg, erreur){
 }
 
 function normaliserRecette(d){
-  const diffs = ['','Facile','Moyen','Difficile'];
   const n = v => { const x = parseInt(v,10); return isNaN(x)||x<0 ? 0 : x; };
   const parts = (Array.isArray(d.parts)?d.parts:[]).map(p=>({
     name: String(p.name||''),
@@ -3693,7 +3822,8 @@ function normaliserRecette(d){
   return {
     title: String(d.title||'').trim(),
     category: CATEGORIES.includes(d.category) ? d.category : 'Plat',
-    difficulty: diffs.includes(d.difficulty) ? d.difficulty : '',
+    difficulty: DIFFICULTES.includes(d.difficulty) ? d.difficulty : '',
+    duration: DUREES.includes(d.duration) ? d.duration : '',
     servingsBase: n(d.servingsBase),
     servingsUnit: String(d.servingsUnit||'').trim(),
     source: String(d.source||'').trim(),
@@ -3857,13 +3987,20 @@ function buildEditForm(r){
       <div><label>Difficulté</label>
         <select id="ed-difficulty">
           <option value="" ${!r.difficulty?'selected':''}>—</option>
-          ${['Facile','Moyen','Difficile'].map(c=>`<option ${r.difficulty===c?'selected':''}>${c}</option>`).join('')}
+          ${DIFFICULTES.map((c,i)=>`<option ${r.difficulty===c?'selected':''}>${c}</option>`).join('')}
         </select></div>
     </div>
     <div class="row2">
+      <div><label>Durée (repos + cuisson)</label>
+        <select id="ed-duration">
+          <option value="" ${!r.duration?'selected':''}>—</option>
+          ${DUREES.map((c,i)=>`<option value="${c}" ${r.duration===c?'selected':''}>${c} · ${DUREES_BORNES[i]}</option>`).join('')}
+        </select>
+        <div class="duree-calc" id="ed-duration-calc"></div></div>
       <div><label>Nombre produit (laisser vide si sans objet)</label><input id="ed-servbase" type="number" value="${r.servingsBase||''}"></div>
-      <div><label>Unité (ex. cookies, tarte, gâteau…)</label><input id="ed-servunit" value="${esc(r.servingsUnit||'')}"></div>
     </div>
+    <label>Unité (ex. cookies, tarte, gâteau…)</label>
+    <input id="ed-servunit" value="${esc(r.servingsUnit||'')}">
     <label>Labels (séparés par des virgules)</label>
     <input id="ed-labels" value="${esc((r.labels||[]).join(', '))}" placeholder="ex. Noël, pique-nique, anniversaire">
     <div style="font-size:0.72rem;color:var(--muted);margin-top:5px">Pris en compte dans la recherche, comme les ingrédients.</div>
@@ -3881,8 +4018,22 @@ function buildEditForm(r){
       <button class="btn btn-primary btn-full" onclick="saveRecipe()">💾 Enregistrer</button>
     </div>`;
   renderParts();
+  majApercuDuree();
   editModifie = false;
 }
+// Un repère, rien de plus : les étapes ne chiffrent pas tout, et le total lu
+// ne vaut donc pas décision. Il aide à choisir l'intervalle dans la liste
+// déroulante, il ne le remplace pas et ne le force jamais.
+window.majApercuDuree=function(){
+  const el = document.getElementById('ed-duration-calc');
+  if(!el) return;
+  const d = detailDuree({parts:editingParts});
+  if(!d.total){ el.innerHTML = '<span class="dc-x">Les étapes ne chiffrent aucune attente.</span>'; return; }
+  const n = niveauDepuisMinutes(d.total);
+  el.innerHTML = `<span class="dc-x">Les étapes chiffrent</span> <b>${formatDuree(d.total)}</b>` +
+    ` <span class="dc-x">→ plutôt</span> <b class="niv-txt-${n}">${DUREES[n-1]}</b>`;
+};
+
 function renderParts(){
   const c = document.getElementById('parts-container');
   c.innerHTML = `<div id="parts-list">` + editingParts.map((p,pi)=>`
@@ -3920,7 +4071,7 @@ function ligneEdit(pi,field,i,val,ph){
 window.insertLine=function(pi,field,i){ editModifie=true;
   editingParts[pi][field].splice(i+1,0,'');
   if(field==='ingredients') majCleIng(pi,'insert',i+1);
-  renderParts();
+  renderParts(); majApercuDuree();
   const l=document.querySelector(`.line-list[data-pi="${pi}"][data-field="${field}"]`);
   if(l){ const e=l.querySelector(`.line-row[data-i="${i+1}"] input`); if(e) e.focus(); }
 };
@@ -4100,7 +4251,8 @@ window.doCopyPart=function(recipeId, partIndex){
 };
 window.removePart=function(i){ editModifie=true; editingParts.splice(i,1); editingIngKeys.splice(i,1); renderParts(); };
 window.setPartName=function(pi,val){ editModifie=true; editingParts[pi].name=val; };
-window.setPartField=function(pi,field,idx,val){ editModifie=true; editingParts[pi][field][idx]=val; };
+window.setPartField=function(pi,field,idx,val){ editModifie=true; editingParts[pi][field][idx]=val;
+  if(field==='steps') majApercuDuree(); };   // la durée suit ce qu'on écrit
 window.addLine=function(pi,field){ editModifie=true; editingParts[pi][field].push(''); if(field==='ingredients') majCleIng(pi,'push'); renderParts(); };
 window.removeLine=function(pi,field,i){ editModifie=true; editingParts[pi][field].splice(i,1); if(field==='ingredients') majCleIng(pi,'remove',i);
   if(editingParts[pi][field].length===0) editingParts[pi][field].push(''); renderParts(); };
@@ -4117,6 +4269,7 @@ window.saveRecipe=async function(){
     title,
     category: document.getElementById('ed-category').value,
     difficulty: document.getElementById('ed-difficulty').value,
+    duration: document.getElementById('ed-duration').value,
     servingsBase: parseInt(document.getElementById('ed-servbase').value)||0,
     servingsUnit: document.getElementById('ed-servunit').value.trim(),
     labels: document.getElementById('ed-labels').value.split(',').map(s=>s.trim()).filter(Boolean),
