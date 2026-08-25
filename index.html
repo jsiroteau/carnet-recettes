@@ -82,10 +82,15 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
    sous le nom — l'un et l'autre sont en infobulle, et l'intervalle en clair
    dans la liste déroulante du formulaire, là où il sert à choisir. */
 .filtres{display:grid;gap:6px;margin-bottom:16px}
-.filtre-ligne{display:flex;align-items:center;gap:8px}
+.filtre-ligne{display:flex;align-items:center;gap:6px}
+/* Une amorce en rose framboise — celui du bouton « Toutes » — ouvre chaque
+   ligne. Deux traits de couleur suffisent à rompre l'alignement des dix
+   boutons, qui prenait sinon des airs de tableau. */
+.filtre-ico{flex:0 0 14px;height:14px;color:var(--accent);display:flex;align-items:center}
+.filtre-ico svg{width:14px;height:14px;display:block}
 .filtre-opts{flex:1;display:flex;gap:5px;min-width:0}
 .niv{flex:1 1 auto;min-width:0;height:30px;display:flex;align-items:center;justify-content:center;
-  padding:0 4px;border:1px solid var(--border);background:var(--card);border-radius:9px;
+  padding:0 3px;border:1px solid var(--border);background:var(--card);border-radius:9px;
   color:var(--muted);cursor:pointer;transition:all .15s;font-size:0.62rem;letter-spacing:-0.1px;
   font-family:'Work Sans',sans-serif;white-space:nowrap;box-shadow:0 1px 4px rgba(59,42,32,0.05)}
 .niv:active{transform:scale(0.96)}
@@ -932,7 +937,15 @@ let filtreDiff = new Set(), filtreDuree = new Set();
 // même rampe de couleur. Aucun intitulé en tête de ligne — « Facile » ne peut
 // désigner qu'une difficulté, « Demi-heure » qu'une durée. Le mot porte sa
 // catégorie avec lui, y compris seul sur une vignette qui défile.
-function ligneFiltre(noms, bornes, choisis, cle){
+// Toque pour la difficulté, horloge pour la durée : deux objets de cuisine
+// tracés au même trait, à la même taille, dans la même encre.
+const SVG = (d)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+  stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const ICO_DIFFICULTE = SVG(`<path d="M6.5 12.5a3.4 3.4 0 1 1 1.6-6.4 4.2 4.2 0 0 1 7.8 0 3.4 3.4 0 1 1 1.6 6.4z"/>
+  <path d="M7.6 12.5V19h8.8v-6.5"/><path d="M7.6 16.2h8.8"/>`);
+const ICO_DUREE = SVG(`<circle cx="12" cy="12" r="8.2"/><path d="M12 7.4V12l3.1 2.1"/>`);
+
+function ligneFiltre(icone, noms, bornes, choisis, cle){
   const boutons = noms.map((nom,i)=>{
     const n = i+1, on = choisis.has(n);
     return `<button type="button" class="niv n${n}${on?' on':''}" aria-pressed="${on}"
@@ -940,6 +953,7 @@ function ligneFiltre(noms, bornes, choisis, cle){
       onclick="toggleFiltre('${cle}',${n})">${esc(nom)}</button>`;
   }).join('');
   return `<div class="filtre-ligne">
+    <span class="filtre-ico" aria-hidden="true">${icone}</span>
     <div class="filtre-opts">${boutons}</div>
     <button type="button" class="filtre-raz${choisis.size?' vu':''}" title="Tout afficher"
       onclick="razFiltre('${cle}')">✕</button>
@@ -947,8 +961,8 @@ function ligneFiltre(noms, bornes, choisis, cle){
 }
 function renderFiltres(){
   document.getElementById('filtres').innerHTML =
-    ligneFiltre(DIFFICULTES, null, filtreDiff, 'diff') +
-    ligneFiltre(DUREES, DUREES_BORNES, filtreDuree, 'duree');
+    ligneFiltre(ICO_DIFFICULTE, DIFFICULTES, null, filtreDiff, 'diff') +
+    ligneFiltre(ICO_DUREE, DUREES, DUREES_BORNES, filtreDuree, 'duree');
 }
 window.toggleFiltre=function(cle, n){
   const s = (cle==='diff') ? filtreDiff : filtreDuree;
