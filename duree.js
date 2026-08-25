@@ -11,7 +11,10 @@
 // Ce qui ne compte pas : le travail actif. Pétrir 10 minutes ou fouetter
 // 5 minutes, c'est du temps de préparation, pas du repos ni de la cuisson.
 
-export const DUREES        = ['Express','Rapide','Modéré','Long','Très long'];
+// Cinq unités de temps qui se disent toutes seules : lues hors contexte, sur
+// une vignette, elles ne peuvent désigner qu'une durée. « Modéré » ou « Moyen »
+// auraient pu passer pour de la difficulté ; « Demi-heure », non.
+export const DUREES        = ['Minute','Demi-heure','Heure','Demi-journée','Journée'];
 export const DUREES_BORNES = ['≤ 15 min','16-45 min','46-90 min','1 h 30-4 h','> 4 h'];
 const SEUILS = [15, 45, 90, 240];        // bornes hautes des crans 1 à 4
 

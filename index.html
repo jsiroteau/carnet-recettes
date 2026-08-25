@@ -77,17 +77,15 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .tag.niv-5,.niv.n5.on{color:#B32E58;border-color:rgba(179,46,88,0.45);background:rgba(179,46,88,0.07)}
 
 /* ── FILTRES DIFFICULTÉ / DURÉE ──
-   Une ligne par échelle, et rien de plus : un intitulé, cinq crans, une croix.
-   Chaque cran choisit son mode d'expression et s'y tient — la difficulté se
-   lit à la jauge, la durée se lit au mot. Redire le mot sous la jauge, ou
-   l'intervalle sous le mot, ne dirait rien de neuf et volerait deux lignes. */
-.filtres{display:grid;gap:7px;margin-bottom:16px}
+   Une ligne par échelle, cinq mots, une croix. Pas d'intitulé : le mot dit
+   lui-même de quoi il parle. Pas de jauge doublant le mot, pas d'intervalle
+   sous le nom — l'un et l'autre sont en infobulle, et l'intervalle en clair
+   dans la liste déroulante du formulaire, là où il sert à choisir. */
+.filtres{display:grid;gap:6px;margin-bottom:16px}
 .filtre-ligne{display:flex;align-items:center;gap:8px}
-.filtre-titre{flex:0 0 56px;font-family:'IBM Plex Mono',monospace;font-size:0.57rem;
-  letter-spacing:1px;text-transform:uppercase;color:var(--muted);line-height:1.1}
 .filtre-opts{flex:1;display:flex;gap:5px;min-width:0}
 .niv{flex:1 1 auto;min-width:0;height:30px;display:flex;align-items:center;justify-content:center;
-  padding:0 3px;border:1px solid var(--border);background:var(--card);border-radius:9px;
+  padding:0 4px;border:1px solid var(--border);background:var(--card);border-radius:9px;
   color:var(--muted);cursor:pointer;transition:all .15s;font-size:0.62rem;letter-spacing:-0.1px;
   font-family:'Work Sans',sans-serif;white-space:nowrap;box-shadow:0 1px 4px rgba(59,42,32,0.05)}
 .niv:active{transform:scale(0.96)}
@@ -95,18 +93,6 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .filtre-raz{flex:0 0 16px;visibility:hidden;background:none;border:none;padding:0;
   cursor:pointer;color:var(--accent);font-size:0.9rem;line-height:1}
 .filtre-raz.vu{visibility:visible}
-
-/* La jauge : cinq barres croissantes, N allumées. Elle sert de bouton de
-   filtre et d'étiquette sur les vignettes, où elle remplace le mot. */
-.niv-jauge{display:inline-flex;align-items:flex-end;gap:2px;height:11px}
-.niv-jauge i{display:block;width:3px;border-radius:1px;background:currentColor;opacity:0.22}
-.niv-jauge i.on{opacity:1}
-.niv-jauge i:nth-child(1){height:4px}
-.niv-jauge i:nth-child(2){height:5.5px}
-.niv-jauge i:nth-child(3){height:7px}
-.niv-jauge i:nth-child(4){height:9px}
-.niv-jauge i:nth-child(5){height:11px}
-.tag-jauge{display:inline-flex;align-items:center;padding:4px 8px}
 
 .duree-calc{font-size:0.72rem;line-height:1.4;color:var(--text);margin-top:5px}
 .duree-calc .dc-x{color:var(--muted)}
@@ -942,23 +928,18 @@ window.setCategory=function(c){ activeCategory=c; renderCategories(); renderList
 // échelles se combinent (« … ET express OU rapide »).
 let filtreDiff = new Set(), filtreDuree = new Set();
 
-function jauge(n){
-  return '<span class="niv-jauge">' +
-    [1,2,3,4,5].map(i=>`<i class="${i<=n?'on':''}"></i>`).join('') + '</span>';
-}
-// `contenu` décide du mode d'expression : la jauge pour la difficulté, le mot
-// pour la durée. Chaque échelle en choisit un et s'y tient — redire le mot
-// sous la jauge, ou l'intervalle sous le mot, n'apprendrait rien et coûterait
-// une ligne. Le libellé complet reste en infobulle, qui ne prend pas de place.
-function ligneFiltre(titre, noms, choisis, cle, contenu, infobulle){
+// Les deux échelles sont traitées à l'identique : cinq mots, même graisse,
+// même rampe de couleur. Aucun intitulé en tête de ligne — « Facile » ne peut
+// désigner qu'une difficulté, « Demi-heure » qu'une durée. Le mot porte sa
+// catégorie avec lui, y compris seul sur une vignette qui défile.
+function ligneFiltre(noms, bornes, choisis, cle){
   const boutons = noms.map((nom,i)=>{
     const n = i+1, on = choisis.has(n);
     return `<button type="button" class="niv n${n}${on?' on':''}" aria-pressed="${on}"
-      aria-label="${esc(nom)}" title="${esc(infobulle(nom,i))}"
-      onclick="toggleFiltre('${cle}',${n})">${contenu(nom,n)}</button>`;
+      title="${esc(bornes ? nom+' · '+bornes[i] : nom)}"
+      onclick="toggleFiltre('${cle}',${n})">${esc(nom)}</button>`;
   }).join('');
   return `<div class="filtre-ligne">
-    <span class="filtre-titre">${titre}</span>
     <div class="filtre-opts">${boutons}</div>
     <button type="button" class="filtre-raz${choisis.size?' vu':''}" title="Tout afficher"
       onclick="razFiltre('${cle}')">✕</button>
@@ -966,10 +947,8 @@ function ligneFiltre(titre, noms, choisis, cle, contenu, infobulle){
 }
 function renderFiltres(){
   document.getElementById('filtres').innerHTML =
-    ligneFiltre('Difficulté', DIFFICULTES, filtreDiff, 'diff',
-      (nom,n) => jauge(n), nom => nom) +
-    ligneFiltre('Durée', DUREES, filtreDuree, 'duree',
-      nom => esc(nom), (nom,i) => `${nom} · ${DUREES_BORNES[i]}`);
+    ligneFiltre(DIFFICULTES, null, filtreDiff, 'diff') +
+    ligneFiltre(DUREES, DUREES_BORNES, filtreDuree, 'duree');
 }
 window.toggleFiltre=function(cle, n){
   const s = (cle==='diff') ? filtreDiff : filtreDuree;
@@ -1020,7 +999,7 @@ window.renderList=function(){
         <h3>${esc(r.title)}</h3>
         <div class="recipe-meta">
           <span class="tag">${esc(r.category||'')}</span>
-          ${niveauDiff(r)?`<span class="tag tag-jauge niv-${niveauDiff(r)}" title="Difficulté : ${esc(r.difficulty)}">${jauge(niveauDiff(r))}</span>`:''}
+          ${niveauDiff(r)?`<span class="tag niv-${niveauDiff(r)}">${esc(r.difficulty)}</span>`:''}
           ${niveauDuree(r)?`<span class="tag niv-${niveauDuree(r)}">${esc(r.duration)}</span>`:''}
           ${estListeSeule(r)?`<span class="tag tag-liste">📋 Ingrédients seulement</span>`:''}
           ${(r.labels||[]).map(l=>normTitre(l)==='noel'
