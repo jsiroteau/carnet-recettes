@@ -114,7 +114,11 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .niv:active{transform:scale(0.96)}
 .niv.on{font-weight:600;box-shadow:0 2px 8px rgba(59,42,32,0.09)}
 
-.duree-calc{font-size:0.72rem;line-height:1.4;color:var(--text);margin-top:5px}
+/* Le repère se lit sous la ligne « difficulté / durée » : l'horloge dit
+   laquelle des deux colonnes il commente. */
+.duree-calc{display:flex;align-items:center;gap:6px;font-size:0.72rem;line-height:1.4;
+  color:var(--text);margin-top:7px}
+.duree-calc svg{width:14px;height:14px;flex-shrink:0;color:var(--muted)}
 .duree-calc .dc-x{color:var(--muted)}
 .niv-txt-1{color:#3E8A5C}.niv-txt-2{color:#7A8F3C}.niv-txt-3{color:#A96A00}
 .niv-txt-4{color:#C0512F}.niv-txt-5{color:#B32E58}
@@ -4008,43 +4012,56 @@ window.startEdit=function(){
   openOverlay('edit-overlay');
 };
 function buildEditForm(r){
+  // L'ordre suit celui de la saisie réelle : on sait ce qu'on cuisine et dans
+  // quelle catégorie, on écrit la recette, et c'est seulement ensuite qu'on
+  // peut la juger. La durée proposée est lue dans les étapes : la demander
+  // avant de les avoir écrites revenait à la demander à l'aveugle.
   document.getElementById('edit-body').innerHTML = `
-    <label>Titre *</label><input id="ed-title" value="${esc(r.title||'')}" placeholder="Nom de la recette">
-    <div class="row2">
-      <div><label>Catégorie</label>
-        <select id="ed-category">
-          ${CATEGORIES.map(c=>`<option ${(r.category||'Plat')===c?'selected':''}>${c}</option>`).join('')}
-        </select></div>
-      <div><label>Difficulté</label>
-        <select id="ed-difficulty">
-          <option value="" ${!r.difficulty?'selected':''}>—</option>
-          ${DIFFICULTES.map((c,i)=>`<option ${r.difficulty===c?'selected':''}>${c}</option>`).join('')}
-        </select></div>
-    </div>
-    <div class="row2">
-      <div><label>Durée (repos + cuisson)</label>
-        <select id="ed-duration">
-          <option value="" ${!r.duration?'selected':''}>—</option>
-          ${DUREES.map((c,i)=>`<option value="${c}" ${r.duration===c?'selected':''}>${c} · ${DUREES_BORNES[i]}</option>`).join('')}
-        </select>
-        <div class="duree-calc" id="ed-duration-calc"></div></div>
-      <div><label>Nombre produit (laisser vide si sans objet)</label><input id="ed-servbase" type="number" value="${r.servingsBase||''}"></div>
-    </div>
-    <label>Unité (ex. cookies, tarte, gâteau…)</label>
-    <input id="ed-servunit" value="${esc(r.servingsUnit||'')}">
-    <label>Labels (séparés par des virgules)</label>
-    <input id="ed-labels" value="${esc((r.labels||[]).join(', '))}" placeholder="ex. Noël, pique-nique, anniversaire">
-    <div style="font-size:0.72rem;color:var(--muted);margin-top:5px">Pris en compte dans la recherche, comme les ingrédients.</div>
-    <div style="font-size:0.72rem;color:var(--muted);margin-top:12px;line-height:1.4">
-      📸 La photo s'ajoute depuis la fiche de la recette, avec le bouton sous l'image : elle est compressée sur l'appareil puis envoyée dans votre dépôt. Rien à saisir ici.
-    </div>
+    <label>Titre *</label>
+    <input id="ed-title" value="${esc(r.title||'')}" placeholder="Nom de la recette">
+
+    <label>Catégorie</label>
+    <select id="ed-category">
+      ${CATEGORIES.map(c=>`<option ${(r.category||'Plat')===c?'selected':''}>${c}</option>`).join('')}
+    </select>
+
     <div id="parts-container"></div>
     <div class="btn-row">
       <button type="button" class="btn-ghost" style="flex:1" onclick="addPart()">+ Nouvelle sous-partie</button>
       <button type="button" class="btn-ghost" style="flex:1" onclick="openCopyPart()">📋 Copier une sous-partie existante</button>
     </div>
+
+    <div class="row2">
+      <div><label>Difficulté</label>
+        <select id="ed-difficulty">
+          <option value="" ${!r.difficulty?'selected':''}>—</option>
+          ${DIFFICULTES.map(c=>`<option ${r.difficulty===c?'selected':''}>${c}</option>`).join('')}
+        </select></div>
+      <div><label>Durée (repos + cuisson)</label>
+        <select id="ed-duration">
+          <option value="" ${!r.duration?'selected':''}>—</option>
+          ${DUREES.map((c,i)=>`<option value="${c}" ${r.duration===c?'selected':''}>${c} · ${DUREES_BORNES[i]}</option>`).join('')}
+        </select></div>
+    </div>
+    <div class="duree-calc" id="ed-duration-calc"></div>
+
+    <div class="row2">
+      <div><label>Nombre produit</label>
+        <input id="ed-servbase" type="number" value="${r.servingsBase||''}"></div>
+      <div><label>Unité (ex. cookies, tarte, gâteau…)</label>
+        <input id="ed-servunit" value="${esc(r.servingsUnit||'')}"></div>
+    </div>
+
+    <label>Labels supplémentaires (facultatif)</label>
+    <input id="ed-labels" value="${esc((r.labels||[]).join(', '))}" placeholder="ex. Noël, pique-nique, anniversaire">
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:5px">Séparés par des virgules. Pris en compte dans la recherche, comme les ingrédients.</div>
+
     <label>Notes</label><textarea id="ed-notes">${esc(r.notes||'')}</textarea>
     <label>Source</label><input id="ed-source" value="${esc(r.source||'')}" placeholder="Livre, site, personne…">
+
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:12px;line-height:1.4">
+      📸 La photo s'ajoute depuis la fiche de la recette, avec le bouton sous l'image : elle est compressée sur l'appareil puis envoyée dans votre dépôt. Rien à saisir ici.
+    </div>
     <div class="btn-row">
       <button class="btn btn-primary btn-full" onclick="saveRecipe()">💾 Enregistrer</button>
     </div>`;
@@ -4059,10 +4076,10 @@ window.majApercuDuree=function(){
   const el = document.getElementById('ed-duration-calc');
   if(!el) return;
   const d = detailDuree({parts:editingParts});
-  if(!d.total){ el.innerHTML = '<span class="dc-x">Les étapes ne chiffrent aucune attente.</span>'; return; }
+  if(!d.total){ el.innerHTML = ICO_DUREE + '<span class="dc-x">Les étapes ne chiffrent aucune attente.</span>'; return; }
   const n = niveauDepuisMinutes(d.total);
-  el.innerHTML = `<span class="dc-x">Les étapes chiffrent</span> <b>${formatDuree(d.total)}</b>` +
-    ` <span class="dc-x">→ plutôt</span> <b class="niv-txt-${n}">${DUREES[n-1]}</b>`;
+  el.innerHTML = ICO_DUREE + `<span><span class="dc-x">Les étapes chiffrent</span> <b>${formatDuree(d.total)}</b>` +
+    ` <span class="dc-x">→ plutôt</span> <b class="niv-txt-${n}">${DUREES[n-1]}</b></span>`;
 };
 
 function renderParts(){
