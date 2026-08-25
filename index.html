@@ -42,8 +42,14 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .hero h1{font-size:1.7rem;font-weight:600;line-height:1.15}
 .hero p{color:var(--muted);font-size:0.88rem;margin-top:6px}
 
+/* La loupe remplace le mot « Chercher » : le verbe occupait la moitié de la
+   place réservée aux exemples. « Facile » n'y figure plus non plus — c'est un
+   bouton juste en dessous, l'écrire ici enverrait chercher à la main ce qui
+   se touche du doigt. */
 .search-bar{position:relative;margin-bottom:12px}
-.search-bar input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:50px;padding:12px 18px;color:var(--text);font-family:'Work Sans',sans-serif;font-size:0.92rem;outline:none}
+.search-bar .search-ico{position:absolute;left:16px;top:50%;transform:translateY(-50%);
+  width:17px;height:17px;color:var(--muted);pointer-events:none}
+.search-bar input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:50px;padding:12px 18px 12px 42px;color:var(--text);font-family:'Work Sans',sans-serif;font-size:0.92rem;outline:none}
 .search-bar input:focus{border-color:var(--accent)}
 
 /* Les catégories débordent encore latéralement quand elles sont nombreuses,
@@ -235,7 +241,10 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .edit-form input,.edit-form select,.edit-form textarea{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'Work Sans',sans-serif;font-size:0.9rem;outline:none}
 .edit-form input:focus,.edit-form select:focus,.edit-form textarea:focus{border-color:var(--accent)}
 .edit-form textarea{resize:vertical;min-height:70px}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* Les deux intitulés d'une même ligne n'ont pas forcément la même longueur.
+   L'alignement par le bas garantit que les champs restent à la même hauteur,
+   même si l'un des libellés venait un jour à passer sur deux lignes. */
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}
 .part-edit-block{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-top:16px}
 .part-edit-block .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
 .ph .lbl{font-size:0.78rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
@@ -468,6 +477,10 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
     stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="12" cy="12" r="8.2"/><path d="M12 7.4V12l3.1 2.1"/>
   </symbol>
+  <symbol id="ico-loupe" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="10.5" cy="10.5" r="6.6"/><path d="M15.4 15.4L20 20"/>
+  </symbol>
 </svg>
 
 <div id="app-header">
@@ -485,7 +498,8 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
     <h1 id="hero-count">— recettes</h1>
   </div>
   <div class="search-bar">
-    <input type="search" id="search-input" placeholder="Chercher : titre, ingrédient, mot-clé (facile, frais, Noël…)" oninput="renderList()" autocomplete="off">
+    <svg class="search-ico" aria-hidden="true"><use href="#ico-loupe"/></svg>
+    <input type="search" id="search-input" placeholder="Titre, ingrédient, mot-clé (frais, Noël…)" oninput="renderList()" autocomplete="off" aria-label="Chercher une recette">
   </div>
   <div class="chips" id="cat-chips"></div>
   <div class="filtres" id="filtres"></div>
@@ -4048,8 +4062,8 @@ function buildEditForm(r){
     <div class="row2">
       <div><label>Nombre produit</label>
         <input id="ed-servbase" type="number" value="${r.servingsBase||''}"></div>
-      <div><label>Unité (ex. cookies, tarte, gâteau…)</label>
-        <input id="ed-servunit" value="${esc(r.servingsUnit||'')}"></div>
+      <div><label>Unité</label>
+        <input id="ed-servunit" value="${esc(r.servingsUnit||'')}" placeholder="ex. cookies, tarte…"></div>
     </div>
 
     <label>Labels supplémentaires (facultatif)</label>
