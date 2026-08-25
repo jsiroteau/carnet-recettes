@@ -46,7 +46,11 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .search-bar input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:50px;padding:12px 18px;color:var(--text);font-family:'Work Sans',sans-serif;font-size:0.92rem;outline:none}
 .search-bar input:focus{border-color:var(--accent)}
 
-.chips{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
+/* Les catégories débordent encore latéralement quand elles sont nombreuses,
+   mais la barre de défilement traçait un trait gris en travers de la page,
+   juste au-dessus des filtres. On la masque : le glissement reste possible. */
+.chips{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.chips::-webkit-scrollbar{display:none}
 .chip{padding:7px 15px;border-radius:50px;font-size:0.78rem;font-weight:500;border:1px solid var(--border);background:var(--card);color:var(--muted);white-space:nowrap;cursor:pointer;transition:all .15s}
 .chip.active{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
 
@@ -65,6 +69,12 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .recipe-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .tag{font-size:0.66rem;padding:2px 9px;border-radius:50px;border:1px solid var(--border);color:var(--muted);font-family:'IBM Plex Mono',monospace}
 .tag-liste{color:var(--muted);border-style:dashed}
+/* Une à cinq toques, une à cinq horloges : la difficulté et la durée se
+   voient sans se lire. La longueur de la série porte le sens ; le mot exact
+   reste sur la fiche de la recette, et en infobulle ici. */
+.tag-serie{display:inline-flex;align-items:center;padding:4px 8px}
+.serie{display:inline-flex;align-items:center;gap:2px}
+.serie svg{width:12px;height:12px;display:block}
 /* Difficulté et durée sont deux échelles à cinq crans : elles partagent la même
    rampe de couleur, du vert (facile, court) au rose sombre (difficile, long).
    Un seul repère visuel sert donc aux deux, dans les vignettes comme dans les
@@ -77,27 +87,32 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .tag.niv-5,.niv.n5.on{color:#B32E58;border-color:rgba(179,46,88,0.45);background:rgba(179,46,88,0.07)}
 
 /* ── FILTRES DIFFICULTÉ / DURÉE ──
-   Une ligne par échelle, cinq mots, une croix. Pas d'intitulé : le mot dit
-   lui-même de quoi il parle. Pas de jauge doublant le mot, pas d'intervalle
-   sous le nom — l'un et l'autre sont en infobulle, et l'intervalle en clair
-   dans la liste déroulante du formulaire, là où il sert à choisir. */
-.filtres{display:grid;gap:6px;margin-bottom:16px}
-.filtre-ligne{display:flex;align-items:center;gap:6px}
-/* Une amorce en rose framboise — celui du bouton « Toutes » — ouvre chaque
-   ligne. Deux traits de couleur suffisent à rompre l'alignement des dix
-   boutons, qui prenait sinon des airs de tableau. */
-.filtre-ico{flex:0 0 14px;height:14px;color:var(--accent);display:flex;align-items:center}
-.filtre-ico svg{width:14px;height:14px;display:block}
-.filtre-opts{flex:1;display:flex;gap:5px;min-width:0}
+   Une ligne par échelle, cinq mots. Pas d'intitulé : le mot dit lui-même de
+   quoi il parle. Rien pour remettre à zéro non plus — on retouche le cran
+   choisi et il se relâche, ce que la croix faisait en occupant une colonne.
+   L'arrondi est celui des catégories et des étiquettes : la capsule est la
+   forme de tout le carnet, ces boutons n'avaient pas à s'en écarter. */
+.filtres{display:grid;gap:7px;margin-bottom:16px}
+.filtre-ligne{display:flex;align-items:center;gap:7px}
+/* L'amorce en rose framboise — celui du bouton « Toutes » — est posée sur une
+   pastille de la même teinte, très diluée : à 14px le trait seul se perdait
+   contre le fond crème. */
+.filtre-ico{flex:0 0 28px;height:28px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;color:var(--accent);background:rgba(216,68,110,0.10)}
+.filtre-ico svg{width:16px;height:16px;display:block}
+.tag-serie svg,.filtre-ico svg,.meta-pill .l.ico svg{overflow:visible}
+/* « Assez difficile » est un mot long : sur un écran très étroit la rangée
+   peut dépasser. Elle glisse alors, comme les catégories, plutôt que de
+   déborder de la page — et sans barre de défilement grise. */
+.filtre-opts{flex:1;display:flex;gap:5px;min-width:0;overflow-x:auto;
+  scrollbar-width:none;-ms-overflow-style:none}
+.filtre-opts::-webkit-scrollbar{display:none}
 .niv{flex:1 1 auto;min-width:0;height:30px;display:flex;align-items:center;justify-content:center;
-  padding:0 3px;border:1px solid var(--border);background:var(--card);border-radius:9px;
-  color:var(--muted);cursor:pointer;transition:all .15s;font-size:0.62rem;letter-spacing:-0.1px;
+  padding:0 5px;border:1px solid var(--border);background:var(--card);border-radius:50px;
+  color:var(--muted);cursor:pointer;transition:all .15s;font-size:0.63rem;letter-spacing:-0.1px;
   font-family:'Work Sans',sans-serif;white-space:nowrap;box-shadow:0 1px 4px rgba(59,42,32,0.05)}
 .niv:active{transform:scale(0.96)}
 .niv.on{font-weight:600;box-shadow:0 2px 8px rgba(59,42,32,0.09)}
-.filtre-raz{flex:0 0 16px;visibility:hidden;background:none;border:none;padding:0;
-  cursor:pointer;color:var(--accent);font-size:0.9rem;line-height:1}
-.filtre-raz.vu{visibility:visible}
 
 .duree-calc{font-size:0.72rem;line-height:1.4;color:var(--text);margin-top:5px}
 .duree-calc .dc-x{color:var(--muted)}
@@ -132,6 +147,11 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .meta-pill{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px 12px;text-align:center;flex:1;min-width:76px}
 .meta-pill .v{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:0.95rem;color:var(--accent)}
 .meta-pill .l{font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
+/* La toque et l'horloge disent « difficulté » et « durée » mieux que les mots,
+   qui répétaient au-dessous d'une valeur déjà explicite. Même trait que dans
+   les filtres, en gris discret : c'est une légende, pas un bouton. */
+.meta-pill .l.ico{display:flex;justify-content:center;margin-top:4px;color:var(--muted)}
+.meta-pill .l.ico svg{width:15px;height:15px;display:block}
 
 .servings-ctrl{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:50px;padding:6px 8px;margin-bottom:18px;width:fit-content}
 /* un appui prolongé ne doit ni sélectionner le texte, ni ouvrir le menu
@@ -430,6 +450,21 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 </style>
 </head>
 <body>
+
+<!-- La toque et l'horloge sont tracées une fois pour toutes ici. Partout
+     ailleurs on y renvoie par <use> : une vignette qui porte cinq toques ne
+     recopie pas cinq fois le dessin, et retoucher le trait se fait ici seul. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="ico-toque" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6.5 12.5a3.4 3.4 0 1 1 1.6-6.4 4.2 4.2 0 0 1 7.8 0 3.4 3.4 0 1 1 1.6 6.4z"/>
+    <path d="M7.6 12.5V19h8.8v-6.5"/><path d="M7.6 16.2h8.8"/>
+  </symbol>
+  <symbol id="ico-horloge" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="8.2"/><path d="M12 7.4V12l3.1 2.1"/>
+  </symbol>
+</svg>
 
 <div id="app-header">
   <div class="logo">Carnet <span>de recettes</span></div>
@@ -765,7 +800,14 @@ const CATEGORIES = ['Apéritif','Entrée','Plat','Dessert','Goûter'];
 // sa valeur, de 1 à 5. Renommer un cran se fait donc ici, en un seul endroit.
 // « Facile », « Moyen » et « Difficile » gardent volontairement les crans 1, 3
 // et 5 : les recettes déjà saisies restent valides sans aucune conversion.
-const DIFFICULTES = ['Facile','Assez facile','Moyen','Assez difficile','Difficile'];
+// Les cinq mots ne sont plus qu'un seul mot décliné : chacun est le degré
+// suivant du précédent, donc aucun ne peut faire plus peur que son rang —
+// c'était le défaut de « Technique », qui changeait de registre au milieu de
+// l'échelle. Les toques des vignettes ont libéré ce vocabulaire : le mot
+// n'apparaît plus jamais seul, toujours sous une toque ou dans une liste
+// intitulée « Difficulté », donc « Moyen » ne risque plus de passer pour une
+// durée.
+const DIFFICULTES = ['Très facile','Facile','Moyen','Difficile','Très difficile'];
 // `duration` est l'intervalle choisi à la saisie, pas une durée en minutes :
 // les étapes ne sont pas assez précises pour qu'un chiffre soit honnête. Le
 // calcul de duree.js ne sert qu'à suggérer l'intervalle dans le formulaire.
@@ -930,7 +972,8 @@ window.setCategory=function(c){ activeCategory=c; renderCategories(); renderList
 // Deux ensembles de crans retenus. Vides = aucun filtre, donc tout s'affiche :
 // c'est plus lisible que de tout cocher au départ et de demander de décocher.
 // Plusieurs crans peuvent coexister (« facile OU assez facile »), et les deux
-// échelles se combinent (« … ET express OU rapide »).
+// échelles se combinent (« … ET minute OU demi-heure »). Un cran déjà choisi
+// se relâche d'une seconde touche : c'est la remise à zéro.
 let filtreDiff = new Set(), filtreDuree = new Set();
 
 // Les deux échelles sont traitées à l'identique : cinq mots, même graisse,
@@ -938,12 +981,15 @@ let filtreDiff = new Set(), filtreDuree = new Set();
 // désigner qu'une difficulté, « Demi-heure » qu'une durée. Le mot porte sa
 // catégorie avec lui, y compris seul sur une vignette qui défile.
 // Toque pour la difficulté, horloge pour la durée : deux objets de cuisine
-// tracés au même trait, à la même taille, dans la même encre.
-const SVG = (d)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-  stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
-const ICO_DIFFICULTE = SVG(`<path d="M6.5 12.5a3.4 3.4 0 1 1 1.6-6.4 4.2 4.2 0 0 1 7.8 0 3.4 3.4 0 1 1 1.6 6.4z"/>
-  <path d="M7.6 12.5V19h8.8v-6.5"/><path d="M7.6 16.2h8.8"/>`);
-const ICO_DUREE = SVG(`<circle cx="12" cy="12" r="8.2"/><path d="M12 7.4V12l3.1 2.1"/>`);
+// tracés au même trait, dans la même encre. Le dessin vit dans le <symbol>
+// en tête de page ; ici on ne fait qu'y renvoyer.
+const ICO = id => `<svg><use href="#${id}"/></svg>`;
+const ICO_DIFFICULTE = ICO('ico-toque');
+const ICO_DUREE      = ICO('ico-horloge');
+// La série : autant de toques (ou d'horloges) que le cran en compte.
+// Une seule à gauche de l'échelle, cinq à droite — la longueur se lit sans
+// qu'on ait à compter, comme les piments d'une carte de restaurant.
+const serieIco = (id, n) => `<span class="serie">${ICO(id).repeat(n)}</span>`;
 
 function ligneFiltre(icone, noms, bornes, choisis, cle){
   const boutons = noms.map((nom,i)=>{
@@ -955,8 +1001,6 @@ function ligneFiltre(icone, noms, bornes, choisis, cle){
   return `<div class="filtre-ligne">
     <span class="filtre-ico" aria-hidden="true">${icone}</span>
     <div class="filtre-opts">${boutons}</div>
-    <button type="button" class="filtre-raz${choisis.size?' vu':''}" title="Tout afficher"
-      onclick="razFiltre('${cle}')">✕</button>
   </div>`;
 }
 function renderFiltres(){
@@ -967,10 +1011,6 @@ function renderFiltres(){
 window.toggleFiltre=function(cle, n){
   const s = (cle==='diff') ? filtreDiff : filtreDuree;
   s.has(n) ? s.delete(n) : s.add(n);
-  renderFiltres(); renderList();
-};
-window.razFiltre=function(cle){
-  (cle==='diff' ? filtreDiff : filtreDuree).clear();
   renderFiltres(); renderList();
 };
 
@@ -1013,8 +1053,8 @@ window.renderList=function(){
         <h3>${esc(r.title)}</h3>
         <div class="recipe-meta">
           <span class="tag">${esc(r.category||'')}</span>
-          ${niveauDiff(r)?`<span class="tag niv-${niveauDiff(r)}">${esc(r.difficulty)}</span>`:''}
-          ${niveauDuree(r)?`<span class="tag niv-${niveauDuree(r)}">${esc(r.duration)}</span>`:''}
+          ${niveauDiff(r)?`<span class="tag tag-serie niv-${niveauDiff(r)}" title="Difficulté : ${esc(r.difficulty)}" aria-label="Difficulté : ${esc(r.difficulty)}">${serieIco('ico-toque', niveauDiff(r))}</span>`:''}
+          ${niveauDuree(r)?`<span class="tag tag-serie niv-${niveauDuree(r)}" title="Durée : ${esc(r.duration)}" aria-label="Durée : ${esc(r.duration)}">${serieIco('ico-horloge', niveauDuree(r))}</span>`:''}
           ${estListeSeule(r)?`<span class="tag tag-liste">📋 Ingrédients seulement</span>`:''}
           ${(r.labels||[]).map(l=>normTitre(l)==='noel'
             ? `<span class="tag tag-noel">🎄 ${esc(l)}</span>`
@@ -2722,8 +2762,8 @@ function renderDetail(r){
     </div>
     <div class="meta-row">
       <div class="meta-pill"><div class="v">${esc(r.category||'—')}</div><div class="l">Catégorie</div></div>
-      ${r.difficulty?`<div class="meta-pill"><div class="v">${esc(r.difficulty)}</div><div class="l">Difficulté</div></div>`:''}
-      ${niveauDuree(r)?`<div class="meta-pill"><div class="v">${esc(r.duration)}</div><div class="l">Durée</div></div>`:''}
+      ${r.difficulty?`<div class="meta-pill"><div class="v">${esc(r.difficulty)}</div><div class="l ico">${ICO_DIFFICULTE}</div></div>`:''}
+      ${niveauDuree(r)?`<div class="meta-pill"><div class="v">${esc(r.duration)}</div><div class="l ico">${ICO_DUREE}</div></div>`:''}
     </div>`;
   if(r.servingsBase){
     // La bande enveloppante occupe toute la largeur : c'est elle qui porte les
@@ -3687,15 +3727,14 @@ function analyserTexteRecette(brut){
 
 
     // — difficulté —
-    // Cinq crans, mais un texte collé n'en emploie souvent que trois : on
-    // rattache alors au cran le plus proche (« très facile » → Facile).
-    m = l.match(/^\s*(?:difficult[ée]\s*:?\s*)?((?:tr[èe]s|assez|plut[ôo]t)\s+)?(facile|moyen(?:ne)?|difficile)\s*$/i);
+    // L'échelle est faite des mots qu'emploie n'importe quelle recette : on
+    // la lit telle quelle, sans avoir à rattraper quoi que ce soit.
+    m = l.match(/^\s*(?:difficult[ée]\s*:?\s*)?(tr[èe]s\s+)?(facile|moyen(?:ne)?|difficile)\s*$/i);
     if(m){
-      const nuance = (m[1]||'').trim().toLowerCase(), base = m[2].toLowerCase();
-      const intermediaire = /assez|plut[ôo]t/.test(nuance);
+      const tres = !!m[1], base = m[2].toLowerCase();
       meta.difficulty = /moyen/.test(base) ? 'Moyen'
-        : /difficile/.test(base) ? (intermediaire ? 'Assez difficile' : 'Difficile')
-        : (intermediaire ? 'Assez facile' : 'Facile');
+        : /difficile/.test(base) ? (tres ? 'Très difficile' : 'Difficile')
+        : (tres ? 'Très facile' : 'Facile');
       continue; }
 
 
