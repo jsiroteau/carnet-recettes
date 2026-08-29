@@ -777,7 +777,11 @@ body.fond-fige{overflow:hidden}
 // L'échelle des durées et son calcul indicatif vivent dans duree.js.
 import { DUREES, DUREES_BORNES, detailDuree,
          niveauDepuisMinutes, formatDuree } from './duree.js';
-import { schemaEnPng } from './schema-image.js';
+// schema-image.js n'est PAS importé ici, volontairement. Un import statique
+// est une condition de démarrage : si le fichier manque, tout le module échoue
+// et l'application s'ouvre vide, sans une recette. Fabriquer une image de
+// schéma est un agrément, pas une fondation — on va donc chercher ce module au
+// moment de s'en servir, et son absence ne coûte que cette fonction-là.
 
 // ══════════════════════════════════
 // STOCKAGE
@@ -1558,6 +1562,7 @@ async function imageDuSchema(r, ratio){
 
   let png = null;
   try{
+    const { schemaEnPng } = await import('./schema-image.js');
     const cadre = doublure.querySelector('#schema-wrap');
     cadre.style.overflow = 'visible';         // rien ne doit être coupé à la mesure
     alignGraphNodes();
@@ -1597,9 +1602,11 @@ window.shareRecipe=async function(id){
   const sv = currentServings[id] || r.servingsBase;
   const ratio = (r.servingsBase && r.servingsBase>0) ? sv/r.servingsBase : 1;
   const texte = texteRecette(r, sv, ratio);
-  toast('🖼 Préparation du schéma…');
   let png = null;
-  try{ png = estListeSeule(r) ? null : await imageDuSchema(r, ratio); }catch(e){ png = null; }
+  try{
+    if(!estListeSeule(r)){ toast('🖼 Préparation du schéma…'); png = await imageDuSchema(r, ratio); }
+  }catch(e){ png = null; }
+  if(!png && !estListeSeule(r)) toast('Schéma non joint — la recette part seule');
   await envoyer(r.title, texte, png);
 };
 
@@ -2560,7 +2567,7 @@ window.basculerModeModif=function(actif){
 // la page affichée, contre l'estampille du fichier réellement en ligne.
 // (Comparer avec la date de dépôt du serveur ne voulait rien dire : elle
 //  diffère forcément de l'heure d'écriture, et signalait un écart permanent.)
-const VERSION_APPLI = '2026-08-29 19:20';
+const VERSION_APPLI = /*ESTAMPILLE*/'2026-08-29 19:35'/*FIN*/;
 
 function verifierVersion(){
   const va = document.getElementById('version-appli');
@@ -2569,7 +2576,10 @@ function verifierVersion(){
   fetch(location.href.split('#')[0].split('?')[0], {cache:'no-store'})
     .then(rep=>rep.text())
     .then(txt=>{
-      const m = txt.match(/const VERSION_APPLI = '2026-08-29 19:20']+)'/);
+      // On lit l'estampille par sa balise, pas par le nom de la constante :
+      // c'est cette balise qui rend le repère impossible à confondre avec la
+      // ligne de code qui le lit — la confusion, une fois, a suffi.
+      const m = txt.match(/\/\*ESTAMPILLE\*\/'([^']+)'/);
       if(!m){ va.textContent = 'Version affichée : ' + VERSION_APPLI; return; }
       if(m[1] === VERSION_APPLI){
         va.innerHTML = '✓ À jour — version ' + VERSION_APPLI;
