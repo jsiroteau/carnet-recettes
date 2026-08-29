@@ -137,6 +137,13 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .empty-state{text-align:center;padding:60px 16px;color:var(--muted);font-size:0.9rem}
 .empty-state button{margin-top:14px}
 
+/* Tant qu'un panneau est ouvert, la liste derrière lui garde sa propre barre
+   de défilement : le navigateur en affiche donc deux, côte à côte, contre le
+   bord droit. Celle de droite est celle du fond, invisible sous le panneau —
+   on la tire, le curseur descend, et rien ne bouge à l'écran. On fige le fond
+   pendant l'ouverture : il ne reste qu'une barre, celle qui agit. */
+body.fond-fige{overflow:hidden}
+
 /* Le défilement vertical de toute l'application repose sur ce cadre. Il était
    à la fois conteneur flex et conteneur de défilement — combinaison acceptée
    partout, mais dont le calcul de hauteur dépend du moteur. Un simple bloc qui
@@ -153,9 +160,10 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
   /* Le cadre de la fiche est volontairement très large sur grand écran, pour
      laisser respirer le schéma. Mais la photo, en 16/9 sur toute cette
      largeur, atteignait 938px de haut sur un écran de 1080 : elle occupait
-     l'écran entier, et tout le reste de la recette passait sous la ligne de
-     flottaison. On la plafonne — c'est une illustration, pas la recette. */
-  #detail-overlay .detail-photo{ aspect-ratio:auto; height:min(38vh, 340px); }
+     l'écran entier. On borne sa LARGEUR, jamais sa hauteur : le 16/9 est
+     conservé, donc le cadrage aussi. Rabaisser la hauteur à largeur constante
+     aurait transformé le cadre en bandeau et rogné l'image. */
+  #detail-overlay .detail-photo{ max-width:620px; margin-left:auto; margin-right:auto; }
 }
 @media (min-width:1300px){
   #detail-overlay .overlay-body{ max-width:1700px; }
@@ -903,9 +911,17 @@ function hautDePage(el){
   remonter();
   requestAnimationFrame(remonter);
 }
+// Un seul défileur à la fois : le fond est figé dès qu'un panneau est ouvert,
+// libéré quand le dernier se referme. Sa position de lecture est conservée,
+// puisqu'on ne fait que masquer son débordement.
+function majFondFige(){
+  document.body.classList.toggle('fond-fige', !!document.querySelector('.overlay.open'));
+}
+
 function openOverlay(id){
   const el = document.getElementById(id);
   el.classList.add('open');
+  majFondFige();
   // On arrive toujours en haut de la page qui s'ouvre : sans cela l'écran
   // conserve la position de défilement de la consultation précédente.
   hautDePage(el);
@@ -914,9 +930,10 @@ function openOverlay(id){
     historyPushed = true;
   }
 }
-function closeOverlay(id){ document.getElementById(id).classList.remove('open'); }
+function closeOverlay(id){ document.getElementById(id).classList.remove('open'); majFondFige(); }
 window.closeAllOverlays=function(){
   closeOverlay('crop-overlay'); closeOverlay('detail-overlay'); closeOverlay('edit-overlay'); closeOverlay('settings-overlay'); closeOverlay('shop-overlay'); closeOverlay('menu-overlay'); closeOverlay('add-overlay'); closeOverlay('import-overlay'); closeOverlay('copy-part-overlay');
+  majFondFige();
   if(historyPushed){
     historyPushed = false;
     if(!inPopState) history.back();
