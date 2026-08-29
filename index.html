@@ -195,7 +195,14 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .vt-btn{border:none;background:none;padding:7px 16px;border-radius:50px;font-size:0.8rem;font-weight:600;color:var(--muted);cursor:pointer;font-family:'Work Sans',sans-serif}
 .vt-btn.active{background:var(--accent);color:var(--accent-ink)}
 
-.schema-wrap{position:relative;display:flex;gap:28px;overflow-x:auto;padding:16px 8px 24px;margin:0 -2px;align-items:flex-start;scrollbar-width:auto;scrollbar-color:var(--accent) var(--card-hi)}
+/* Le schéma ne défile QUE latéralement. « overflow-y:hidden » n'est pas là
+   pour cacher quoi que ce soit — la hauteur du cadre est ajustée au contenu
+   juste après le tracé — mais pour que ce cadre cesse d'être un défileur
+   vertical. Tant qu'il en était un, il captait la molette et le balayage du
+   doigt : le curseur posé sur le schéma, on ne pouvait plus descendre dans la
+   recette, le geste se perdant dans un défilement qui n'avait nulle part où
+   aller. Le mouvement vertical appartient désormais toujours à la page. */
+.schema-wrap{position:relative;display:flex;gap:28px;overflow-x:auto;overflow-y:hidden;padding:16px 8px 24px;margin:0 -2px;align-items:flex-start;scrollbar-width:auto;scrollbar-color:var(--accent) var(--card-hi)}
 .schema-wrap::-webkit-scrollbar{height:10px}
 .schema-wrap::-webkit-scrollbar-track{background:var(--card-hi);border-radius:10px}
 .schema-wrap::-webkit-scrollbar-thumb{background:var(--accent);border-radius:10px}
@@ -3820,8 +3827,15 @@ function drawSchemaConnectors(){
   content += window.__schemaGraphNodes ? drawGraphConnectors(wrap, svg, toLocal) : drawLegacyConnectors(wrap, toLocal);
   svg.innerHTML = content;
 
-  // Le schéma dépasse-t-il du cadre ? C'est le seul cas où l'on propose de le
-  // déplacer. On le revérifie à chaque tracé, donc aussi au redimensionnement.
+  // Le cadre ne défilant plus en hauteur, il doit être assez haut pour tout
+  // montrer : on l'ajuste au contenu réellement mesuré. Sans cela, une boîte
+  // basse serait purement et simplement coupée.
+  wrap.style.minHeight = '';
+  if(wrap.scrollHeight > wrap.clientHeight + 1)
+    wrap.style.minHeight = wrap.scrollHeight + 'px';
+
+  // Le schéma dépasse-t-il en largeur ? C'est le seul cas où l'on propose de
+  // le déplacer. Revérifié à chaque tracé, donc aussi au redimensionnement.
   wrap.classList.toggle('deplacable', wrap.scrollWidth > wrap.clientWidth + 4);
 }
 window.addEventListener('resize', ()=>{ if(document.getElementById('schema-wrap')) drawSchemaConnectors(); });
