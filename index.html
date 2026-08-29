@@ -182,9 +182,16 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 
 .view-toggle{display:flex;gap:6px;background:var(--card-hi);border-radius:50px;padding:4px;margin:16px 0 4px;width:fit-content}
 .band-vue{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.schema-nav{display:flex;gap:8px}
-.schema-nav button{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--accent);font-size:1rem;cursor:pointer}
-.schema-nav button:active{background:var(--card-hi)}
+/* Le curseur en main ouverte n'apparaît que si le schéma dépasse : promettre
+   un déplacement là où il n'y a rien à parcourir serait un mensonge. Sur
+   écran tactile il ne s'affiche pas, et le balayage natif fait le travail. */
+.schema-wrap.deplacable{cursor:grab}
+.schema-wrap.agrippe{cursor:grabbing;user-select:none}
+.schema-wrap:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:12px}
+/* L'indication ne s'adresse qu'à ceux qui tiennent une souris : sur un
+   téléphone, on ne présente pas un geste que le doigt trouve tout seul. */
+.schema-aide{display:none;font-size:0.68rem;color:var(--muted);font-style:italic}
+@media (hover:hover) and (pointer:fine){ .schema-aide{display:inline} }
 .vt-btn{border:none;background:none;padding:7px 16px;border-radius:50px;font-size:0.8rem;font-weight:600;color:var(--muted);cursor:pointer;font-family:'Work Sans',sans-serif}
 .vt-btn.active{background:var(--accent);color:var(--accent-ink)}
 
@@ -587,7 +594,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
         <button class="btn btn-primary btn-full" id="export-btn" onclick="exporterRecettes()">☁️ Publier mes modifications</button>
       </div>
       <div style="font-size:0.72rem;color:var(--muted);margin-top:6px;line-height:1.4">
-        Publier envoie vos recettes à tous les autres appareils. Si le dépôt n'est pas configuré ci-dessous, le carnet est enregistré dans un fichier que vous pourrez transmettre.
+        Publier envoie vos recettes à tous les autres appareils. <b>Sans dépôt configuré</b>, le carnet est enregistré dans un fichier que vous pourrez transmettre — et chaque recette reste partageable une par une, depuis sa fiche : le bouton 📤 Partager emporte les ingrédients, les étapes <b>et le schéma</b>. Le message se recolle tel quel dans « Coller une recette », chez vous comme chez la personne à qui vous l'envoyez.
       </div>
 
       <div style="height:1px;background:var(--border);margin:28px 0 4px"></div>
@@ -1395,6 +1402,99 @@ async function shareOrCopy(title, text){
   try{ await navigator.clipboard.writeText(text); toast('✓ Copié dans le presse-papiers'); }
   catch(e){ toast('⚠ Impossible de copier le texte'); }
 }
+// ══════════════════════════════════
+// LE SCHÉMA EN TEXTE
+// ══════════════════════════════════
+// Sans jeton GitHub, on ne publie pas : on partage. Le partage doit donc
+// emporter le schéma, et pas seulement les étapes — sinon le travail de mise
+// au point du schéma reste prisonnier de l'appareil qui l'a fait.
+// Le même bloc sert deux lectures : celle du destinataire, qui suit les
+// flèches pour cuisiner, et celle du carnet, qui le relit pour reconstruire
+// le graphe à l'identique. D'où le format : lisible d'abord, régulier ensuite.
+
+const MARQUE_SCHEMA = 'SCHÉMA DE LA RECETTE';
+
+function schemaEnTexte(r, ratio){
+  let g = r.schemaGraph ? r.schemaGraph.nodes : null;
+  if(!g){ try{ const d = deriveSchemaGraph(r); g = d ? d.nodes : null; }catch(e){ g = null; } }
+  if(!g || !g.length) return '';
+
+  const ings = (r.parts||[]).map(p=>p.ingredients||[]).flat();
+  const rang = {};                       // id de boîte -> numéro affiché
+  g.forEach((n,i)=>{ rang[n.id] = i+1; });
+  const nomEntree = x => {
+    if(String(x).indexOf('ing:') === 0){
+      const t = ings[+String(x).slice(4)];
+      return t ? scaleIngredient(t, ratio) : null;
+    }
+    return rang[x] ? '['+rang[x]+']' : null;
+  };
+
+  let t = '\n' + '─'.repeat(28) + '\n' + MARQUE_SCHEMA + '\n';
+  t += "Chaque ligne est une opération. La flèche ← dit ce qu'elle utilise :\n";
+  t += "un ingrédient, ou le résultat d'une opération déjà numérotée.\n\n";
+  g.forEach((n,i)=>{
+    const src = (n.inputs||[]).map(nomEntree).filter(Boolean);
+    t += `[${i+1}] ${scaleIngredient(n.label, ratio)}`;
+    if(src.length) t += ' ← ' + src.join(' + ');
+    t += '\n';
+  });
+  t += "\nCe message entier peut être recollé dans « Coller une recette » du\n";
+  t += "Carnet : la recette et son schéma y sont reconstitués tels quels.\n";
+  return t;
+}
+
+// Le chemin du retour : retrouver le graphe dans un texte partagé.
+function extraireBlocSchema(brut){
+  const lignes = String(brut||'').split(/\r?\n/);
+  const i = lignes.findIndex(l => l.trim() === MARQUE_SCHEMA);
+  if(i < 0) return {texte: brut, schema: null};
+  return {texte: lignes.slice(0, i).join('\n'), schema: lignes.slice(i+1)};
+}
+
+function reconstruireSchema(lignes, recette){
+  if(!lignes) return null;
+  const ings = (recette.parts||[]).map(p=>p.ingredients||[]).flat();
+  // Deux sous-parties peuvent demander « 200g de farine » : le même libellé
+  // désigne alors deux entrées distinctes. On sert donc les occurrences dans
+  // l'ordre où le schéma les réclame, au lieu de renvoyer toujours la première.
+  const cle = x => noAccent(String(x||'')).replace(/[^a-z0-9]+/g,' ').trim();
+  const table = new Map();
+  ings.forEach((v,i)=>{ const k = cle(v); if(!k) return;
+    if(!table.has(k)) table.set(k, {idx:[], suivant:0});
+    table.get(k).idx.push(i); });
+  const prendreIng = k => {
+    const e = table.get(k);
+    if(!e) return undefined;
+    return e.idx[Math.min(e.suivant++, e.idx.length-1)];
+  };
+
+  const brut = [];
+  for(const l of lignes){
+    const m = l.match(/^\s*\[(\d+)\]\s*(.+?)(?:\s*(?:←|<-)\s*(.*))?\s*$/);
+    if(!m) continue;
+    brut.push({num:+m[1], label:m[2].trim(),
+      sources:(m[3]||'').split('+').map(x=>x.trim()).filter(Boolean)});
+  }
+  if(!brut.length) return null;
+
+  const parNum = {}; brut.forEach((b,i)=>{ parNum[b.num] = 'g'+i; });
+  let perdu = 0;
+  const nodes = brut.map((b,i)=>({
+    id: 'g'+i, label: b.label,
+    inputs: b.sources.map(src=>{
+      const mm = src.match(/^\[(\d+)\]$/);
+      if(mm) return parNum[+mm[1]] || (perdu++, null);
+      const k = prendreIng(cle(src));
+      if(k === undefined){ perdu++; return null; }
+      return 'ing:' + k;
+    }).filter(Boolean)
+  }));
+  // Un graphe amputé vaut moins qu'un graphe régénéré : mieux vaut renoncer.
+  if(perdu) return null;
+  return {nodes};
+}
+
 window.shareRecipe=async function(id){
   const r = recipes.find(x=>x.id===id);
   const sv = currentServings[id] || r.servingsBase;
@@ -1409,6 +1509,7 @@ window.shareRecipe=async function(id){
   });
   if(r.notes) text += `Notes : ${r.notes}\n`;
   if(r.source) text += `Source : ${r.source}\n`;
+  text = text.trim() + '\n' + schemaEnTexte(r, ratio);
   await shareOrCopy(r.title, text.trim());
 };
 // ══════════════════════════════════
@@ -2764,7 +2865,12 @@ let detailView = 'text';
 function renderDetail(r){
   // pendant la correction d'un schéma, le bouton de l'en-tête n'a plus lieu d'être
   const bm = document.getElementById('btn-modifier-recette');
-  if(bm) bm.style.display = (modeModif && schemaEditId !== r.id) ? '' : 'none';
+  if(bm){
+    bm.style.display = (modeModif && schemaEditId !== r.id) ? '' : 'none';
+    // Le bouton ne corrige que la vue affichée : autant qu'il le dise. Sans
+    // cela, on croit avoir tout repris alors qu'on n'a repris qu'une moitié.
+    bm.textContent = (detailView === 'schema' && !estListeSeule(r)) ? '✎ Schéma' : '✎ Texte';
+  }
   const sv = currentServings[r.id];
   const ratio = (r.servingsBase && r.servingsBase>0) ? sv/r.servingsBase : 1;
   const noel = estNoel(r);
@@ -2798,10 +2904,7 @@ function renderDetail(r){
       <button class="vt-btn ${detailView==='text'?'active':''}" onclick="setDetailView('text')">📋 Texte</button>
       <button class="vt-btn ${detailView==='schema'?'active':''}" onclick="setDetailView('schema')">🗺 Schéma</button>
     </div>
-    ${detailView==='schema'?`<div class="schema-nav">
-      <button type="button" onclick="defilerSchema(-1)" title="Défiler vers la gauche">◀</button>
-      <button type="button" onclick="defilerSchema(1)" title="Défiler vers la droite">▶</button>
-    </div>`:''}
+    ${detailView==='schema'?`<span class="schema-aide">glissez pour parcourir</span>`:''}
     </div>`;
   }
   html += `<div id="recipe-content">${detailView==='text'?renderTextView(r,ratio):renderSchemaView(r,ratio)}</div>`;
@@ -2829,11 +2932,51 @@ function renderDetail(r){
 window.setDetailView=function(v){
   if(v!=='schema' && schemaEditId){ schemaEditId=null; schemaEditNodes=null; }
   detailView=v; const r=recipes.find(x=>x.id===currentId); renderDetail(r); };
-window.defilerSchema=function(dir){
-  const w = document.getElementById('schema-wrap');
-  if(!w) return;
-  w.scrollBy({left: dir * Math.round(w.clientWidth*0.75), behavior:'smooth'});
+// ── PARCOURIR LE SCHÉMA ──
+// Un seul geste, partout : on attrape le schéma et on le tire. Au doigt, c'est
+// le défilement natif du navigateur, plus fluide que tout ce qu'on écrirait.
+// À la souris, le même geste, simulé ici — l'ordinateur n'a pas de doigt mais
+// il a un curseur, et rien ne justifiait de lui donner une autre grammaire.
+// Les deux flèches d'en-tête faisaient double emploi avec le balayage ; elles
+// n'existaient que parce que la souris n'avait rien pour attraper.
+let tirageSchema = null;
+
+document.addEventListener('pointerdown', e=>{
+  if(e.pointerType !== 'mouse' || e.button !== 0) return;
+  const w = e.target.closest && e.target.closest('.schema-wrap');
+  if(!w || w.scrollWidth <= w.clientWidth + 4) return;
+  tirageSchema = {w, x:e.clientX, y:e.clientY, gauche:w.scrollLeft, haut:w.scrollTop, tire:false};
+  w.classList.add('agrippe');
+});
+
+document.addEventListener('pointermove', e=>{
+  if(!tirageSchema) return;
+  const dx = e.clientX - tirageSchema.x, dy = e.clientY - tirageSchema.y;
+  // Un seuil de quelques pixels : sans lui, la main qui tremble sur une boîte
+  // du mode correction transformerait chaque clic en déplacement.
+  if(!tirageSchema.tire && Math.abs(dx) + Math.abs(dy) < 5) return;
+  tirageSchema.tire = true;
+  tirageSchema.w.scrollLeft = tirageSchema.gauche - dx;
+  tirageSchema.w.scrollTop  = tirageSchema.haut  - dy;
+  e.preventDefault();
+});
+
+const relacher = ()=>{
+  if(!tirageSchema) return;
+  tirageSchema.w.classList.remove('agrippe');
+  // Après un vrai déplacement, le clic qui suit ne doit pas ouvrir la boîte
+  // qu'on avait sous le curseur au départ. Le garde-fou s'efface de lui-même :
+  // si l'on relâche hors de la fenêtre, aucun clic ne vient, et il ne doit pas
+  // rester en embuscade pour avaler le clic suivant, des minutes plus tard.
+  if(tirageSchema.tire){
+    const avaler = ev=>{ ev.stopPropagation(); ev.preventDefault(); };
+    document.addEventListener('click', avaler, {capture:true, once:true});
+    setTimeout(()=>document.removeEventListener('click', avaler, true), 300);
+  }
+  tirageSchema = null;
 };
+document.addEventListener('pointerup', relacher);
+document.addEventListener('pointercancel', relacher);
 function renderTextView(r, ratio){
   let html='';
   // chaque intitulé de partie porte un bouquet, décalé différemment à chaque fois
@@ -3224,8 +3367,11 @@ function barreEdition(r){
   </div>`;
 }
 
-window.ouvrirEditeurSchema=function(){
-  if(!modeModif){ toast('Activez « Autoriser la modification » dans les réglages'); return; }
+window.ouvrirEditeurSchema=function(depuisCreation){
+  // Le mode modification protège les recettes du carnet contre les fausses
+  // manœuvres ; il n'a pas à barrer la route à l'auteur qui relit la sienne,
+  // à l'instant où il vient de l'écrire.
+  if(!modeModif && !depuisCreation){ toast('Activez « Autoriser la modification » dans les réglages'); return; }
   const rc = recipes.find(x=>x.id===currentId);
   if(rc && estListeSeule(rc)){ toast('Cette recette n’a pas d’étapes à schématiser'); return; }
   const r = recipes.find(x=>x.id===currentId); if(!r) return;
@@ -3468,7 +3614,7 @@ function renderGraphSchema(r, ratio){
   const totalWidth = maxDepth*(COL_W+COL_GAP);
 
   window.__schemaGraphNodes = nodes;
-  return `<div class="schema-wrap" id="schema-wrap"><svg class="schema-connectors" id="schema-svg"></svg>
+  return `<div class="schema-wrap" id="schema-wrap" tabindex="0" aria-label="Schéma de la recette : glissez, ou utilisez les flèches du clavier"><svg class="schema-connectors" id="schema-svg"></svg>
     <div class="schema-ing-col">${ingHtml}</div>
     <div class="schema-graph-cols-wrap" id="schema-graph-cols" style="min-width:${totalWidth}px">${boxesHtml}</div></div>`;
 }
@@ -3531,7 +3677,7 @@ function renderLegacySchema(r, ratio){
   });
 
   window.__schemaMatches = matches;
-  return `<div class="schema-wrap" id="schema-wrap"><svg class="schema-connectors" id="schema-svg"></svg>
+  return `<div class="schema-wrap" id="schema-wrap" tabindex="0" aria-label="Schéma de la recette : glissez, ou utilisez les flèches du clavier"><svg class="schema-connectors" id="schema-svg"></svg>
     <div class="schema-ing-col">${ingHtml}</div>
     <div class="schema-rows">${rowsHtml}</div></div>`;
 }
@@ -3647,6 +3793,10 @@ function drawSchemaConnectors(){
 
   content += window.__schemaGraphNodes ? drawGraphConnectors(wrap, svg, toLocal) : drawLegacyConnectors(wrap, toLocal);
   svg.innerHTML = content;
+
+  // Le schéma dépasse-t-il du cadre ? C'est le seul cas où l'on propose de le
+  // déplacer. On le revérifie à chaque tracé, donc aussi au redimensionnement.
+  wrap.classList.toggle('deplacable', wrap.scrollWidth > wrap.clientWidth + 4);
 }
 window.addEventListener('resize', ()=>{ if(document.getElementById('schema-wrap')) drawSchemaConnectors(); });
 window.changeServings=function(sens, pas, leger){
@@ -3742,6 +3892,23 @@ function analyserTexteRecette(brut){
     let m = l.match(/pour\s+(\d+)\s*(?:[àa-]\s*\d+\s*)?(verrines?|cookies?|biscuits?|g[âa]teaux?|tartelettes?|tartes?|bouch[ée]es?|croissants?|muffins?|brioches?|parts?)/i);
     if(m){ meta.servingsBase = parseInt(m[1]); meta.servingsUnit = m[2].toLowerCase(); if(l.length < 40) continue; }
 
+    // Une unité inconnue de la liste ci-dessus — « Pour 1 fondant », « Pour 2
+    // kouign amann » — n'a pas à finir dans les ingrédients. Une ligne courte
+    // et seule qui dit « Pour N quelque chose » annonce un rendement, sauf
+    // quand ce quelque chose est un convive : on ne compte jamais les gens.
+    if(!meta.servingsBase){
+      m = l.match(/^\s*pour\s+(\d+)\s*(?:[àa-]\s*\d+\s*)?([a-zàâçéèêëîïôûùüÿñæœ][a-zàâçéèêëîïôûùüÿñæœ'’ -]{1,24})\s*$/i);
+      if(m){
+        // « Pour 4 personnes » est écarté volontairement : le carnet compte ce
+        // qu'on produit, pas les convives. Mais la ligne est reconnue et mise
+        // de côté, sinon elle atterrissait dans les ingrédients.
+        if(!/personne|convive|invit[ée]|gourmand|amateur|affam/i.test(m[2])){
+          meta.servingsBase = parseInt(m[1]);
+          meta.servingsUnit = m[2].trim().toLowerCase();
+        }
+        continue; }
+    }
+
 
     // — difficulté —
     // L'échelle est faite des mots qu'emploie n'importe quelle recette : on
@@ -3792,7 +3959,16 @@ function analyserTexteRecette(brut){
     if(RE_ENTETE_ING.test(l)){ mode = 'ing'; continue; }
     if(RE_ENTETE_ETAPES.test(l)){ mode = 'step'; continue; }
 
-    const sp = l.match(RE_SOUSPARTIE);
+    // « — Gâteau au fromage — » : encadré de tirets cadratins, c'est un titre
+    // de sous-partie quel que soit son libellé. Un partage écrit ses titres
+    // ainsi ; les reconnaître à leur forme évite de dépendre d'un vocabulaire
+    // fermé, qui ignore « gâteau » ou « glace ».
+    const encadre = String(c.texte||'').trim().match(/^[—–]\s*(.+?)\s*[—–]$/);
+    // « • Coulis de framboises » commence par un mot de sous-partie, mais la
+    // puce dit que c'est un ingrédient de la liste en cours. On ne se laisse
+    // pas prendre : seule une ligne sans puce peut ouvrir une sous-partie.
+    const aPuce = /^\s*[-–—•*·▪◦]\s+/.test(String(c.texte||''));
+    const sp = encadre ? encadre : (aPuce ? null : l.match(RE_SOUSPARTIE));
     if(sp && l.length < 55){
       const nom = sp[1].trim().replace(/\s*:\s*$/,'');
       if(courante.ingredients.length || courante.steps.length){ pousser(); courante = {name:'', ingredients:[], steps:[]}; }
@@ -3883,15 +4059,25 @@ function normaliserRecette(d){
   };
 }
 
+// Schéma reconnu dans le texte collé, en attente d'être rattaché à la recette
+// au moment de l'enregistrement.
+let schemaImporte = null;
+
 window.runImport=function(){
   const texte = document.getElementById('import-text').value.trim();
   if(!texte){ toast('⚠ Collez d’abord le texte d’une recette'); return; }
   setImportStatus('📖 Analyse du texte…', false);
-  const r = normaliserRecette(analyserTexteRecette(texte));
+  // Le bloc de schéma est mis de côté avant l'analyse : ses flèches et ses
+  // numéros n'ont rien à faire dans la liste des étapes.
+  const {texte: corps, schema: lignesSchema} = extraireBlocSchema(texte);
+  const r = normaliserRecette(analyserTexteRecette(corps));
   if(!r.parts.some(p=>p.ingredients.length || p.steps.length)){
     setImportStatus("⚠ Aucune recette n'a pu être reconnue dans ce texte.", true);
     return;
   }
+  schemaImporte = reconstruireSchema(lignesSchema, r);
+  if(lignesSchema && !schemaImporte)
+    toast('Le schéma reçu n’a pas pu être rattaché : il sera régénéré');
   ouvrirRelecture(r);
 };
 
@@ -4014,10 +4200,17 @@ window.openAdd=function(){
   buildEditForm({});
   openOverlay('edit-overlay');
 };
+// Une recette se corrige en deux endroits : le texte et le schéma. Le bouton
+// « Modifier » n'agit que sur la vue affichée, si bien qu'après avoir repris
+// l'un on avait besoin de revenir à l'autre. Renvoyer à la liste obligeait à
+// rouvrir la recette pour rien : on retient donc d'où l'on vient.
+let vueAvantEdition = 'text';
+
 window.startEdit=function(){
   if(!modeModif){ toast('Activez « Autoriser la modification » dans les réglages'); return; }
   const r = recipes.find(x=>x.id===currentId);
   if(!r) return;
+  vueAvantEdition = detailView;
   editingParts = JSON.parse(JSON.stringify(r.parts && r.parts.length ? r.parts : [{name:'',ingredients:[''],steps:['']}]));
   let k=0; editingIngKeys = editingParts.map(p=>p.ingredients.map(()=>k++));
   document.getElementById('edit-title').textContent = 'Modifier la recette';
@@ -4320,6 +4513,7 @@ window.removeLine=function(pi,field,i){ editModifie=true; editingParts[pi][field
   if(editingParts[pi][field].length===0) editingParts[pi][field].push(''); renderParts(); };
 
 window.saveRecipe=async function(){
+  let nouvelleId = null, schemaARevoir = false;
   const title = document.getElementById('ed-title').value.trim();
   if(!title){ toast('⚠ Le titre est obligatoire'); return; }
   const cleanParts = editingParts.map(p=>({
@@ -4374,15 +4568,62 @@ window.saveRecipe=async function(){
       }
       recipes[i] = {...ancien, ...data};
       if(data.schemaGraph===undefined) delete recipes[i].schemaGraph;
+      // Les étapes ont changé : le schéma enregistré ne les raconte plus
+      // forcément. On ne le refait pas d'office — on le signale.
+      const avant = (ancien.parts||[]).map(p=>(p.steps||[]).join('§')).join('¶');
+      const apres = cleanParts.map(p=>(p.steps||[]).join('§')).join('¶');
+      if(avant !== apres && recipes[i].schemaGraph) schemaARevoir = true;
     }
   } else {
-    recipes.push({ id: identifiant(data.title, Date.now()%100000), ...data });
+    // Un schéma reçu par partage est repris tel quel — mais seulement si ses
+    // renvois tombent encore juste : la relecture a pu retirer un ingrédient.
+    if(schemaImporte){
+      const n = cleanParts.map(p=>p.ingredients.length).reduce((a,b)=>a+b, 0);
+      const valide = schemaImporte.nodes.every(nd=>nd.inputs.every(x=>
+        String(x).indexOf('ing:') !== 0 || +String(x).slice(4) < n));
+      if(valide) data.schemaGraph = schemaImporte;
+      else toast('Schéma reçu abandonné : la liste d’ingrédients a changé');
+    }
+    nouvelleId = identifiant(data.title, Date.now()%100000);
+    recipes.push({ id: nouvelleId, ...data });
   }
+  schemaImporte = null;
   editModifie = false;
   sauver(true);
-  closeAllOverlays();
-  toast('✓ Recette enregistrée');
   renderCategories(); renderList();
+
+  // Modification d'une recette existante : on rouvre sa fiche, sur la vue
+  // qu'on avait quittée. L'autre vue est alors à un bouton de distance,
+  // au lieu d'un aller-retour par la liste.
+  if(currentId){
+    const rr = recipes.find(x=>x.id===currentId);
+    closeOverlay('edit-overlay');
+    if(rr){
+      detailView = vueAvantEdition;
+      document.getElementById('detail-title').textContent = rr.title;
+      openOverlay('detail-overlay');
+      renderDetail(rr);
+      toast(schemaARevoir
+        ? '✓ Enregistré — les étapes ont changé, vérifiez le schéma'
+        : '✓ Modifications enregistrées');
+      return;
+    }
+  }
+  closeAllOverlays();
+
+  // Dernière étape de la création : le schéma est généré tout seul, encore
+  // faut-il pouvoir le corriger. On l'ouvre directement en correction plutôt
+  // que d'espérer que l'auteur aille le chercher — et sans exiger le mode
+  // modification, puisqu'il s'agit de la recette qu'on vient d'écrire.
+  const neuve = nouvelleId ? recipes.find(x=>x.id===nouvelleId) : null;
+  if(neuve && !estListeSeule(neuve)){
+    openDetail(nouvelleId);
+    setDetailView('schema');
+    ouvrirEditeurSchema(true);
+    toast('✓ Enregistrée — voici son schéma, à corriger si besoin');
+  } else {
+    toast('✓ Recette enregistrée');
+  }
 };
 
 // depuis une fiche : on passe aux menus avec la recette déjà choisie
