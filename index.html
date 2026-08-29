@@ -2940,12 +2940,19 @@ window.setDetailView=function(v){
 // Les deux flèches d'en-tête faisaient double emploi avec le balayage ; elles
 // n'existaient que parce que la souris n'avait rien pour attraper.
 let tirageSchema = null;
+let finDuTirage = 0;      // horodatage du dernier vrai déplacement
 
 document.addEventListener('pointerdown', e=>{
   if(e.pointerType !== 'mouse' || e.button !== 0) return;
   const w = e.target.closest && e.target.closest('.schema-wrap');
   if(!w || w.scrollWidth <= w.clientWidth + 4) return;
-  tirageSchema = {w, x:e.clientX, y:e.clientY, gauche:w.scrollLeft, haut:w.scrollTop, tire:false};
+  // Le schéma ne défile qu'en largeur : sa hauteur tient toujours dans son
+  // cadre. Le mouvement vertical revient donc à la page qui le porte, sans
+  // quoi tirer vers le haut ne faisait rien du tout — et empêchait même de
+  // descendre dans la recette tant que le curseur était sur le schéma.
+  const page = w.closest('.overlay') || document.scrollingElement;
+  tirageSchema = {w, page, x:e.clientX, y:e.clientY,
+    gauche:w.scrollLeft, haut: page ? page.scrollTop : 0, tire:false};
   w.classList.add('agrippe');
 });
 
@@ -2957,7 +2964,7 @@ document.addEventListener('pointermove', e=>{
   if(!tirageSchema.tire && Math.abs(dx) + Math.abs(dy) < 5) return;
   tirageSchema.tire = true;
   tirageSchema.w.scrollLeft = tirageSchema.gauche - dx;
-  tirageSchema.w.scrollTop  = tirageSchema.haut  - dy;
+  if(tirageSchema.page) tirageSchema.page.scrollTop = tirageSchema.haut - dy;
   e.preventDefault();
 });
 
@@ -2965,14 +2972,10 @@ const relacher = ()=>{
   if(!tirageSchema) return;
   tirageSchema.w.classList.remove('agrippe');
   // Après un vrai déplacement, le clic qui suit ne doit pas ouvrir la boîte
-  // qu'on avait sous le curseur au départ. Le garde-fou s'efface de lui-même :
-  // si l'on relâche hors de la fenêtre, aucun clic ne vient, et il ne doit pas
-  // rester en embuscade pour avaler le clic suivant, des minutes plus tard.
-  if(tirageSchema.tire){
-    const avaler = ev=>{ ev.stopPropagation(); ev.preventDefault(); };
-    document.addEventListener('click', avaler, {capture:true, once:true});
-    setTimeout(()=>document.removeEventListener('click', avaler, true), 300);
-  }
+  // qu'on avait sous le curseur au départ. Plutôt que d'intercepter ce clic —
+  // ce qui dépend de l'ordre d'écoute des événements, trop subtil pour être
+  // sûr — on date la fin du geste et c'est l'ouverture qui se retient.
+  if(tirageSchema.tire) finDuTirage = Date.now();
   tirageSchema = null;
 };
 document.addEventListener('pointerup', relacher);
@@ -3433,6 +3436,9 @@ function descendants(id){
 }
 
 window.ouvrirBoite=function(id){
+  // On vient de tirer le schéma : le relâchement produit un clic sur la boîte
+  // qui se trouvait sous le curseur au départ. Ce n'est pas une intention.
+  if(Date.now() - finDuTirage < 250) return;
   boiteCourante = id;
   const n = schemaEditNodes.find(x=>x.id===id); if(!n) return;
   const r = recipes.find(x=>x.id===currentId);
@@ -4609,21 +4615,26 @@ window.saveRecipe=async function(){
       return;
     }
   }
-  closeAllOverlays();
-
   // Dernière étape de la création : le schéma est généré tout seul, encore
   // faut-il pouvoir le corriger. On l'ouvre directement en correction plutôt
   // que d'espérer que l'auteur aille le chercher — et sans exiger le mode
   // modification, puisqu'il s'agit de la recette qu'on vient d'écrire.
+  //
+  // On ne referme QUE le formulaire : closeAllOverlays() appelle history.back(),
+  // dont l'effet est différé. La fiche ouverte juste après se faisait refermer
+  // une fraction de seconde plus tard par le retour d'historique — d'où
+  // l'impression que le message annonçait un schéma qui n'arrivait jamais.
   const neuve = nouvelleId ? recipes.find(x=>x.id===nouvelleId) : null;
   if(neuve && !estListeSeule(neuve)){
+    closeOverlay('edit-overlay');
     openDetail(nouvelleId);
     setDetailView('schema');
     ouvrirEditeurSchema(true);
     toast('✓ Enregistrée — voici son schéma, à corriger si besoin');
-  } else {
-    toast('✓ Recette enregistrée');
+    return;
   }
+  closeAllOverlays();
+  toast('✓ Recette enregistrée');
 };
 
 // depuis une fiche : on passe aux menus avec la recette déjà choisie
