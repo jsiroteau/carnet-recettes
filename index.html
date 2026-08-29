@@ -207,10 +207,6 @@ body.fond-fige{overflow:hidden}
 .schema-wrap.deplacable{cursor:grab}
 .schema-wrap.agrippe{cursor:grabbing;user-select:none}
 .schema-wrap:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:12px}
-/* L'indication ne s'adresse qu'à ceux qui tiennent une souris : sur un
-   téléphone, on ne présente pas un geste que le doigt trouve tout seul. */
-.schema-aide{display:none;font-size:0.68rem;color:var(--muted);font-style:italic}
-@media (hover:hover) and (pointer:fine){ .schema-aide{display:inline} }
 .vt-btn{border:none;background:none;padding:7px 16px;border-radius:50px;font-size:0.8rem;font-weight:600;color:var(--muted);cursor:pointer;font-family:'Work Sans',sans-serif}
 .vt-btn.active{background:var(--accent);color:var(--accent-ink)}
 
@@ -616,10 +612,6 @@ body.fond-fige{overflow:hidden}
       </ol>
 
       <div class="export-etat ok" id="export-etat">—</div>
-      <!-- Repère de version : quand une correction semble n'avoir rien changé,
-           c'est presque toujours le navigateur qui ressert l'ancienne page.
-           Cette ligne dit laquelle tourne réellement, sans avoir à deviner. -->
-      <div id="version-appli" style="font-size:0.7rem;color:var(--muted);margin-top:8px;line-height:1.5"></div>
       <div class="btn-row">
         <button class="btn btn-primary btn-full" id="export-btn" onclick="exporterRecettes()">☁️ Publier mes modifications</button>
       </div>
@@ -673,6 +665,14 @@ body.fond-fige{overflow:hidden}
       <button class="btn btn-danger btn-full" onclick="wipeAllRecipes()">🗑 Effacer le carnet de cet appareil</button>
     </div>
     </div><!-- fin du bloc modification -->
+
+    <!-- Repère de version, en pied de page : quand une correction semble
+         n'avoir rien changé, c'est presque toujours le navigateur qui ressert
+         l'ancienne page. Cette ligne dit laquelle tourne réellement. Elle ne
+         relève pas de la modification des recettes : elle reste donc visible
+         hors du bloc ci-dessus, et tout en bas, comme une mention d'ourlet. -->
+    <div style="height:1px;background:var(--border);margin:32px 0 0"></div>
+    <div id="version-appli" style="font-size:0.7rem;color:var(--muted);margin-top:14px;line-height:1.6;text-align:center"></div>
   </div>
 </div>
 
@@ -777,6 +777,7 @@ body.fond-fige{overflow:hidden}
 // L'échelle des durées et son calcul indicatif vivent dans duree.js.
 import { DUREES, DUREES_BORNES, detailDuree,
          niveauDepuisMinutes, formatDuree } from './duree.js';
+import { schemaEnPng } from './schema-image.js';
 
 // ══════════════════════════════════
 // STOCKAGE
@@ -1534,10 +1535,49 @@ function reconstruireSchema(lignes, recette){
   return {nodes};
 }
 
-window.shareRecipe=async function(id){
-  const r = recipes.find(x=>x.id===id);
-  const sv = currentServings[id] || r.servingsBase;
-  const ratio = (r.servingsBase && r.servingsBase>0) ? sv/r.servingsBase : 1;
+// Le cadre du schéma doit exister dans la page pour être mesuré. S'il n'y est
+// pas — on partage depuis la vue texte — on le fabrique à l'écart, hors champ.
+// Le temps de la mesure, le cadre visible cède son identifiant à la doublure :
+// les fonctions de tracé cherchent un « schema-wrap » et il ne peut y en avoir
+// qu'un. Tout est rendu à sa place ensuite, sans que rien n'ait clignoté.
+async function imageDuSchema(r, ratio){
+  let g = r.schemaGraph ? r.schemaGraph.nodes : null;
+  if(!g){ try{ const d = deriveSchemaGraph(r); g = d ? d.nodes : null; }catch(e){ g = null; } }
+  if(!g || !g.length) return null;
+
+  const vivant = document.getElementById('schema-wrap');
+  const vivantSvg = document.getElementById('schema-svg');
+  const memoNoeuds = window.__schemaGraphNodes;
+  if(vivant) vivant.id = 'schema-wrap-en-place';
+  if(vivantSvg) vivantSvg.id = 'schema-svg-en-place';
+
+  const doublure = document.createElement('div');
+  doublure.style.cssText = 'position:fixed;left:-20000px;top:0;width:2200px;visibility:hidden';
+  doublure.innerHTML = renderGraphSchema(Object.assign({}, r, {schemaGraph:{nodes:g}}), ratio);
+  document.body.appendChild(doublure);
+
+  let png = null;
+  try{
+    const cadre = doublure.querySelector('#schema-wrap');
+    cadre.style.overflow = 'visible';         // rien ne doit être coupé à la mesure
+    alignGraphNodes();
+    drawSchemaConnectors();
+    await new Promise(requestAnimationFrame);
+    png = await schemaEnPng(cadre, r.title);
+  }catch(e){ png = null; }
+
+  doublure.remove();
+  if(vivant) vivant.id = 'schema-wrap';
+  if(vivantSvg) vivantSvg.id = 'schema-svg';
+  window.__schemaGraphNodes = memoNoeuds;
+  // le cadre visible a été mesuré pendant que la doublure portait son nom :
+  // on le retrace pour qu'il retrouve ses flèches
+  if(vivant){ alignGraphNodes(); drawSchemaConnectors(); }
+  return png;
+}
+
+// Le texte de la recette, sans rien de technique : c'est ce qu'on lit.
+function texteRecette(r, sv, ratio){
   let text = `${r.title}\n`;
   if(r.servingsBase) text += `Pour ${sv} ${uniteAccordee(r.servingsUnit||'', sv)}\n`;
   text += '\n';
@@ -1548,9 +1588,57 @@ window.shareRecipe=async function(id){
   });
   if(r.notes) text += `Notes : ${r.notes}\n`;
   if(r.source) text += `Source : ${r.source}\n`;
-  text = text.trim() + '\n' + schemaEnTexte(r, ratio);
-  await shareOrCopy(r.title, text.trim());
+  return text.trim();
+}
+
+// Envoi ordinaire : la recette à lire, le schéma à regarder.
+window.shareRecipe=async function(id){
+  const r = recipes.find(x=>x.id===id);
+  const sv = currentServings[id] || r.servingsBase;
+  const ratio = (r.servingsBase && r.servingsBase>0) ? sv/r.servingsBase : 1;
+  const texte = texteRecette(r, sv, ratio);
+  toast('🖼 Préparation du schéma…');
+  let png = null;
+  try{ png = estListeSeule(r) ? null : await imageDuSchema(r, ratio); }catch(e){ png = null; }
+  await envoyer(r.title, texte, png);
 };
+
+// Envoi destiné à quelqu'un qui tient le même carnet : on ajoute le bloc que
+// l'application sait relire, pour que la recette ET son schéma s'y recréent.
+window.proposerRecette=async function(id){
+  const r = recipes.find(x=>x.id===id);
+  const sv = currentServings[id] || r.servingsBase;
+  const ratio = (r.servingsBase && r.servingsBase>0) ? sv/r.servingsBase : 1;
+  const texte = texteRecette(r, sv, ratio) + '\n' + schemaEnTexte(r, ratio);
+  await envoyer(r.title, texte, null);
+  toast('✓ Ce message se recolle dans « Coller une recette »');
+};
+
+// Un seul chemin de sortie : le partage du système s'il accepte l'image,
+// sinon l'image se télécharge et le texte part au presse-papiers.
+async function envoyer(titre, texte, png){
+  const fichier = png ? new File([png], 'schema.png', {type:'image/png'}) : null;
+  if(fichier && navigator.canShare && navigator.canShare({files:[fichier]})){
+    try{ await navigator.share({title:titre, text:texte, files:[fichier]}); return; }
+    catch(e){ if(e && e.name==='AbortError') return; }
+  }
+  if(navigator.share){
+    try{ await navigator.share({title:titre, text:texte}); if(png) telecharger(png, titre); return; }
+    catch(e){ if(e && e.name==='AbortError') return; }
+  }
+  try{ await navigator.clipboard.writeText(texte); toast('✓ Recette copiée' + (png?' — schéma téléchargé':'')); }
+  catch(e){ toast('⚠ Impossible de copier le texte'); }
+  if(png) telecharger(png, titre);
+}
+
+function telecharger(blob, titre){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'schema-' + noAccent(titre).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') + '.png';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+
 // ══════════════════════════════════
 // LISTE DE COURSES
 // ══════════════════════════════════
@@ -2472,7 +2560,7 @@ window.basculerModeModif=function(actif){
 // la page affichée, contre l'estampille du fichier réellement en ligne.
 // (Comparer avec la date de dépôt du serveur ne voulait rien dire : elle
 //  diffère forcément de l'heure d'écriture, et signalait un écart permanent.)
-const VERSION_APPLI = '2026-08-29 18:42';
+const VERSION_APPLI = '2026-08-29 19:20';
 
 function verifierVersion(){
   const va = document.getElementById('version-appli');
@@ -2481,7 +2569,7 @@ function verifierVersion(){
   fetch(location.href.split('#')[0].split('?')[0], {cache:'no-store'})
     .then(rep=>rep.text())
     .then(txt=>{
-      const m = txt.match(/const VERSION_APPLI = '([^']+)'/);
+      const m = txt.match(/const VERSION_APPLI = '2026-08-29 19:20']+)'/);
       if(!m){ va.textContent = 'Version affichée : ' + VERSION_APPLI; return; }
       if(m[1] === VERSION_APPLI){
         va.innerHTML = '✓ À jour — version ' + VERSION_APPLI;
@@ -2982,7 +3070,7 @@ function renderDetail(r){
       <button class="vt-btn ${detailView==='text'?'active':''}" onclick="setDetailView('text')">📋 Texte</button>
       <button class="vt-btn ${detailView==='schema'?'active':''}" onclick="setDetailView('schema')">🗺 Schéma</button>
     </div>
-    ${detailView==='schema'?`<span class="schema-aide">glissez pour parcourir</span>`:''}
+
     </div>`;
   }
   html += `<div id="recipe-content">${detailView==='text'?renderTextView(r,ratio):renderSchemaView(r,ratio)}</div>`;
@@ -2992,6 +3080,13 @@ function renderDetail(r){
       <button class="btn btn-secondary" style="flex:1" onclick="shareRecipe('${r.id}')">📤 Partager</button>
       <button class="btn btn-secondary" style="flex:1" onclick="addToShoppingList('${r.id}')">🛒 Ajouter aux courses</button>
     </div>
+    ${estListeSeule(r)?'':`<div class="btn-row">
+      <button class="btn btn-secondary btn-full" onclick="proposerRecette('${r.id}')">📨 Envoyer à un autre carnet</button>
+    </div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:-4px;line-height:1.45">
+      « Partager » envoie la recette et le schéma en image, à lire et à regarder.
+      « Envoyer à un autre carnet » y ajoute de quoi recréer la recette et son schéma dans l'application.
+    </div>`}
     <div class="btn-row">
       <button class="btn btn-secondary btn-full" onclick="planifierCourant('${r.id}')">📅 Planifier ce plat</button>
     </div>
