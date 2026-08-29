@@ -2439,24 +2439,47 @@ window.basculerModeModif=function(actif){
   if(currentId){ const r=recipes.find(x=>x.id===currentId); if(r) renderDetail(r); }
 };
 
-// Estampille de la version : gravée dans le fichier au moment où il est écrit.
-// Si elle ne bouge pas après une mise à jour, c'est le navigateur qui garde
-// l'ancienne page en mémoire — pas le dépôt qui n'a pas été mis à jour.
-const VERSION_APPLI = '2026-08-29 18:12';
+// Estampille gravée dans le fichier au moment où il est écrit. La seule
+// comparaison qui ait un sens est celle-ci contre celle-là : l'estampille de
+// la page affichée, contre l'estampille du fichier réellement en ligne.
+// (Comparer avec la date de dépôt du serveur ne voulait rien dire : elle
+//  diffère forcément de l'heure d'écriture, et signalait un écart permanent.)
+const VERSION_APPLI = '2026-08-29 18:42';
+
+function verifierVersion(){
+  const va = document.getElementById('version-appli');
+  if(!va) return;
+  va.textContent = 'Version affichée : ' + VERSION_APPLI + ' — vérification…';
+  fetch(location.href.split('#')[0].split('?')[0], {cache:'no-store'})
+    .then(rep=>rep.text())
+    .then(txt=>{
+      const m = txt.match(/const VERSION_APPLI = '([^']+)'/);
+      if(!m){ va.textContent = 'Version affichée : ' + VERSION_APPLI; return; }
+      if(m[1] === VERSION_APPLI){
+        va.innerHTML = '✓ À jour — version ' + VERSION_APPLI;
+        return;
+      }
+      // Le fichier en ligne est plus récent que la page affichée : c'est bien
+      // le navigateur qui garde une copie. Un rechargement ordinaire peut ne
+      // pas suffire ; on lui impose une adresse qu'il n'a jamais vue.
+      va.innerHTML = '⚠ Cette page est une ancienne copie gardée par votre navigateur.' +
+        '<br>Affichée : ' + VERSION_APPLI + ' · en ligne : ' + m[1] +
+        '<br><button type="button" onclick="chargerDerniereVersion()" ' +
+        'style="margin-top:7px;padding:7px 13px;border-radius:50px;border:1px solid var(--accent);' +
+        'background:var(--accent);color:var(--accent-ink);font-family:inherit;font-size:0.72rem;' +
+        'font-weight:600;cursor:pointer">Charger la dernière version</button>';
+    })
+    .catch(()=>{ va.textContent = 'Version affichée : ' + VERSION_APPLI; });
+}
+
+// Une adresse jamais vue oblige le navigateur à tout redemander au serveur.
+window.chargerDerniereVersion=function(){
+  location.replace(location.pathname + '?maj=' + Date.now());
+};
 
 window.openSettings=function(){
   const cfg = getGhConfig()||{};
-  const va = document.getElementById('version-appli');
-  if(va){
-    // La date du fichier telle que le serveur la donne : elle prouve si la
-    // page affichée vient du réseau ou d'une copie gardée par le navigateur.
-    va.textContent = 'Version de l’application : ' + VERSION_APPLI;
-    fetch(location.href, {method:'HEAD', cache:'no-store'})
-      .then(rep=>{
-        const d = rep.headers.get('last-modified');
-        if(d) va.textContent += ' — fichier en ligne du ' + new Date(d).toLocaleString('fr-FR');
-      }).catch(()=>{});
-  }
+  verifierVersion();
   const sm = document.getElementById('set-modif');
   if(sm){ sm.checked = modeModif; document.getElementById('bloc-modif').style.display = modeModif ? '' : 'none'; }
   document.getElementById('set-owner').value = cfg.owner||'';
