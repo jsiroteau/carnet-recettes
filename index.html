@@ -465,6 +465,15 @@ body.fond-fige{overflow:hidden}
 .maj-banner span{flex:1;min-width:180px}
 .export-pastille{position:absolute;top:-5px;right:-5px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--bg)}
 .export-pastille.hidden{display:none}
+/* La liste des recettes offrables : une case, un titre, sa catégorie. Rien de
+   plus — on choisit ce qu'on donne, on ne relit pas la recette ici. */
+.choix-envoi{display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;
+  border:1px solid var(--border);border-radius:12px;background:var(--card);cursor:pointer;font-size:0.85rem}
+.choix-envoi input{width:17px;height:17px;flex:0 0 auto;accent-color:var(--accent);margin:0}
+.choix-envoi .ce-titre{flex:1;min-width:0}
+.choix-envoi .ce-cat{font-family:'IBM Plex Mono',monospace;font-size:0.66rem;color:var(--muted);flex:0 0 auto}
+.rien-a-envoyer{font-size:0.8rem;color:var(--muted);line-height:1.5;background:var(--card-hi);
+  border-radius:12px;padding:12px 14px}
 .export-etat{font-size:0.82rem;line-height:1.5;margin-top:10px;padding:11px 14px;border-radius:11px}
 .export-etat.ok{background:rgba(76,154,106,0.12);color:#3B7A53}
 .export-etat.att{background:var(--card-hi);color:var(--text)}
@@ -591,7 +600,8 @@ body.fond-fige{overflow:hidden}
     <h2>Réglages</h2>
   </div>
   <div class="overlay-body edit-form">
-    <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-bottom:8px">Modifier le carnet</h3>
+    <!-- ── 1. CE QUE L'ON FAIT SUR SON PROPRE CARNET ── -->
+    <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-bottom:8px">1 · Modifier le carnet local</h3>
     <p style="color:var(--muted);font-size:0.85rem;line-height:1.5">
       Le carnet s'ouvre en lecture. Chacun peut le consulter et ajouter une recette avec le bouton ＋, mais corriger une recette existante demande d'activer le réglage ci-dessous. Il s'éteint à chaque fermeture de l'application.
     </p>
@@ -599,7 +609,6 @@ body.fond-fige{overflow:hidden}
       <span>Autoriser la modification des recettes</span></label>
 
     <div id="bloc-modif" style="display:none">
-      <div style="height:1px;background:var(--border);margin:24px 0 4px"></div>
       <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-top:20px;margin-bottom:8px">Règles de bonne conduite</h3>
       <ol class="regles">
         <li><b>Mettre à jour avant de modifier.</b> Si l'accueil annonce de nouvelles recettes, chargez-les d'abord : sinon vous risquez d'effacer le travail de quelqu'un d'autre.</li>
@@ -610,38 +619,57 @@ body.fond-fige{overflow:hidden}
         <li><b>Relire le schéma</b> après avoir changé le déroulé : les deux doivent raconter la même chose.</li>
         <li><b>Rien n'est perdu.</b> L'historique est conservé, une maladresse se rattrape toujours.</li>
       </ol>
-
-      <div class="export-etat ok" id="export-etat">—</div>
       <div class="btn-row">
-        <button class="btn btn-primary btn-full" id="export-btn" onclick="exporterRecettes()">☁️ Publier mes modifications</button>
+        <button class="btn btn-danger btn-full" onclick="wipeAllRecipes()">🗑 Effacer le carnet de cet appareil</button>
       </div>
-      <div style="font-size:0.72rem;color:var(--muted);margin-top:6px;line-height:1.4">
-        Publier envoie vos recettes à tous les autres appareils. <b>Sans dépôt configuré</b>, le carnet est enregistré dans un fichier que vous pourrez transmettre — et chaque recette reste partageable une par une, depuis sa fiche : le bouton 📤 Partager emporte les ingrédients, les étapes <b>et le schéma</b>. Le message se recolle tel quel dans « Coller une recette », chez vous comme chez la personne à qui vous l'envoyez.
+    </div><!-- fin du bloc modification -->
+
+    <!-- ── 2. CE QUE L'ON DONNE AUX CARNETS DES AUTRES ── -->
+    <!-- Deux gestes de nature différente, longtemps mêlés au reste : offrir
+         une recette à quelqu'un qui tient un carnet, et écrire dans le carnet
+         commun. Le premier ne demande rien qu'un moyen d'envoyer un message ;
+         le second, un jeton. Ils ne dépendent ni l'un ni l'autre de la case
+         ci-dessus, qui ne protège que les recettes déjà présentes ici. -->
+    <div style="height:1px;background:var(--border);margin:30px 0 4px"></div>
+    <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-top:20px;margin-bottom:8px">2 · Participer à l'amélioration des autres carnets</h3>
+
+    <h4 style="font-family:'Fraunces',serif;font-size:0.9rem;margin-top:18px;margin-bottom:6px">2i · Envoyer une recette au détenteur d'un carnet</h4>
+    <p style="color:var(--muted);font-size:0.85rem;line-height:1.5">
+      Seules les recettes nées sur cet appareil sont proposées : ce sont les seules dont le carnet commun n'a pas déjà connaissance. Le message part avec le schéma, sous une forme que l'application sait relire.
+    </p>
+    <div id="liste-a-envoyer"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary btn-full" id="btn-envoyer-selection" onclick="envoyerSelection()">📨 Envoyer les recettes cochées</button>
+    </div>
+
+    <h4 style="font-family:'Fraunces',serif;font-size:0.9rem;margin-top:26px;margin-bottom:6px">2ii · Publier dans le carnet commun</h4>
+    <p style="color:var(--muted);font-size:0.85rem;line-height:1.5">
+      Publier envoie vos recettes à tous les autres appareils. Il y faut un dépôt et un jeton, renseignés plus bas. Sans eux, le carnet est simplement enregistré dans un fichier que vous pourrez transmettre.
+    </p>
+    <div class="export-etat ok" id="export-etat">—</div>
+    <div class="btn-row">
+      <button class="btn btn-primary btn-full" id="export-btn" onclick="exporterRecettes()">☁️ Publier mes modifications</button>
+    </div>
+
+    <details class="aide" style="margin-top:16px">
+      <summary>Dépôt GitHub et jeton d'accès</summary>
+      <div class="aide-corps">
+        <p>Nécessaires pour publier et pour envoyer les photos. Ces informations restent sur cet appareil et ne sont transmises qu'à GitHub.</p>
+        <p>Le jeton est un mot de passe que GitHub vous délivre pour autoriser cette application à écrire dans le dépôt. Il faut être connecté à GitHub sur cet appareil.</p>
+        <ol>
+          <li>Ouvrir <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a></li>
+          <li><b>Token name</b> : ce que vous voulez, par exemple « carnet de recettes ».</li>
+          <li><b>Expiration</b> : au choix. Au-delà de la date, il faudra en refaire un.</li>
+          <li><b>Repository access</b> : cocher <i>Only select repositories</i>, puis choisir le dépôt du carnet.</li>
+          <li><b>Permissions</b> → <i>Repository permissions</i> → <b>Contents</b> → <b>Read and write</b>. C'est la seule permission nécessaire.</li>
+          <li><b>Generate token</b>, puis copier le jeton <b>immédiatement</b> : GitHub ne l'affiche qu'une fois.</li>
+          <li>Le coller dans le champ ci-dessous, puis Enregistrer.</li>
+        </ol>
+        <p>Vos jetons existants se retrouvent sur <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">github.com/settings/tokens</a>. Si une de ces adresses ne mène nulle part, partir de <i>Settings</i> (sous votre avatar, en haut à droite) puis <i>Developer settings</i>, tout en bas du menu de gauche.</p>
+        <p>Ces réglages n'existent que sur le site : depuis un téléphone, il faut passer par le navigateur, parfois en demandant la version pour ordinateur.</p>
       </div>
+    </details>
 
-      <div style="height:1px;background:var(--border);margin:28px 0 4px"></div>
-      <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-top:20px;margin-bottom:8px">Dépôt GitHub</h3>
-      <p style="color:var(--muted);font-size:0.85rem;line-height:1.5">
-        Nécessaire pour publier et pour envoyer les photos. Ces informations restent sur cet appareil et ne sont transmises qu'à GitHub.
-      </p>
-
-      <details class="aide">
-        <summary>Comment obtenir un jeton d'accès ?</summary>
-        <div class="aide-corps">
-          <p>Le jeton est un mot de passe que GitHub vous délivre pour autoriser cette application à écrire dans le dépôt. Il faut être connecté à GitHub sur cet appareil.</p>
-          <ol>
-            <li>Ouvrir <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a></li>
-            <li><b>Token name</b> : ce que vous voulez, par exemple « carnet de recettes ».</li>
-            <li><b>Expiration</b> : au choix. Au-delà de la date, il faudra en refaire un.</li>
-            <li><b>Repository access</b> : cocher <i>Only select repositories</i>, puis choisir le dépôt du carnet.</li>
-            <li><b>Permissions</b> → <i>Repository permissions</i> → <b>Contents</b> → <b>Read and write</b>. C'est la seule permission nécessaire.</li>
-            <li><b>Generate token</b>, puis copier le jeton <b>immédiatement</b> : GitHub ne l'affiche qu'une fois.</li>
-            <li>Le coller dans le champ ci-dessous, puis Enregistrer.</li>
-          </ol>
-          <p>Vos jetons existants se retrouvent sur <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">github.com/settings/tokens</a>. Si une de ces adresses ne mène nulle part, partir de <i>Settings</i> (sous votre avatar, en haut à droite) puis <i>Developer settings</i>, tout en bas du menu de gauche.</p>
-          <p>Ces réglages n'existent que sur le site : depuis un téléphone, il faut passer par le navigateur, parfois en demandant la version pour ordinateur.</p>
-        </div>
-      </details>
     <label>Nom d'utilisateur GitHub</label>
     <input id="set-owner" placeholder="ex. jsiroteau" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
     <label>Nom du dépôt</label>
@@ -657,14 +685,9 @@ body.fond-fige{overflow:hidden}
     <div class="btn-row">
       <button class="btn btn-secondary btn-full" id="btn-test-gh" onclick="testerGithub()">🔍 Tester la connexion</button>
     </div>
-
     <div class="btn-row">
       <button class="btn btn-secondary btn-full" onclick="clearSettings()">Effacer ces réglages de cet appareil</button>
     </div>
-    <div class="btn-row">
-      <button class="btn btn-danger btn-full" onclick="wipeAllRecipes()">🗑 Effacer le carnet de cet appareil</button>
-    </div>
-    </div><!-- fin du bloc modification -->
 
     <!-- Repère de version, en pied de page : quand une correction semble
          n'avoir rien changé, c'est presque toujours le navigateur qui ressert
@@ -1610,15 +1633,74 @@ window.shareRecipe=async function(id){
   await envoyer(r.title, texte, png);
 };
 
-// Envoi destiné à quelqu'un qui tient le même carnet : on ajoute le bloc que
-// l'application sait relire, pour que la recette ET son schéma s'y recréent.
-window.proposerRecette=async function(id){
-  const r = recipes.find(x=>x.id===id);
-  const sv = currentServings[id] || r.servingsBase;
-  const ratio = (r.servingsBase && r.servingsBase>0) ? sv/r.servingsBase : 1;
-  const texte = texteRecette(r, sv, ratio) + '\n' + schemaEnTexte(r, ratio);
-  await envoyer(r.title, texte, null);
-  toast('✓ Ce message se recolle dans « Coller une recette »');
+// ══════════════════════════════════
+// OFFRIR SES RECETTES À UN AUTRE CARNET
+// ══════════════════════════════════
+// Ce geste-ci ne s'adresse pas à celui qui va cuisiner mais à celui qui tient
+// un carnet : le message emporte donc le bloc que l'application sait relire.
+// Il a sa place dans les réglages et non sur la fiche — on ne l'accomplit pas
+// en consultant une recette, mais en décidant de contribuer.
+
+// Une recette « née ici » n'existe nulle part ailleurs : c'est exactement ce
+// qu'on peut offrir. Les autres, le carnet commun les connaît déjà.
+const recettesNeesIci = () => recipes.filter(r=>r.local)
+  .sort((a,b)=>(a.title||'').localeCompare(b.title||'','fr',{sensitivity:'base'}));
+
+const SEP_RECETTE = n => '━━━━━━━━ RECETTE ' + n + ' ━━━━━━━━';
+const RE_SEP_RECETTE = /^\s*━{4,}\s*RECETTE\s+\d+\s*\/\s*\d+\s*━{4,}\s*$/m;
+
+let selectionEnvoi = new Set();
+
+window.renderListeAEnvoyer=function(){
+  const c = document.getElementById('liste-a-envoyer');
+  if(!c) return;
+  const liste = recettesNeesIci();
+  const bouton = document.getElementById('btn-envoyer-selection');
+  if(!liste.length){
+    c.innerHTML = '<div class="rien-a-envoyer">Aucune recette n\'a été créée sur cet appareil. Les recettes venues du carnet commun n\'ont pas à lui être renvoyées.</div>';
+    if(bouton) bouton.style.display = 'none';
+    return;
+  }
+  if(bouton) bouton.style.display = '';
+  c.innerHTML = liste.map(r=>`<label class="choix-envoi">
+      <input type="checkbox" ${selectionEnvoi.has(r.id)?'checked':''} onchange="basculerEnvoi('${r.id}',this.checked)">
+      <span class="ce-titre">${esc(r.title)}</span>
+      <span class="ce-cat">${esc(r.category||'')}</span>
+    </label>`).join('');
+  majBoutonEnvoi();
+};
+
+window.basculerEnvoi=function(id, coche){
+  coche ? selectionEnvoi.add(id) : selectionEnvoi.delete(id);
+  majBoutonEnvoi();
+};
+
+function majBoutonEnvoi(){
+  const b = document.getElementById('btn-envoyer-selection');
+  if(!b) return;
+  const n = selectionEnvoi.size;
+  b.textContent = n ? `📨 Envoyer ${n} recette${n>1?'s':''}` : '📨 Envoyer les recettes cochées';
+  b.disabled = !n;
+  b.style.opacity = n ? '' : '.5';
+}
+
+window.envoyerSelection=async function(){
+  const choisies = recettesNeesIci().filter(r=>selectionEnvoi.has(r.id));
+  if(!choisies.length){ toast('⚠ Cochez au moins une recette'); return; }
+  // Un seul message pour tout l'envoi : le destinataire le colle une fois et
+  // les recettes s'y recréent toutes. Un séparateur les sépare, que l'analyse
+  // reconnaît à la relecture.
+  const morceaux = choisies.map((r,i)=>{
+    const sv = r.servingsBase || 1;
+    const ratio = 1;                        // on offre la recette telle qu'elle est écrite
+    const tete = choisies.length>1 ? SEP_RECETTE((i+1)+'/'+choisies.length) + '\n' : '';
+    return tete + texteRecette(r, sv, ratio) + '\n' + schemaEnTexte(r, ratio);
+  });
+  const titre = choisies.length>1
+    ? `${choisies.length} recettes pour votre carnet`
+    : choisies[0].title;
+  await envoyer(titre, morceaux.join('\n\n'), null);
+  toast('✓ À coller dans « Coller une recette » du carnet destinataire');
 };
 
 // Un seul chemin de sortie : le partage du système s'il accepte l'image,
@@ -2567,7 +2649,7 @@ window.basculerModeModif=function(actif){
 // la page affichée, contre l'estampille du fichier réellement en ligne.
 // (Comparer avec la date de dépôt du serveur ne voulait rien dire : elle
 //  diffère forcément de l'heure d'écriture, et signalait un écart permanent.)
-const VERSION_APPLI = /*ESTAMPILLE*/'2026-08-29 19:35'/*FIN*/;
+const VERSION_APPLI = /*ESTAMPILLE*/'2026-08-29 20:41'/*FIN*/;
 
 function verifierVersion(){
   const va = document.getElementById('version-appli');
@@ -2606,6 +2688,8 @@ window.chargerDerniereVersion=function(){
 window.openSettings=function(){
   const cfg = getGhConfig()||{};
   verifierVersion();
+  selectionEnvoi.clear();
+  renderListeAEnvoyer();
   const sm = document.getElementById('set-modif');
   if(sm){ sm.checked = modeModif; document.getElementById('bloc-modif').style.display = modeModif ? '' : 'none'; }
   document.getElementById('set-owner').value = cfg.owner||'';
@@ -3090,13 +3174,7 @@ function renderDetail(r){
       <button class="btn btn-secondary" style="flex:1" onclick="shareRecipe('${r.id}')">📤 Partager</button>
       <button class="btn btn-secondary" style="flex:1" onclick="addToShoppingList('${r.id}')">🛒 Ajouter aux courses</button>
     </div>
-    ${estListeSeule(r)?'':`<div class="btn-row">
-      <button class="btn btn-secondary btn-full" onclick="proposerRecette('${r.id}')">📨 Envoyer à un autre carnet</button>
-    </div>
-    <div style="font-size:0.72rem;color:var(--muted);margin-top:-4px;line-height:1.45">
-      « Partager » envoie la recette et le schéma en image, à lire et à regarder.
-      « Envoyer à un autre carnet » y ajoute de quoi recréer la recette et son schéma dans l'application.
-    </div>`}
+
     <div class="btn-row">
       <button class="btn btn-secondary btn-full" onclick="planifierCourant('${r.id}')">📅 Planifier ce plat</button>
     </div>
@@ -4259,10 +4337,46 @@ function normaliserRecette(d){
 // au moment de l'enregistrement.
 let schemaImporte = null;
 
+// Un envoi groupé contient plusieurs recettes séparées par une barre. On les
+// traite d'un bloc : les faire relire une par une dans le formulaire ferait
+// de la contribution une corvée. Elles sont créées telles quelles, et restent
+// modifiables ensuite comme n'importe quelle recette.
+function importerGroupe(morceaux){
+  const faites = [], ratees = [];
+  morceaux.forEach(bout=>{
+    const {texte: corps, schema: lignes} = extraireBlocSchema(bout);
+    const r = normaliserRecette(analyserTexteRecette(corps));
+    if(!r.title || !r.parts.some(p=>p.ingredients.length || p.steps.length)){ ratees.push(bout.slice(0,40)); return; }
+    const g = reconstruireSchema(lignes, r);
+    if(g) r.schemaGraph = g;
+    r.local = true;                       // reçue ici : à préserver lors d'un import
+    r.id = identifiant(r.title, Date.now()%100000 + faites.length);
+    faites.push(r);
+  });
+  if(!faites.length){
+    setImportStatus("⚠ Aucune recette n'a pu être reconnue dans ce texte.", true);
+    return;
+  }
+  const liste = faites.map(r=>'• ' + r.title + (r.schemaGraph ? ' (avec son schéma)' : '')).join('\n');
+  if(!confirm(`${faites.length} recettes ont été reconnues :\n\n${liste}\n\nLes ajouter au carnet ?`)) return;
+  faites.forEach(r=>recipes.push(r));
+  sauver(true);
+  closeAllOverlays();
+  renderCategories(); renderList();
+  toast(`✓ ${faites.length} recettes ajoutées` + (ratees.length ? ` — ${ratees.length} illisible${ratees.length>1?'s':''}` : ''));
+}
+
 window.runImport=function(){
   const texte = document.getElementById('import-text').value.trim();
   if(!texte){ toast('⚠ Collez d’abord le texte d’une recette'); return; }
   setImportStatus('📖 Analyse du texte…', false);
+
+  // Envoi groupé ? La barre de séparation le dit.
+  if(RE_SEP_RECETTE.test(texte)){
+    const morceaux = texte.split(new RegExp(RE_SEP_RECETTE.source, 'gm'))
+      .map(x=>x.trim()).filter(x=>x.length > 20);
+    if(morceaux.length > 1){ importerGroupe(morceaux); return; }
+  }
   // Le bloc de schéma est mis de côté avant l'analyse : ses flèches et ses
   // numéros n'ont rien à faire dans la liste des étapes.
   const {texte: corps, schema: lignesSchema} = extraireBlocSchema(texte);
