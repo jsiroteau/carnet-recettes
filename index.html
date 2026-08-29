@@ -590,6 +590,10 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
       </ol>
 
       <div class="export-etat ok" id="export-etat">—</div>
+      <!-- Repère de version : quand une correction semble n'avoir rien changé,
+           c'est presque toujours le navigateur qui ressert l'ancienne page.
+           Cette ligne dit laquelle tourne réellement, sans avoir à deviner. -->
+      <div id="version-appli" style="font-size:0.7rem;color:var(--muted);margin-top:8px;line-height:1.5"></div>
       <div class="btn-row">
         <button class="btn btn-primary btn-full" id="export-btn" onclick="exporterRecettes()">☁️ Publier mes modifications</button>
       </div>
@@ -2428,8 +2432,24 @@ window.basculerModeModif=function(actif){
   if(currentId){ const r=recipes.find(x=>x.id===currentId); if(r) renderDetail(r); }
 };
 
+// Estampille de la version : gravée dans le fichier au moment où il est écrit.
+// Si elle ne bouge pas après une mise à jour, c'est le navigateur qui garde
+// l'ancienne page en mémoire — pas le dépôt qui n'a pas été mis à jour.
+const VERSION_APPLI = '2026-08-29 18:12';
+
 window.openSettings=function(){
   const cfg = getGhConfig()||{};
+  const va = document.getElementById('version-appli');
+  if(va){
+    // La date du fichier telle que le serveur la donne : elle prouve si la
+    // page affichée vient du réseau ou d'une copie gardée par le navigateur.
+    va.textContent = 'Version de l’application : ' + VERSION_APPLI;
+    fetch(location.href, {method:'HEAD', cache:'no-store'})
+      .then(rep=>{
+        const d = rep.headers.get('last-modified');
+        if(d) va.textContent += ' — fichier en ligne du ' + new Date(d).toLocaleString('fr-FR');
+      }).catch(()=>{});
+  }
   const sm = document.getElementById('set-modif');
   if(sm){ sm.checked = modeModif; document.getElementById('bloc-modif').style.display = modeModif ? '' : 'none'; }
   document.getElementById('set-owner').value = cfg.owner||'';
