@@ -171,9 +171,6 @@ export function detailDuree(recette){
   return {repos, cuisson, total, jours, lignes};
 }
 
-// Le total en minutes : c'est lui qu'on écrit dans le champ `duration`.
-export function minutesRecette(recette){ return detailDuree(recette).total; }
-
 // Le cran de 1 à 5 (0 si la recette ne dit aucune durée).
 export function niveauDepuisMinutes(min){
   if(!min || min <= 0) return 0;
