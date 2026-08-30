@@ -55,10 +55,19 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 /* Les catégories débordent encore latéralement quand elles sont nombreuses,
    mais la barre de défilement traçait un trait gris en travers de la page,
    juste au-dessus des filtres. On la masque : le glissement reste possible. */
-.chips{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+/* Les cinq catégories tiennent sur une ligne, sans « Toutes » : ne rien
+   choisir, c'est déjà tout voir. Elles s'ouvrent donc toutes offertes — rose
+   pâle, texte rose vif, comme les amorces des filtres au-dessous. Dès qu'un
+   type est retenu, lui seul reste en rose plein et les autres s'effacent en
+   blanc : l'écart entre le choisi et les autres se lit d'un coup d'œil. */
+.chips{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
 .chips::-webkit-scrollbar{display:none}
-.chip{padding:7px 15px;border-radius:50px;font-size:0.78rem;font-weight:500;border:1px solid var(--border);background:var(--card);color:var(--muted);white-space:nowrap;cursor:pointer;transition:all .15s}
-.chip.active{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.chip{flex:1 1 auto;text-align:center;padding:7px 10px;border-radius:50px;font-size:0.75rem;font-weight:500;
+  border:1px solid transparent;background:rgba(216,68,110,0.10);color:var(--accent);
+  white-space:nowrap;cursor:pointer;transition:all .15s}
+/* Un type retenu : les autres passent au repos, blanches et sourdes. */
+.chips.choisie .chip{background:var(--card);border-color:var(--border);color:var(--muted)}
+.chips.choisie .chip.active{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
 
 .recipe-item{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:0;margin-bottom:10px;cursor:pointer;overflow:hidden;display:flex;transition:transform .15s;box-shadow:0 2px 10px rgba(59,42,32,0.06)}
 .recipe-item:active{transform:scale(0.99)}
@@ -619,9 +628,6 @@ body.fond-fige{overflow:hidden}
   <div class="overlay-body edit-form">
     <!-- ── CE QUE L'ON FAIT SUR SON PROPRE CARNET ── -->
     <h3 class="reg-titre">Modifier le carnet local</h3>
-    <p class="reg-intro">
-      Le carnet s'ouvre en lecture. Chacun peut le consulter et ajouter une recette avec le bouton ＋ ; corriger une recette existante demande d'activer le réglage ci-dessous, qui s'éteint à chaque fermeture de l'application.
-    </p>
     <label class="bascule"><input type="checkbox" id="set-modif" onchange="basculerModeModif(this.checked)">
       <span>Autoriser la modification des recettes</span></label>
 
@@ -645,10 +651,7 @@ body.fond-fige{overflow:hidden}
     <h3 class="reg-titre">Participer à l'amélioration des autres carnets</h3>
 
     <section class="reg-geste">
-      <h4 class="reg-soustitre">Envoyer une recette au détenteur d'un carnet</h4>
-      <p class="reg-intro">
-        Seules les recettes nées sur cet appareil sont proposées : le carnet commun n'a pas connaissance des autres. Le message emporte le schéma, sous une forme que l'application sait relire.
-      </p>
+      <h4 class="reg-soustitre">Envoyer une recette propre à cet appareil au détenteur d'un carnet</h4>
       <div id="liste-a-envoyer"></div>
       <div class="btn-row">
         <button class="btn btn-primary btn-full" id="btn-envoyer-selection" onclick="envoyerSelection()">📨 Envoyer les recettes cochées</button>
@@ -656,10 +659,8 @@ body.fond-fige{overflow:hidden}
     </section>
 
     <section class="reg-geste">
-      <h4 class="reg-soustitre">Publier dans le carnet commun</h4>
-      <p class="reg-intro">
-        Publier envoie les recettes de cet appareil à tous les autres. Un dépôt et un jeton d'accès sont nécessaires.
-      </p>
+      <h4 class="reg-soustitre">Modifier le carnet commun</h4>
+      <p class="reg-intro">Un dépôt et un jeton d'accès sont nécessaires.</p>
       <div class="export-etat ok" id="export-etat">—</div>
       <div class="btn-row">
         <button class="btn btn-primary btn-full" id="export-btn" onclick="exporterRecettes()">☁️ Publier mes modifications</button>
@@ -1075,14 +1076,23 @@ async function reclasserAnciennesCategories(){
 // ── CATEGORIES ──
 function renderCategories(){
   const presentes = new Set(recipes.map(r=>r.category).filter(Boolean));
-  const cats = ['Toutes',
+  const cats = [
     ...CATEGORIES.filter(c=>presentes.has(c)),
     ...[...presentes].filter(c=>!CATEGORIES.includes(c)).sort()];
-  document.getElementById('cat-chips').innerHTML = cats.map(c=>
+  const boite = document.getElementById('cat-chips');
+  // « Toutes » n'était qu'un sixième bouton pour dire l'absence de choix, et
+  // il repoussait le cinquième type hors de l'écran. L'absence de choix se
+  // montre maintenant par l'état de la rangée entière.
+  boite.classList.toggle('choisie', activeCategory !== 'Toutes');
+  boite.innerHTML = cats.map(c=>
     `<div class="chip ${c===activeCategory?'active':''}" onclick="setCategory('${esc(c)}')">${esc(c)}</div>`
   ).join('');
 }
-window.setCategory=function(c){ activeCategory=c; renderCategories(); renderList(); };
+// Retoucher le type déjà retenu le relâche : c'est ce que faisait « Toutes ».
+window.setCategory=function(c){
+  activeCategory = (c === activeCategory) ? 'Toutes' : c;
+  renderCategories(); renderList();
+};
 
 // ── FILTRES DIFFICULTÉ / DURÉE ──
 // Deux ensembles de crans retenus. Vides = aucun filtre, donc tout s'affiche :
@@ -1681,7 +1691,7 @@ window.renderListeAEnvoyer=function(){
   const liste = recettesNeesIci();
   const bouton = document.getElementById('btn-envoyer-selection');
   if(!liste.length){
-    c.innerHTML = '<div class="rien-a-envoyer">Aucune recette n\'a été créée sur cet appareil. Les recettes venues du carnet commun n\'ont pas à lui être renvoyées.</div>';
+    c.innerHTML = '<div class="rien-a-envoyer">Il n\'y a pas de recette propre à cet appareil.</div>';
     if(bouton) bouton.style.display = 'none';
     return;
   }
@@ -2673,7 +2683,7 @@ window.basculerModeModif=function(actif){
 // la page affichée, contre l'estampille du fichier réellement en ligne.
 // (Comparer avec la date de dépôt du serveur ne voulait rien dire : elle
 //  diffère forcément de l'heure d'écriture, et signalait un écart permanent.)
-const VERSION_APPLI = /*ESTAMPILLE*/'2026-08-30 16:01'/*FIN*/;
+const VERSION_APPLI = /*ESTAMPILLE*/'2026-08-30 16:29'/*FIN*/;
 
 function verifierVersion(){
   const va = document.getElementById('version-appli');
@@ -4494,6 +4504,13 @@ function majIndicateurExport(){
           : `1 modification sur cet appareil n'est pas encore sauvegardée.`);
     t.className = enAttente===0 ? 'export-etat ok' : 'export-etat att';
   }
+  // Un bouton d'action vive alors qu'il n'y a rien à faire est une promesse
+  // vide : il s'éteint, comme celui de l'envoi, tant que rien n'attend.
+  const b = document.getElementById('export-btn');
+  if(b && !b.dataset.enCours){
+    b.disabled = enAttente===0;
+    b.style.opacity = enAttente===0 ? '.5' : '';
+  }
 }
 
 window.exporterRecettes=async function(){
@@ -4502,6 +4519,7 @@ window.exporterRecettes=async function(){
   if(!cfg){ telechargerSeed(); return; }
   if(!recipes.length && !confirm('Le carnet est vide : exporter écrasera le fichier du dépôt. Continuer ?')) return;
   const btn = document.getElementById('export-btn');
+  btn.dataset.enCours = '1';                // l'indicateur laisse la main
   btn.disabled = true; btn.textContent = 'Sauvegarde en cours…';
   try{
     const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/recipes-seed.js`;
@@ -4543,7 +4561,9 @@ window.exporterRecettes=async function(){
     toast('⚠ Échec : ' + e.message);
     signalerDepotDefaillant('La publication a échoué : ' + e.message);
   }finally{
-    btn.disabled = false; btn.textContent = '☁️ Exporter mes recettes vers GitHub';
+    delete btn.dataset.enCours;
+    btn.textContent = '☁️ Publier mes modifications';
+    majIndicateurExport();                  // c'est lui qui décide de l'allumage
   }
 };
 
