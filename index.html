@@ -2676,7 +2676,7 @@ window.basculerModeModif=function(actif){
 // la page affichée, contre l'estampille du fichier réellement en ligne.
 // (Comparer avec la date de dépôt du serveur ne voulait rien dire : elle
 //  diffère forcément de l'heure d'écriture, et signalait un écart permanent.)
-const VERSION_APPLI = /*ESTAMPILLE*/'2026-09-01 13:54'/*FIN*/;
+const VERSION_APPLI = /*ESTAMPILLE*/'2026-09-01 14:50'/*FIN*/;
 
 function verifierVersion(){
   const va = document.getElementById('version-appli');
@@ -4376,6 +4376,31 @@ const RE_SOUSPARTIE_LIBRE = /^\s*([^.!?:0-9]{3,40}?)\s*:\s*(?:\([^)]*\))?\s*$/;
 // n'en est pas un. La frontière est étroite, elle passe là.
 const intituleCredible = t => t && t.trim().split(/\s+/).length <= 6;
 
+// Les livres et les magazines crient : « MARINADE », « lait ENTIER », « A LA
+// LETTRE ». Ces capitales ne portent aucune information que la minuscule ne
+// porterait, et elles jurent dans le carnet. On les rabaisse — en épargnant
+// les sigles, qui tiennent en trois lettres.
+function calmerLesMajuscules(t){
+  let s = String(t||'');
+  // une suite de mots criés se rabaisse d'un bloc : « À LA LETTRE »
+  s = s.replace(/\b[A-ZÀ-ÖØ-Þ][A-ZÀ-ÖØ-Þ'’-]*(?:\s+[A-ZÀ-ÖØ-Þ][A-ZÀ-ÖØ-Þ'’-]*)+\b/g,
+      m => m.replace(/\s/g,'').length > 5 ? m.toLowerCase() : m);
+  // un mot isolé, assez long pour n'être pas un sigle
+  s = s.replace(/\b[A-ZÀ-ÖØ-Þ]{4,}\b/g, m => m.toLowerCase());
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+
+// « Réaliser la pâte » nomme une section par la consigne qui l'ouvre. Le verbe
+// n'apprend rien — toutes les sections se réalisent — et la section s'appelle
+// « Pâte ».
+const RE_TITRE_VERBE = /^(?:r[ée]aliser|pr[ée]parer|faire|confectionner|monter|dresser|proc[ée]der\s+[àa])\s+(?:la|le|les|l'|l’|au|aux|du|des)?\s*/i;
+function titreDeSection(nom){
+  const sans = nom.replace(RE_TITRE_VERBE, '').trim();
+  const retenu = sans.length >= 3 ? sans : nom;
+  const propre = calmerLesMajuscules(retenu);
+  return propre.charAt(0).toUpperCase() + propre.slice(1);
+}
+
 function nettoyerLigne(l){
   return l.replace(/^\s*[-–—•*·▪◦>]\s*/, '')      // puces
           .replace(/^\s*(?:étape\s*)?\d{1,2}\s*[.)°]\s+/i, '')  // « 1. » « Étape 2) »
@@ -4532,9 +4557,7 @@ function analyserTexteRecette(brut){
     break;
   }
   if(titre.length > 90){ titre = titre.slice(0,90); }
-  if(/^[A-ZÀÂÉÈÊËÎÏÔÙÛÜÇ\s'’-]{4,}$/.test(titre) && titre.length > 4){
-    titre = titre.charAt(0) + titre.slice(1).toLowerCase();
-  }
+  titre = calmerLesMajuscules(titre);
 
   // Les mentions de temps du magazine ne se rangent nulle part dans le carnet,
   // qui compte en intervalles : on les conserve en note, telles qu'elles.
@@ -4580,7 +4603,7 @@ function analyserTexteRecette(brut){
     if(sp && (sp[1] || '').trim().length < 48){
       const nom = sp[1].trim().replace(/\s*:\s*$/,'');
       if(courante.ingredients.length || courante.steps.length){ pousser(); courante = {name:'', ingredients:[], steps:[]}; }
-      courante.name = nom.charAt(0).toUpperCase() + nom.slice(1);
+      courante.name = titreDeSection(nom);
       mode = 'auto';
       continue;
     }
@@ -4639,10 +4662,21 @@ function analyserTexteRecette(brut){
   // « Crème pâtissière » apparaît deux fois : une fois pour ses ingrédients,
   // une fois pour ses étapes, à deux pages d'écart. C'est une seule et même
   // partie de la recette, et la réunir est tout l'objet de ce qui suit.
+  // Deux noms se répondent aussi quand l'un prolonge l'autre : la liste dit
+  // « Garniture », le déroulé « Garniture à la noisette ». On ne rapproche
+  // ainsi qu'une liste sans étapes et un déroulé sans ingrédients — deux
+  // moitiés qui s'appellent, et non deux sections distinctes.
+  const seRepondent = (a, b) => {
+    const na = normTitre(a.name), nb = normTitre(b.name);
+    if(na === nb) return true;
+    if(!(a.ingredients.length && !a.steps.length && b.steps.length && !b.ingredients.length)) return false;
+    return nb.startsWith(na + ' ') || na.startsWith(nb + ' ');
+  };
+
   for(let i=0; i<parts.length; i++){
     if(!parts[i].name) continue;
     for(let j=i+1; j<parts.length; j++){
-      if(normTitre(parts[j].name) !== normTitre(parts[i].name)) continue;
+      if(!parts[j].name || !seRepondent(parts[i], parts[j])) continue;
       parts[i].ingredients = parts[i].ingredients.concat(parts[j].ingredients);
       parts[i].steps = parts[i].steps.concat(parts[j].steps);
       parts.splice(j--, 1);
@@ -4659,7 +4693,8 @@ function analyserTexteRecette(brut){
   const toutesLesDenrees = parts.reduce((a,p)=>a.concat(p.ingredients||[]), []);
   parts.forEach(p=>{
     decouperPavé(p);
-    p.steps = p.steps.map(versInfinitif);
+    p.ingredients = p.ingredients.map(calmerLesMajuscules);
+    p.steps = p.steps.map(calmerLesMajuscules).map(versInfinitif);
     const cible = p.ingredients.length ? p : {ingredients: toutesLesDenrees, steps: p.steps};
     reporterQuantites(cible);
     p.steps = cible.steps;      // le report écrit dans `cible` : on le récupère
