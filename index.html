@@ -2676,7 +2676,7 @@ window.basculerModeModif=function(actif){
 // la page affichée, contre l'estampille du fichier réellement en ligne.
 // (Comparer avec la date de dépôt du serveur ne voulait rien dire : elle
 //  diffère forcément de l'heure d'écriture, et signalait un écart permanent.)
-const VERSION_APPLI = /*ESTAMPILLE*/'2026-08-30 16:43'/*FIN*/;
+const VERSION_APPLI = /*ESTAMPILLE*/'2026-09-01 13:32'/*FIN*/;
 
 function verifierVersion(){
   const va = document.getElementById('version-appli');
@@ -4157,15 +4157,224 @@ const RE_QTE_DEBUT = new RegExp('^\\s*(?:[-–—•*·▪◦>]\\s*)?(?:\\d+[.,]
 const RE_UNITE = new RegExp('(?:^|[\\s\\d(])(?:'+UNITES+')(?:[\\s.,)]|$)', 'i');
 const RE_VERBE = /\b(?:cuire|fai(?:re|tes)|bat(?:tre|tez)|servir|servez|fondre|r[ée]duire|fendre|couvrir|dissoudre|(?:m[ée]lang|ajout|vers|pr[ée]chauff|incorpor|laiss|fouett|mont|[ée]tal|d[ée]coup|coup|sal|poivr|r[ée]serv|enfourn|remu|d[ée]pos|garni|napp|d[ée]moul|p[ée]tri|refroidi|dor|badigeon|filtr|[ée]goutt|r[âa]p|hach|mix|blanchi|assaisonn|arros|farin|beurr|tremp|imbib|dress|pel|[ée]minc|tamis|dilu|chauff|plong|saupoudr|parsem|rectifi|prolong|superpos|roul|piqu|gratt|d[ée]glac|flamb|lustr|bouill|d[ée]nooyaut|d[ée]noyaut|d[ée]tail|m[ée]lang)(?:er|ez|ons|e|es|ent|[ée]|[ée]e|[ée]s|[ée]es|ir|issez|ant))\b|\b[ée]bullition\b/i;
 
+// Le même relevé, mais en tête de ligne seulement. Une étape s'ouvre presque
+// toujours sur son verbe ; au milieu d'une phrase, « beurre » et « poivre »
+// sont des denrées, et les prendre pour des verbes faisait passer « 3 c. à s.
+// de beurre de cacahuète » pour une instruction.
+const RE_VERBE_TETE = new RegExp('^\\s*(?:[-–—•*·▪◦>]\\s*)?' + RE_VERBE.source, 'i');
+
 // Lignes structurelles à ignorer (titres de colonnes d'un magazine)
+// ══════════════════════════════════
+// REDRESSER UN TEXTE COLLÉ
+// ══════════════════════════════════
+// Un texte trouvé sur internet n'est pas écrit comme le carnet l'attend :
+// il tutoie ou vouvoie, agglomère les ingrédients sur une ligne, enchaîne
+// les étapes dans un paragraphe, et surtout nomme les ingrédients dans le
+// déroulé sans jamais rappeler les quantités. Le lecteur les rétablit — sans
+// quoi le schéma ne saurait relier une étape à ce qu'elle emploie.
+
+// ── de l'impératif à l'infinitif ──
+// Les verbes de cuisine du premier groupe suivent tous la même règle : « -ez »
+// devient « -er ». Seuls les autres groupes demandent d'être nommés un à un.
+const VERBES_IRREGULIERS = {
+  faites:'faire', refaites:'refaire', défaites:'défaire', mettez:'mettre',
+  remettez:'remettre', battez:'battre', cuisez:'cuire', recuisez:'recuire',
+  réduisez:'réduire', prenez:'prendre', reprenez:'reprendre', servez:'servir',
+  resservez:'resservir', couvrez:'couvrir', découvrez:'découvrir', ouvrez:'ouvrir',
+  sortez:'sortir', obtenez:'obtenir', maintenez:'maintenir', tenez:'tenir',
+  poursuivez:'poursuivre', suivez:'suivre', pétrissez:'pétrir', saisissez:'saisir',
+  garnissez:'garnir', rôtissez:'rôtir', épaississez:'épaissir', blanchissez:'blanchir',
+  brunissez:'brunir', attendrissez:'attendrir', choisissez:'choisir', finissez:'finir',
+  remplissez:'remplir', unissez:'unir', frémissez:'frémir'
+};
+
+// Tous les mots en « -ez » ne sont pas des verbes : « et assez froid » ne doit
+// pas devenir « et asser froid ».
+// « ayez », « soyez », « sachez », « veuillez » ont bien un infinitif, mais le
+// tour où ils figurent ne se transpose pas : « N'ayez pas peur » ne devient pas
+// « N'avoir pas peur ». On les laisse.
+const FAUX_VERBES = new Set(['assez','chez','nez','rez','fez','raz','vous',
+  'ayez','soyez','sachez','veuillez','allez','voyez','croyez']);
+
+function infinitif(verbe){
+  // « n'ayez », « l'étalez » : l'élision se colle au verbe et le rendait
+  // méconnaissable. On l'écarte avant de chercher.
+  const bas = verbe.toLowerCase().replace(/^(?:n|l|s|d|m|t|j|c|qu)['’]/, '');
+  if(FAUX_VERBES.has(bas)) return null;
+  if(VERBES_IRREGULIERS[bas]) return VERBES_IRREGULIERS[bas];
+  // Le deuxième groupe finit en « -issez » : réunissez → réunir, saisissez →
+  // saisir. Sauf les verbes en « -aisser », qui sont du premier groupe :
+  // laissez → laisser, baissez → baisser. La terminaison « -aissez » suffit
+  // à les départager, et c'est tout ce qui les sépare.
+  if(/issez$/.test(bas) && !/aissez$/.test(bas) && bas.length > 6) return bas.slice(0, -5) + 'ir';
+  // « laissez », « mélangez », « saupoudrez » : le premier groupe, de loin le
+  // plus courant en cuisine.
+  if(/ez$/.test(bas) && bas.length > 4) return bas.slice(0, -2) + 'er';
+  return null;
+}
+
+// Un mot n'est examiné qu'en tête de phrase ou après une conjonction :
+// ailleurs, « -ez » pourrait appartenir à tout autre mot. On capture le mot
+// entier plutôt que sa terminaison, sans quoi « Faites » — qui ne finit pas
+// en « -ez » — ne serait jamais reconnu.
+// Le déclencheur est regardé en arrière sans être consommé : dans « saler,
+// puis badigeonner », happer « , puis » aurait mis « badigeonner » hors de
+// portée, faute d'un déclencheur restant devant lui.
+const RE_IMPERATIF = /(?<=^|[.!?;]\s|,\s|\bpuis\s|\bet\s|\bensuite\s)([A-Za-zÀ-ÖØ-öø-ÿ][a-zà-öø-ÿ'’]{2,})((?:-(?:les|le|la|l['’]|en|y|lui|leur|moi|toi))*)(?=[\s.,;:!?)]|$)/gu;
+
+// À l'impératif le pronom suit le verbe et s'y accroche — « badigeonnez-le » ;
+// à l'infinitif il le précède et se détache — « le badigeonner ». Le déplacer
+// est la moitié du travail : sans lui, la phrase perdrait son complément.
+const PRONOMS_DEPLACES = {moi:'me', toi:'te'};
+
+function deplacerPronoms(inf, accroches){
+  const pronoms = accroches.split('-').filter(Boolean)
+    .map(p=>{ const bas = p.toLowerCase().replace(/['’]$/,"'");
+              return PRONOMS_DEPLACES[bas] || bas; });
+  if(!pronoms.length) return inf;
+  // « le » et « la » s'élident devant une voyelle : « l'égoutter », pas
+  // « le égoutter ». « les » ne s'élide jamais.
+  const dernier = pronoms[pronoms.length-1];
+  if((dernier === 'le' || dernier === 'la' || dernier === "l'") && /^[aeéèêiouyh]/i.test(inf)){
+    pronoms[pronoms.length-1] = "l'";
+    return pronoms.slice(0,-1).concat([]).join(' ') + (pronoms.length>1 ? " l'" : "l'") + inf;
+  }
+  return pronoms.join(' ') + ' ' + inf;
+}
+
+function versInfinitif(phrase){
+  const texte = String(phrase||'');
+  return texte.replace(RE_IMPERATIF, (tout, mot, accroches, position) => {
+    const inf = infinitif(mot);
+    if(!inf) return tout;
+    const rendu = deplacerPronoms(inf, accroches || '');
+    const debutDePhrase = position === 0 || /[.!?;]\s*$/.test(texte.slice(0, position));
+    return debutDePhrase ? rendu.charAt(0).toUpperCase() + rendu.slice(1) : rendu;
+  });
+}
+
+// ── reporter les quantités dans le déroulé ──
+// « Mélanger la farine et le sucre » ne dit pas combien. On va le chercher
+// dans la liste d'ingrédients, et on ne le fait qu'une fois par ingrédient :
+// répéter « 200 g de farine » à chaque ligne alourdirait sans informer.
+const RE_TETE_QUANTITE = /^\s*((?:\d+[\s,.\/]*)+\s*(?:g|kg|mg|ml|cl|dl|l|litres?|grammes?|cuill[èe]res?(?:\s+[àa]\s+(?:soupe|caf[ée]))?|c\.?\s*[àa]\.?\s*[sc]\.?|pinc[ée]es?|sachets?|gousses?|tranches?|pots?|verres?|tasses?|bottes?|brins?)?\s*(?:de\s+|d'|du\s+|des\s+)?)(.+)$/i;
+
+function nomIngredient(ligne){
+  const m = String(ligne||'').match(RE_TETE_QUANTITE);
+  const nom = (m && m[2] ? m[2] : ligne).trim()
+    .replace(/\s*\([^)]*\)\s*/g,' ')          // « (bio) », « (facultatif) »
+    .replace(/,.*$/,'')                          // « farine, tamisée »
+    .trim();
+  const quantite = m && m[1] ? m[1].trim() : '';
+  return {nom, quantite};
+}
+
+function reporterQuantites(part){
+  const casee = new Set();
+  const cibles = (part.ingredients||[]).map((ing,i)=>{
+    const {nom, quantite} = nomIngredient(ing);
+    return {i, ing, nom, quantite, cle: noAccent(nom)};
+  }).filter(c=>c.quantite && c.nom.length>2)
+    .sort((a,b)=>b.nom.length - a.nom.length);   // « sucre glace » avant « sucre »
+
+  part.steps = (part.steps||[]).map(etape=>{
+    let texte = etape;
+    for(const c of cibles){
+      if(casee.has(c.i)) continue;
+      // Rien à faire si l'ingrédient est déjà écrit en toutes lettres. On
+      // compare la ligne entière, et non la seule quantité : chercher « 3 »
+      // dans la phrase le trouverait dans « 3 pots de farine » et ferait
+      // croire, à tort, que les 3 œufs y sont déjà.
+      if(noAccent(texte).includes(noAccent(c.ing))){ casee.add(c.i); continue; }
+      // Le nom précédé d'un article : c'est là que la quantité manque. Les
+      // frontières de mots de \b ne connaissent que l'alphabet anglais — « œuf »
+      // n'en fait pas partie — d'où des délimiteurs écrits à la main.
+      const nom = c.nom.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'\\s+');
+      // Seuls les articles définis ouvrent la porte : « la farine », « les
+      // aubergines », « l'œuf ». Les partitifs — du, des, de la, d' — relient
+      // le plus souvent deux noms (« le papier du beurre », « un fond d'eau »)
+      // et y glisser une quantité donnerait « le papier 300g de beurre ».
+      const motif = new RegExp("(^|[^\\p{L}])((?:le|la|les|l')\\s*)("
+        + nom + ")(?![\\p{L}])", 'iu');
+      const trouve = motif.exec(texte);
+      if(!trouve) continue;
+      // Une quantité juste avant ? Alors l'auteur a déjà dit son compte, même
+      // s'il l'a écrit autrement que dans sa liste d'ingrédients.
+      const amont = texte.slice(Math.max(0, trouve.index - 14), trouve.index + trouve[1].length);
+      if(/\d/.test(amont)){ casee.add(c.i); continue; }
+      // On reporte la quantité et le nom, sans les commentaires de la liste :
+      // « 225g de blancs d'œuf », et non « …, à température ambiante (environ
+      // 7 œufs) », qui alourdirait la phrase de précisions déjà lues ailleurs.
+      const court = c.quantite + (/['’]$/.test(c.quantite) ? '' : ' ') + c.nom;
+      texte = texte.slice(0, trouve.index) + trouve[1] + court
+            + texte.slice(trouve.index + trouve[0].length);
+      casee.add(c.i);
+    }
+    return texte;
+  });
+  return part;
+}
+
+// ── découpages ──
+// « Ingrédients : 2 avocats, 1 citron vert, sel » tient sur une ligne : c'est
+// une liste, pas une phrase. On ne la coupe que si les morceaux ressemblent
+// vraiment à des ingrédients, faute de quoi on massacrerait une étape.
+function decouperIngredients(ligne){
+  // La virgule décimale n'est pas un séparateur de liste : « 1,5 cuillère à
+  // café » est un seul ingrédient. On ne coupe donc jamais entre deux chiffres.
+  const bouts = ligne.split(/\s*;\s*|,(?!\d)\s*/)
+    .map(x=>x.trim().replace(/\s*[.;]\s*$/,''))   // « sel. » en fin de liste
+    .filter(Boolean);
+  if(bouts.length < 2) return null;
+  if(bouts.some(b=>b.length > 45 || b.length < 2)) return null;
+  const chiffres = bouts.filter(b=>RE_QTE_DEBUT.test(b)).length;
+  if(chiffres < Math.ceil(bouts.length/2)) return null;
+  return bouts;
+}
+
+// Un déroulé écrit d'un seul tenant, en un pavé. On ne le découpe qu'à cette
+// condition-là : une ou deux lignes pour toute la recette. Dès que l'auteur a
+// lui-même séparé ses étapes, ses coupures valent mieux que les nôtres — une
+// étape peut légitimement tenir en deux phrases, « Cuire 8 minutes. Laisser
+// refroidir. », et la scinder trahirait son intention.
+function decouperPavé(part){
+  // Un ou deux paragraphes pour toute une partie, mais quatre phrases ou plus :
+  // c'est un texte suivi, pas un déroulé. Au-delà de deux lignes, l'auteur a
+  // découpé lui-même et ses coupures valent mieux que les nôtres.
+  if(part.steps.length === 0 || part.steps.length > 2) return;
+  const phrases = part.steps.join(' ')
+    .split(/(?<=[.!?])\s+(?=[A-ZÀ-ÖØ-Þ])/).map(x=>x.trim()).filter(Boolean);
+  if(phrases.length >= 4 || (part.steps.length === 1 && phrases.length >= 3)) part.steps = phrases;
+}
+
 const RE_ENTETE_ING = /^\s*(ingr[ée]dients?|il vous faut|pour la recette|liste des courses)\s*:?\s*$/i;
 const RE_ENTETE_ETAPES = /^\s*(pr[ée]paration|r[ée]alisation|[ée]tapes?|m[ée]thode|recette|instructions?|marche [àa] suivre|d[ée]roul[ée]?)\s*:?\s*$/i;
-const RE_NOTE = /^\s*(astuce|conseil|variante|remarque|note|bon [àa] savoir|[àa] savoir|vous pouvez|on peut|cette recette|la recette|le petit plus|suggestion|se conserve|accompagne)/i;
+const RE_NOTE = /^\s*(?:petite?\s+|un\s+|une\s+|mon\s+|ma\s+)?(astuce|conseil|variante|remarque|note|bon [àa] savoir|[àa] savoir|vous pouvez|on peut|cette recette|la recette|le petit plus|suggestion|se conserve|accompagne)/i;
+// « REMARQUES : », « ATTENTION : », « BON À SAVOIR » en tête de bloc : tout ce
+// qui suit relève du commentaire, jusqu'à la fin du texte. Ces digressions —
+// neuf paragraphes chez certains blogueurs — n'ont rien à faire dans le
+// déroulé, où elles se feraient passer pour des étapes.
+const RE_ENTETE_NOTES = /^\s*(remarques?|attention|notes?|astuces?|conseils?|variantes?|bon [àa] savoir|le petit plus|en r[ée]sum[ée])\s*:?\s*$/i;
 const RE_BRUIT = /^\s*(page\s*\d+|\d{1,3}|photos?\s*:.*|©.*|www\..*|https?:\/\/\S+)\s*$/i;
 
 // « Pour la pâte », « Le sirop », « Ganache : »
-const MOTS_SOUSPARTIE = 'p[âa]te|garniture|cr[èe]me|ganache|sirop|sauce|montage|assemblage|gla[çc]age|d[ée]cor|appareil|fourrage|marinade|farce|biscuit|g[ée]noise|streusel|cr[ée]meux|insert|mousse|coulis|compot[ée]e|caramel|praline?|meringue|chantilly|nappage|fond|garnissage|dressage|finition|levain|d[ée]trempe|beurre manier|croustillant|sabl[ée]|cr[êe]pe|socle';
-const RE_SOUSPARTIE = new RegExp('^\\s*(?:pour\\s+(?:la|le|les|l\')\\s*)?((?:'+MOTS_SOUSPARTIE+')[^.!?]{0,40})\\s*:?\\s*$', 'i');
+const MOTS_SOUSPARTIE = 'p[âa]te|brioche|tresse|garniture|cr[èe]me|ganache|sirop|sauce|montage|assemblage|gla[çc]age|d[ée]cor|appareil|fourrage|marinade|farce|biscuit|g[ée]noise|streusel|cr[ée]meux|insert|mousse|coulis|compot[ée]e|caramel|praline?|meringue|chantilly|nappage|fond|garnissage|dressage|finition|levain|d[ée]trempe|beurre manier|croustillant|sabl[ée]|cr[êe]pe|socle';
+// Un carnet de cuisine annonce ses sous-parties de mille façons : « Pour la
+// crème », « La garniture », « Sauce ». L'article seul suffit, sans « pour ».
+const RE_SOUSPARTIE = new RegExp('^\\s*(?:pour\\s+)?(?:(?:la|le|les|l\'|du|de\\s+la)\\s*)?((?:'+MOTS_SOUSPARTIE+')[^.!?]{0,40})\\s*:?\\s*$', 'i');
+
+// Un intitulé peut aussi n'être qu'une consigne brève close par deux points —
+// « Réaliser la pâte : », « Réaliser la tresse : ». Ce qui suit les deux
+// points, s'il ne reste qu'une parenthèse, appartient encore à l'intitulé.
+// Sans garde-fou, toute ligne close par deux points passerait pour un
+// intitulé : « Le mélange doit monter et bien blanchir : » est une phrase,
+// « Ajoutez 20g de poudre à crème : » une instruction. Un intitulé est bref,
+// tient en cinq mots au plus, et ne chiffre rien.
+const RE_SOUSPARTIE_LIBRE = /^\s*([^.!?:0-9]{3,40}?)\s*:\s*(?:\([^)]*\))?\s*$/;
+// Six mots : « Réaliser la garniture à la noisette » en compte six et reste un
+// intitulé ; « Le mélange doit monter et bien blanchir » en compte sept et
+// n'en est pas un. La frontière est étroite, elle passe là.
+const intituleCredible = t => t && t.trim().split(/\s+/).length <= 6;
 
 function nettoyerLigne(l){
   return l.replace(/^\s*[-–—•*·▪◦>]\s*/, '')      // puces
@@ -4179,14 +4388,27 @@ function minutes(nombre, unite){
   return /h|heure/i.test(unite||'') ? Math.round(n*60) : Math.round(n);
 }
 function estIngredient(l){
+  if(ligneDeQuantite(l)) return true;
+  // « Sel, poivre noir du moulin » : court, sans ponctuation finale, et son
+  // premier mot n'est pas un verbe. Les deux points sont exclus : ils
+  // annoncent la suite — « Le mélange doit monter et bien blanchir : » —
+  // et n'ont jamais terminé une denrée.
+  if(l.length < 50 && !/[.!?:]$/.test(l) && !RE_VERBE_TETE.test(l)) return true;
   if(RE_VERBE.test(l) && l.length > 55) return false;
   if(RE_QTE_DEBUT.test(l)) return true;
   if(RE_UNITE.test(l) && l.length < 90) return true;
   if(l.length < 45 && !/[.!?]$/.test(l) && !RE_VERBE.test(l)) return true;
   return false;
 }
+// Ce qui s'ouvre sur une quantité et ne s'achève pas par un point est une
+// denrée, si longue que soit la ligne : « 3 cuillerées à soupe de pâte de
+// sésame ou de beurre de cacahuète lisse » en fait soixante-dix signes.
+const ligneDeQuantite = l => RE_QTE_DEBUT.test(l) && !/[.!?]$/.test(l) && l.length < 100;
+
 function estEtape(l){
-  if(RE_VERBE.test(l)) return true;
+  if(ligneDeQuantite(l)) return false;
+  if(RE_VERBE_TETE.test(l)) return true;
+  if(RE_VERBE.test(l) && /[.!?]$/.test(l)) return true;
   if(l.length > 75) return true;
   return false;
 }
@@ -4195,6 +4417,7 @@ function analyserTexteRecette(brut){
   const lignesBrutes = String(brut||'').split(/\r?\n/);
   const meta = {servingsBase:0, servingsUnit:'', difficulty:'', source:'', notes:''};
   const corps = [];
+  let enNotes = false;              // vrai une fois passé « REMARQUES : »
 
   for(let ligne of lignesBrutes){
     let l = ligne.trim();
@@ -4211,7 +4434,7 @@ function analyserTexteRecette(brut){
     // et seule qui dit « Pour N quelque chose » annonce un rendement, sauf
     // quand ce quelque chose est un convive : on ne compte jamais les gens.
     if(!meta.servingsBase){
-      m = l.match(/^\s*pour\s+(\d+)\s*(?:[àa-]\s*\d+\s*)?([a-zàâçéèêëîïôûùüÿñæœ][a-zàâçéèêëîïôûùüÿñæœ'’ -]{1,24})\s*$/i);
+      m = l.match(/^\s*pour\s+(\d+)\s*(?:[àa]\s*\d+\s*|-\s*\d+\s*)?([a-zàâçéèêëîïôûùüÿñæœ][a-zàâçéèêëîïôûùüÿñæœ'’ -]{1,24})\s*$/i);
       if(m){
         // « Pour 4 personnes » est écarté volontairement : le carnet compte ce
         // qu'on produit, pas les convives. Mais la ligne est reconnue et mise
@@ -4223,6 +4446,34 @@ function analyserTexteRecette(brut){
         continue; }
     }
 
+
+    // — mentions de temps —
+    // « PRÉPARATION : 25 MINUTES », « CUISSON : 10 MINUTES », « REPOS : 1 H »
+    // sont des étiquettes de magazine. Sans elles, « PRÉPARATION : » passait
+    // pour l'intertitre annonçant le déroulé, et tout ce qui suivait basculait
+    // en étapes. On les écarte, en gardant le temps pour la note.
+    m = l.match(/^\s*(pr[ée]paration|cuisson|repos|marinade|attente|r[ée]frig[ée]ration|total)\s*:?\s*((?:\d+\s*(?:h|min|mn|heures?|minutes?|jours?)[\s.]*)+)\s*$/i);
+    if(m){ meta.tempsLus = (meta.tempsLus||[]).concat(m[1].toLowerCase()+' : '+m[2].trim()); continue; }
+
+    // La même mention collée à une ligne de couverts : « POUR 4 PERSONNES
+    // PRÉPARATION : 25 MINUTES ». On retire la partie temps et on relit ce
+    // qui reste, plutôt que de laisser la ligne entière servir de titre.
+    const sansTemps = l.replace(/\b(pr[ée]paration|cuisson|repos|marinade|attente|r[ée]frig[ée]ration|total)\s*:?\s*(?:\d+\s*(?:h|min|mn|heures?|minutes?|jours?)[\s.]*)+/gi,
+      (t)=>{ meta.tempsLus = (meta.tempsLus||[]).concat(t.trim().toLowerCase()); return ' '; }).trim();
+    if(sansTemps !== l){
+      if(/^pour\s+\d/i.test(sansTemps) || !sansTemps) continue;   // « POUR 2 À 4 PERSONNES » : écarté
+      l = sansTemps;
+    }
+
+    // « Pour un fraisier de 18cm », « Réalisation : pour une tarte » : un
+    // rendement sans chiffre, qui vaut l'unité.
+    if(!meta.servingsBase && l.length < 70){
+      m = l.match(/^\s*(?:r[ée]alisation\s*:?\s*)?pour\s+une?\s+([a-zàâçéèêëîïôûùüÿñæœ]{3,20})\b/i);
+      if(m && !/personne|convive|invit[ée]/i.test(m[1])){
+        meta.servingsBase = 1;
+        meta.servingsUnit = m[1].toLowerCase();
+        continue; }
+    }
 
     // — difficulté —
     // L'échelle est faite des mots qu'emploie n'importe quelle recette : on
@@ -4236,11 +4487,32 @@ function analyserTexteRecette(brut){
       continue; }
 
 
-    if(RE_NOTE.test(l) && l.length > 15){ meta.notes = (meta.notes ? meta.notes+'\n' : '') + l; continue; }
+    if(RE_ENTETE_NOTES.test(l)){ enNotes = true; continue; }
+    // Un bloc de commentaires n'est pas toujours refermé : « ATTENTION » tombe
+    // souvent au milieu de la recette, et le déroulé reprend sans crier gare.
+    // Deux signes le rouvrent : un intitulé de section, ou une ligne qui
+    // s'ouvre sur un verbe d'action — « Préchauffez le four à 180° ».
+    if(enNotes){
+      const libreIci = l.match(RE_SOUSPARTIE_LIBRE);
+      if(RE_ENTETE_ING.test(l) || RE_ENTETE_ETAPES.test(l) || RE_SOUSPARTIE.test(l)
+         || (libreIci && intituleCredible(libreIci[1]))
+         || RE_VERBE_TETE.test(l) || /^\s*\d{1,2}\s*[.)]/.test(l)) enNotes = false;
+    }
+    // « Vous pouvez maintenant incorporer 225g de beurre » est une étape, non
+    // un commentaire : une quantité trahit l'instruction.
+    const noteProbable = RE_NOTE.test(l) && !(/vous pouvez|on peut/i.test(l) && /\d/.test(l));
+    if(enNotes || (noteProbable && l.length > 15)){
+      meta.notes = (meta.notes ? meta.notes+'\n' : '') + l; continue; }
     corps.push({texte: l});
   }
 
-  // — titre : première ligne utile qui n'est pas un ingrédient —
+  // — titre —
+  // Un livre de cuisine fait précéder la recette d'un chapeau : « Encore un
+  // plat ultra-rapide… ». Prendre la première ligne venue donnait ce chapeau
+  // pour titre. Un titre se reconnaît à sa brièveté et à son absence de
+  // ponctuation finale ; tout ce qui le précède et qui parle en phrases est
+  // une présentation, qui a sa place dans les notes.
+  const estUnTitre = l => l.length <= 65 && !/[.!?]$/.test(l) && !RE_QTE_DEBUT.test(l);
   let titre = '';
   let iDebut = 0;
   for(let i=0; i<corps.length; i++){
@@ -4249,6 +4521,12 @@ function analyserTexteRecette(brut){
     const l = nettoyerLigne(c.texte);
     if(RE_ENTETE_ING.test(l) || RE_ENTETE_ETAPES.test(l)) break;
     if(estIngredient(l) && RE_QTE_DEBUT.test(l)) break;
+    if(!estUnTitre(l)){                       // une phrase : c'est le chapeau
+      meta.notes = (meta.notes ? meta.notes+'\n' : '') + l;
+      corps[i] = {vide:true};
+      iDebut = i+1;
+      continue;
+    }
     titre = l.replace(/\s*:\s*$/, '');
     iDebut = i+1;
     break;
@@ -4256,6 +4534,13 @@ function analyserTexteRecette(brut){
   if(titre.length > 90){ titre = titre.slice(0,90); }
   if(/^[A-ZÀÂÉÈÊËÎÏÔÙÛÜÇ\s'’-]{4,}$/.test(titre) && titre.length > 4){
     titre = titre.charAt(0) + titre.slice(1).toLowerCase();
+  }
+
+  // Les mentions de temps du magazine ne se rangent nulle part dans le carnet,
+  // qui compte en intervalles : on les conserve en note, telles qu'elles.
+  if(meta.tempsLus && meta.tempsLus.length){
+    const dit = meta.tempsLus.map(t=>t.toLowerCase().replace(/\s*:\s*/,' : ')).join(' · ');
+    meta.notes = (meta.notes ? meta.notes+'\n' : '') + dit.charAt(0).toUpperCase() + dit.slice(1) + '.';
   }
 
   // — répartition ingrédients / étapes / sous-parties —
@@ -4267,11 +4552,17 @@ function analyserTexteRecette(brut){
   for(let i=iDebut; i<corps.length; i++){
     const c = corps[i];
     if(c.vide) continue;
-    const l = nettoyerLigne(c.texte);
+    let l = nettoyerLigne(c.texte);   // réécrite plus bas : intertitre en ligne, « Étape N : »
     if(!l) continue;
 
     if(RE_ENTETE_ING.test(l)){ mode = 'ing'; continue; }
     if(RE_ENTETE_ETAPES.test(l)){ mode = 'step'; continue; }
+
+    // Le même intertitre, mais suivi de son contenu sur la même ligne.
+    let enTeteEnLigne = l.match(/^\s*(ingr[ée]dients?|il vous faut|pour la recette)\s*:\s*(.+)$/i);
+    if(enTeteEnLigne){ mode = 'ing'; l = enTeteEnLigne[2].trim(); }
+    enTeteEnLigne = l.match(/^\s*(pr[ée]paration|r[ée]alisation|instructions?|m[ée]thode)\s*:\s*(.+)$/i);
+    if(enTeteEnLigne){ mode = 'step'; l = enTeteEnLigne[2].trim(); }
 
     // « — Gâteau au fromage — » : encadré de tirets cadratins, c'est un titre
     // de sous-partie quel que soit son libellé. Un partage écrit ses titres
@@ -4282,8 +4573,11 @@ function analyserTexteRecette(brut){
     // puce dit que c'est un ingrédient de la liste en cours. On ne se laisse
     // pas prendre : seule une ligne sans puce peut ouvrir une sous-partie.
     const aPuce = /^\s*[-–—•*·▪◦]\s+/.test(String(c.texte||''));
-    const sp = encadre ? encadre : (aPuce ? null : l.match(RE_SOUSPARTIE));
-    if(sp && l.length < 55){
+    const libre = aPuce ? null : l.match(RE_SOUSPARTIE_LIBRE);
+    const sp = encadre ? encadre
+             : (aPuce ? null : (l.match(RE_SOUSPARTIE)
+                || (libre && intituleCredible(libre[1]) ? libre : null)));
+    if(sp && (sp[1] || '').trim().length < 48){
       const nom = sp[1].trim().replace(/\s*:\s*$/,'');
       if(courante.ingredients.length || courante.steps.length){ pousser(); courante = {name:'', ingredients:[], steps:[]}; }
       courante.name = nom.charAt(0).toUpperCase() + nom.slice(1);
@@ -4291,19 +4585,55 @@ function analyserTexteRecette(brut){
       continue;
     }
 
-    const numerotee = /^\s*(?:étape\s*)?\d{1,2}\s*[.)°]\s+/i.test(c.texte);
+    // « Étape 1 : », « Étape 3 - », « 2) » : autant de façons d'ouvrir une
+    // étape. Le mot « étape » suffit à trancher, quel que soit le séparateur ;
+    // sans lui, on exige un point ou une parenthèse, pour ne pas confondre
+    // avec « 2 œufs ».
+    const etapeNommee = /^\s*[ée]tape\s*n?[°o]?\s*\d{0,2}\s*[:.)–—-]?\s+/i.test(c.texte);
+    // Les livres numérotent sans rien après le chiffre : « 1 Découpez le
+    // poulet ». La majuscule qui suit et le verbe qui la porte distinguent
+    // cette ouverture d'un « 2 oignons » — dont la suite est en minuscules.
+    const reste = l.replace(/^\s*\d{1,2}\s+/, '');
+    const nueMaisNumerotee = /^\s*\d{1,2}\s+[A-ZÀÂÉÈÊËÎÏÔÙÛÜÇ]/.test(c.texte)
+      && (RE_VERBE.test(reste) || reste.length > 40);
+    const numerotee = etapeNommee || nueMaisNumerotee || /^\s*\d{1,2}\s*[.)°]\s+/.test(c.texte);
+    if(etapeNommee) l = l.replace(/^\s*[ée]tape\s*n?[°o]?\s*\d{0,2}\s*[:.)–—-]?\s+/i, '');
+    else if(nueMaisNumerotee) l = l.replace(/^\s*\d{1,2}\s+/, '');
     const ligneQuantite = RE_QTE_DEBUT.test(l) && l.length < 70 && !/[.!?]$/.test(l);
     let type;
     if(numerotee) type = 'step';
     else if(mode==='step') type = 'step';
     else if(ligneQuantite) type = 'ing';
-    else if(mode==='ing') type = (l.length > 80 && RE_VERBE.test(l)) ? 'step' : 'ing';
+    // En mode « ingrédients », une ligne qui commence par un verbe d'action et
+    // s'achève par un point n'est plus une denrée : la liste est finie et le
+    // déroulé a commencé, sans que personne l'ait annoncé.
+    else if(mode==='ing') type = ((RE_VERBE.test(l) && /[.!?]$/.test(l) && !RE_QTE_DEBUT.test(l))
+                                  || (l.length > 80 && RE_VERBE.test(l))) ? 'step' : 'ing';
     else type = (estIngredient(l) && !estEtape(l)) ? 'ing' : 'step';
 
-    if(type==='ing') courante.ingredients.push(l);
-    else courante.steps.push(l);
+    if(type==='ing'){
+      const bouts = decouperIngredients(l);
+      if(bouts) bouts.forEach(b=>courante.ingredients.push(b));
+      else courante.ingredients.push(l);
+    } else courante.steps.push(l);
   }
   pousser();
+
+  // Le texte est classé : on le redresse. D'abord la langue — le carnet
+  // s'écrit à l'infinitif —, ensuite les quantités, qu'on rapatrie de la
+  // liste vers le déroulé pour que chaque étape dise ce qu'elle emploie.
+  // Beaucoup de recettes séparent les listes d'ingrédients — « La brioche »,
+  // « La garniture » — des sections d'étapes. Une partie sans ingrédient va
+  // donc les chercher dans toute la recette, sans quoi aucune quantité ne
+  // serait reportée dans son déroulé.
+  const toutesLesDenrees = parts.reduce((a,p)=>a.concat(p.ingredients||[]), []);
+  parts.forEach(p=>{
+    decouperPavé(p);
+    p.steps = p.steps.map(versInfinitif);
+    const cible = p.ingredients.length ? p : {ingredients: toutesLesDenrees, steps: p.steps};
+    reporterQuantites(cible);
+    p.steps = cible.steps;      // le report écrit dans `cible` : on le récupère
+  });
 
   if(parts.length > 1){
     const avecEtapes = parts.filter(p=>p.steps.length);
@@ -4439,7 +4769,7 @@ function ouvrirRelecture(r){
   const body = document.getElementById('edit-body');
   const banniere = document.createElement('div');
   banniere.className = 'review-banner';
-  banniere.innerHTML = "📖 Texte analysé. Le classement en ingrédients et en étapes est automatique : <b>vérifiez-le</b>, corrigez ce qu'il faut, puis enregistrez.";
+  banniere.innerHTML = "📖 Texte analysé. Le classement en ingrédients et en étapes est automatique : <b>le vérifier</b>, corriger ce qu'il faut, puis enregistrer.";
   body.insertBefore(banniere, body.firstChild);
   closeOverlay('import-overlay');
   closeOverlay('add-overlay');
