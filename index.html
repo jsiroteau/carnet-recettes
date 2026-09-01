@@ -2676,7 +2676,7 @@ window.basculerModeModif=function(actif){
 // la page affichée, contre l'estampille du fichier réellement en ligne.
 // (Comparer avec la date de dépôt du serveur ne voulait rien dire : elle
 //  diffère forcément de l'heure d'écriture, et signalait un écart permanent.)
-const VERSION_APPLI = /*ESTAMPILLE*/'2026-09-01 13:32'/*FIN*/;
+const VERSION_APPLI = /*ESTAMPILLE*/'2026-09-01 13:54'/*FIN*/;
 
 function verifierVersion(){
   const va = document.getElementById('version-appli');
@@ -4619,6 +4619,36 @@ function analyserTexteRecette(brut){
   }
   pousser();
 
+  // ── remettre chaque déroulé sous sa liste ──
+  // Certaines recettes énumèrent d'abord toutes leurs sections d'ingrédients,
+  // puis déroulent les étapes. La dernière liste happe alors tout ce qui suit,
+  // faute d'un intitulé pour l'en séparer. Deux sections purement énumératives
+  // suffisent à reconnaître cette disposition ; on rend alors sa liberté au
+  // déroulé, qui pourra rejoindre ensuite la section dont il porte le nom.
+  const listesSeules = parts.filter(p=>p.ingredients.length && !p.steps.length).length;
+  if(listesSeules >= 2){
+    for(let i=0; i<parts.length; i++){
+      const p = parts[i];
+      if(!(p.ingredients.length && p.steps.length >= 3)) continue;
+      parts.splice(i+1, 0, {name:'', ingredients:[], steps:p.steps});
+      p.steps = [];
+      i++;
+    }
+  }
+
+  // « Crème pâtissière » apparaît deux fois : une fois pour ses ingrédients,
+  // une fois pour ses étapes, à deux pages d'écart. C'est une seule et même
+  // partie de la recette, et la réunir est tout l'objet de ce qui suit.
+  for(let i=0; i<parts.length; i++){
+    if(!parts[i].name) continue;
+    for(let j=i+1; j<parts.length; j++){
+      if(normTitre(parts[j].name) !== normTitre(parts[i].name)) continue;
+      parts[i].ingredients = parts[i].ingredients.concat(parts[j].ingredients);
+      parts[i].steps = parts[i].steps.concat(parts[j].steps);
+      parts.splice(j--, 1);
+    }
+  }
+
   // Le texte est classé : on le redresse. D'abord la langue — le carnet
   // s'écrit à l'infinitif —, ensuite les quantités, qu'on rapatrie de la
   // liste vers le déroulé pour que chaque étape dise ce qu'elle emploie.
@@ -4638,7 +4668,13 @@ function analyserTexteRecette(brut){
   if(parts.length > 1){
     const avecEtapes = parts.filter(p=>p.steps.length);
     const derniere = parts[parts.length-1];
-    if(avecEtapes.length === 1 && avecEtapes[0] === derniere && derniere.ingredients.length){
+    // Un déroulé unique, sans nom et sans ingrédients : il vaut pour toute la
+    // recette. On l'intitule, plutôt que de le laisser anonyme sous la dernière
+    // liste d'ingrédients.
+    if(avecEtapes.length === 1 && !avecEtapes[0].name && !avecEtapes[0].ingredients.length){
+      avecEtapes[0].name = 'Préparation';
+    }
+    else if(avecEtapes.length === 1 && avecEtapes[0] === derniere && derniere.ingredients.length){
       const etapes = derniere.steps;
       derniere.steps = [];
       parts.push({name:'Préparation', ingredients:[], steps:etapes});
