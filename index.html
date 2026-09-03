@@ -1308,6 +1308,20 @@ function accorderGroupe(texte, pluriel){
   let arrete = false;
   return String(texte).split(/(\s+)/).map(m=>{
     if(!m.trim() || arrete) return m;
+    // Un tiret isolé sépare, lui aussi : « brioche - 10 tranches ».
+    if(/^[-–—]$/.test(m)){ arrete = true; return m; }
+    // Une parenthèse ou une virgule ouvre un aparté — « gâteau (8 parts) »,
+    // « baba, 6 parts » — qui dénombre les portions et ne suit pas le gâteau
+    // au pluriel. Le mot qui précède l'aparté s'accorde encore ; tout ce qui
+    // vient après est laissé tel quel.
+    const apartee = m.match(/^([^(,;]*)([(,;][\s\S]*)$/);
+    if(apartee){
+      arrete = true;
+      const tete = apartee[1];
+      return (tete && /[A-Za-zÀ-ÖØ-öø-ÿŒœ]/.test(tete) ? accorderMot(tete, pluriel) : tete) + apartee[2];
+    }
+    // Un jeton sans lettre — un nombre, un symbole — n'a pas de pluriel.
+    if(!/[A-Za-zÀ-ÖØ-öø-ÿŒœ]/.test(m)) return m;
     const b = noAccent(m.replace(/[.,;:!?]+$/,''));
     if(ACC_INVARIABLES.has(b) || ACC_UNITES.has(b)) return m;
     if(ACC_STOP.has(b) || /^[ld]['’]/.test(b)){ arrete = true; return m; }
@@ -2676,7 +2690,7 @@ window.basculerModeModif=function(actif){
 // la page affichée, contre l'estampille du fichier réellement en ligne.
 // (Comparer avec la date de dépôt du serveur ne voulait rien dire : elle
 //  diffère forcément de l'heure d'écriture, et signalait un écart permanent.)
-const VERSION_APPLI = /*ESTAMPILLE*/'2026-09-01 14:50'/*FIN*/;
+const VERSION_APPLI = /*ESTAMPILLE*/'2026-09-03 07:57'/*FIN*/;
 
 function verifierVersion(){
   const va = document.getElementById('version-appli');
