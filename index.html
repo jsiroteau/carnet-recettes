@@ -1701,7 +1701,11 @@ window.renderListeAEnvoyer=function(){
   const bouton = document.getElementById('btn-envoyer-selection');
   if(!liste.length){
     c.innerHTML = '<div class="rien-a-envoyer">Il n\'y a pas de recette propre à cet appareil.</div>';
-    if(bouton) bouton.style.display = 'none';
+    // Le bouton reste en place, éteint, comme celui de la publication : un
+    // bouton qui disparaît laisse croire que la section entière est fermée,
+    // ou soumise à une autorisation qu'on n'aurait pas donnée.
+    if(bouton){ bouton.style.display = ''; bouton.disabled = true; bouton.style.opacity = '.5';
+                bouton.textContent = '📨 Envoyer les recettes cochées'; }
     return;
   }
   if(bouton) bouton.style.display = '';
@@ -2690,7 +2694,7 @@ window.basculerModeModif=function(actif){
 // la page affichée, contre l'estampille du fichier réellement en ligne.
 // (Comparer avec la date de dépôt du serveur ne voulait rien dire : elle
 //  diffère forcément de l'heure d'écriture, et signalait un écart permanent.)
-const VERSION_APPLI = /*ESTAMPILLE*/'2026-09-03 07:57'/*FIN*/;
+const VERSION_APPLI = /*ESTAMPILLE*/'2026-09-07 07:35'/*FIN*/;
 
 function verifierVersion(){
   const va = document.getElementById('version-appli');
