@@ -485,9 +485,16 @@ body.fond-fige{overflow:hidden}
 /* La liste des recettes offrables : une case, un titre, sa catégorie. Rien de
    plus — on choisit ce qu'on donne, on ne relit pas la recette ici. */
 .choix-envoi{display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:6px;
-  border:1px solid var(--border);border-radius:12px;background:var(--card);cursor:pointer;font-size:0.85rem}
+  border:1px solid var(--border);border-radius:12px;background:var(--card);cursor:pointer;font-size:0.85rem;
+  transition:all .15s}
 .choix-envoi input{width:17px;height:17px;flex:0 0 auto;accent-color:var(--accent);margin:0}
-.choix-envoi .ce-titre{flex:1;min-width:0}
+/* Le titre porte la couleur ordinaire du texte. En beige il paraissait éteint,
+   comme si la ligne était hors d'atteinte — au point qu'on n'essayait plus de
+   la cocher. Seule la catégorie, secondaire, reste en retrait. */
+.choix-envoi .ce-titre{flex:1;min-width:0;color:var(--text)}
+/* Une ligne retenue se voit : bord et fond rosés, titre en gras. */
+.choix-envoi.on{border-color:var(--accent);background:rgba(216,68,110,0.07)}
+.choix-envoi.on .ce-titre{font-weight:600;color:var(--accent)}
 .choix-envoi .ce-cat{font-family:'IBM Plex Mono',monospace;font-size:0.66rem;color:var(--muted);flex:0 0 auto}
 .rien-a-envoyer{font-size:0.8rem;color:var(--muted);line-height:1.5;background:var(--card-hi);
   border-radius:12px;padding:12px 14px}
@@ -1709,16 +1716,18 @@ window.renderListeAEnvoyer=function(){
     return;
   }
   if(bouton) bouton.style.display = '';
-  c.innerHTML = liste.map(r=>`<label class="choix-envoi">
-      <input type="checkbox" ${selectionEnvoi.has(r.id)?'checked':''} onchange="basculerEnvoi('${r.id}',this.checked)">
+  c.innerHTML = liste.map(r=>`<label class="choix-envoi${selectionEnvoi.has(r.id)?' on':''}">
+      <input type="checkbox" ${selectionEnvoi.has(r.id)?'checked':''} onchange="basculerEnvoi('${r.id}',this.checked,this)">
       <span class="ce-titre">${esc(r.title)}</span>
       <span class="ce-cat">${esc(r.category||'')}</span>
     </label>`).join('');
   majBoutonEnvoi();
 };
 
-window.basculerEnvoi=function(id, coche){
+window.basculerEnvoi=function(id, coche, champ){
   coche ? selectionEnvoi.add(id) : selectionEnvoi.delete(id);
+  const ligne = champ && champ.closest('.choix-envoi');
+  if(ligne) ligne.classList.toggle('on', coche);
   majBoutonEnvoi();
 };
 
@@ -2694,7 +2703,7 @@ window.basculerModeModif=function(actif){
 // la page affichée, contre l'estampille du fichier réellement en ligne.
 // (Comparer avec la date de dépôt du serveur ne voulait rien dire : elle
 //  diffère forcément de l'heure d'écriture, et signalait un écart permanent.)
-const VERSION_APPLI = /*ESTAMPILLE*/'2026-09-07 07:35'/*FIN*/;
+const VERSION_APPLI = /*ESTAMPILLE*/'2026-09-07 08:36'/*FIN*/;
 
 function verifierVersion(){
   const va = document.getElementById('version-appli');
